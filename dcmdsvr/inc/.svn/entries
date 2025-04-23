@@ -1,0 +1,337 @@
+<?xml version="1.0" encoding="utf-8"?>
+<wc-entries
+   xmlns="svn:">
+<entry
+   committed-rev="470"
+   name=""
+   committed-date="2013-05-08T06:05:37.532532Z"
+   url="svn://172.16.9.207/ezwon/server/zangsi_with_dcmd/dcmdsvr/inc"
+   last-author="jindogg"
+   kind="dir"
+   uuid="ae599a11-4fef-40d6-8bf3-4dd85d011f42"
+   revision="674"/>
+<entry
+   committed-rev="470"
+   name="CDBQueue.h"
+   text-time="2013-05-09T06:42:50.000000Z"
+   committed-date="2013-05-08T06:05:37.532532Z"
+   checksum="f68ff2f8508b6228250cade8c5d61bfa"
+   last-author="jindogg"
+   kind="file"
+   prop-time="2013-05-09T06:42:50.000000Z"/>
+<entry
+   committed-rev="470"
+   name="mysql_pool.h"
+   text-time="2013-05-09T06:42:50.000000Z"
+   committed-date="2013-05-08T06:05:37.532532Z"
+   checksum="89d43c7e06a12c3c069854c13f66eba1"
+   last-author="jindogg"
+   kind="file"
+   prop-time="2013-05-09T06:42:50.000000Z"/>
+<entry
+   committed-rev="470"
+   name="dcmdfups40061.h"
+   text-time="2013-05-09T06:42:50.000000Z"
+   committed-date="2013-05-08T06:05:37.532532Z"
+   checksum="f57a4bc94f71e997af5338abc3eb8229"
+   last-author="jindogg"
+   kind="file"
+   prop-time="2013-05-09T06:42:50.000000Z"/>
+<entry
+   committed-rev="470"
+   name="dcmdfups4001.h"
+   text-time="2013-05-09T06:42:50.000000Z"
+   committed-date="2013-05-08T06:05:37.532532Z"
+   checksum="a69fcc88adb9d887b66a0af61de1fece"
+   last-author="jindogg"
+   kind="file"
+   prop-time="2013-05-09T06:42:50.000000Z"/>
+<entry
+   committed-rev="470"
+   name="dcmdfups4002.h"
+   text-time="2013-05-09T06:42:50.000000Z"
+   committed-date="2013-05-08T06:05:37.532532Z"
+   checksum="a812d05a14ccb0b3305c1d4086dc0632"
+   last-author="jindogg"
+   kind="file"
+   prop-time="2013-05-09T06:42:50.000000Z"/>
+<entry
+   committed-rev="470"
+   name="dcmdfups4003.h"
+   text-time="2013-05-09T06:42:50.000000Z"
+   committed-date="2013-05-08T06:05:37.532532Z"
+   checksum="77887aa5f2d9c3e9d8bbb88a4387d254"
+   last-author="jindogg"
+   kind="file"
+   prop-time="2013-05-09T06:42:50.000000Z"/>
+<entry
+   committed-rev="470"
+   name="dcmdfups4004.h"
+   text-time="2013-05-09T06:42:50.000000Z"
+   committed-date="2013-05-08T06:05:37.532532Z"
+   checksum="d78850feb0306ca97a9298b46a149a64"
+   last-author="jindogg"
+   kind="file"
+   prop-time="2013-05-09T06:42:50.000000Z"/>
+<entry
+   committed-rev="470"
+   name="dcmdfups4005.h"
+   text-time="2013-05-09T06:42:50.000000Z"
+   committed-date="2013-05-08T06:05:37.532532Z"
+   checksum="e260f64b93072acb822cce3ce956f8ab"
+   last-author="jindogg"
+   kind="file"
+   prop-time="2013-05-09T06:42:50.000000Z"/>
+<entry
+   committed-rev="470"
+   name="dcmdfups4006.h"
+   text-time="2013-05-09T06:42:50.000000Z"
+   committed-date="2013-05-08T06:05:37.532532Z"
+   checksum="3edfe6f9a007ee7ff4506f1a8cfee407"
+   last-author="jindogg"
+   kind="file"
+   prop-time="2013-05-09T06:42:50.000000Z"/>
+<entry
+   committed-rev="470"
+   name="CSchQueue.h"
+   text-time="2013-05-09T06:42:50.000000Z"
+   committed-date="2013-05-08T06:05:37.532532Z"
+   checksum="6a85a31af10ba757aeb42e11cf932e72"
+   last-author="jindogg"
+   kind="file"
+   prop-time="2013-05-09T06:42:50.000000Z"/>
+<entry
+   committed-rev="470"
+   name="Cmd_102.h"
+   text-time="2013-05-09T06:42:50.000000Z"
+   committed-date="2013-05-08T06:05:37.532532Z"
+   checksum="465680a9f92b740fd09f2e838cf55ebc"
+   last-author="jindogg"
+   kind="file"
+   prop-time="2013-05-09T06:42:50.000000Z"/>
+<entry
+   committed-rev="470"
+   name="dcmdfdns3004.h"
+   text-time="2013-05-09T06:42:50.000000Z"
+   committed-date="2013-05-08T06:05:37.532532Z"
+   checksum="f55935852410fbbaa55d84616c631c1f"
+   last-author="jindogg"
+   kind="file"
+   prop-time="2013-05-09T06:42:50.000000Z"/>
+<entry
+   committed-rev="470"
+   name="dcmdfups40010.h"
+   text-time="2013-05-09T06:42:50.000000Z"
+   committed-date="2013-05-08T06:05:37.532532Z"
+   checksum="e0d4cbabf7cb29ef74209b345f3600be"
+   last-author="jindogg"
+   kind="file"
+   prop-time="2013-05-09T06:42:50.000000Z"/>
+<entry
+   committed-rev="470"
+   name="dcmdproc.h"
+   text-time="2013-05-09T06:42:50.000000Z"
+   committed-date="2013-05-08T06:05:37.532532Z"
+   checksum="e9d0afb872772d00f92a752239886c94"
+   last-author="jindogg"
+   kind="file"
+   prop-time="2013-05-09T06:42:50.000000Z"/>
+<entry
+   committed-rev="470"
+   name="dcmdcomlib.h"
+   text-time="2013-05-09T06:42:50.000000Z"
+   committed-date="2013-05-08T06:05:37.532532Z"
+   checksum="c6b8eed6a0e2d39c89e15a2ca16d765f"
+   last-author="jindogg"
+   kind="file"
+   prop-time="2013-05-09T06:42:50.000000Z"/>
+<entry
+   committed-rev="470"
+   name="CLog64.h"
+   text-time="2013-05-09T06:42:50.000000Z"
+   committed-date="2013-05-08T06:05:37.532532Z"
+   checksum="a5f6f38471a626c63706e6c374361e43"
+   last-author="jindogg"
+   kind="file"
+   prop-time="2013-05-09T06:42:50.000000Z"/>
+<entry
+   committed-rev="470"
+   name="dcmdfups40051.h"
+   text-time="2013-05-09T06:42:50.000000Z"
+   committed-date="2013-05-08T06:05:37.532532Z"
+   checksum="871972436ddb92f29244daaaa07c21bd"
+   last-author="jindogg"
+   kind="file"
+   prop-time="2013-05-09T06:42:50.000000Z"/>
+<entry
+   committed-rev="470"
+   name="dcmdmain.h"
+   text-time="2013-05-09T06:42:50.000000Z"
+   committed-date="2013-05-08T06:05:37.532532Z"
+   checksum="5e25f2b40c1772e305d17820e1e0bcb6"
+   last-author="jindogg"
+   kind="file"
+   prop-time="2013-05-09T06:42:50.000000Z"/>
+<entry
+   committed-rev="470"
+   name="dcmd9001.h"
+   text-time="2013-05-09T06:42:50.000000Z"
+   committed-date="2013-05-08T06:05:37.532532Z"
+   checksum="3e8eb1dc0a3ebf09597446794cb668d3"
+   last-author="jindogg"
+   kind="file"
+   prop-time="2013-05-09T06:42:50.000000Z"/>
+<entry
+   committed-rev="470"
+   name="dcmddefine.h"
+   text-time="2013-05-09T06:42:50.000000Z"
+   committed-date="2013-05-08T06:05:37.532532Z"
+   checksum="d3b2d335c93dd202ee03606a2d141554"
+   last-author="jindogg"
+   kind="file"
+   prop-time="2013-05-09T06:42:50.000000Z"/>
+<entry
+   committed-rev="470"
+   name="dcmd9002.h"
+   text-time="2013-05-09T06:42:50.000000Z"
+   committed-date="2013-05-08T06:05:37.532532Z"
+   checksum="f3ba9f19197a02e2be7dfb942d3d3f0f"
+   last-author="jindogg"
+   kind="file"
+   prop-time="2013-05-09T06:42:50.000000Z"/>
+<entry
+   committed-rev="470"
+   name="dcmd9101.h"
+   text-time="2013-05-09T06:42:50.000000Z"
+   committed-date="2013-05-08T06:05:37.532532Z"
+   checksum="e66d6e84df6b1739bf212708c487330d"
+   last-author="jindogg"
+   kind="file"
+   prop-time="2013-05-09T06:42:50.000000Z"/>
+<entry
+   committed-rev="470"
+   name="dcmd9102.h"
+   text-time="2013-05-09T06:42:50.000000Z"
+   committed-date="2013-05-08T06:05:37.532532Z"
+   checksum="9277603b3a08f0515682fa0366f3fffe"
+   last-author="jindogg"
+   kind="file"
+   prop-time="2013-05-09T06:42:50.000000Z"/>
+<entry
+   committed-rev="470"
+   name="dcmd9201.h"
+   text-time="2013-05-09T06:42:50.000000Z"
+   committed-date="2013-05-08T06:05:37.532532Z"
+   checksum="f8a0fe5cbba37ab26946f2fec7bc8bd2"
+   last-author="jindogg"
+   kind="file"
+   prop-time="2013-05-09T06:42:50.000000Z"/>
+<entry
+   committed-rev="470"
+   name="dcmd9301.h"
+   text-time="2013-05-09T06:42:50.000000Z"
+   committed-date="2013-05-08T06:05:37.532532Z"
+   checksum="91cdc2bdd2c0b78a7f91fa87a39a4346"
+   last-author="jindogg"
+   kind="file"
+   prop-time="2013-05-09T06:42:50.000000Z"/>
+<entry
+   committed-rev="470"
+   name="dcmd9004.h"
+   text-time="2013-05-09T06:42:50.000000Z"
+   committed-date="2013-05-08T06:05:37.532532Z"
+   checksum="f7e60e6e51f9dfcac99b4586fdaf4094"
+   last-author="jindogg"
+   kind="file"
+   prop-time="2013-05-09T06:42:50.000000Z"/>
+<entry
+   committed-rev="470"
+   name="dcmd9103.h"
+   text-time="2013-05-09T06:42:50.000000Z"
+   committed-date="2013-05-08T06:05:37.532532Z"
+   checksum="15ae006b33a19de7963a1337fa3af9c1"
+   last-author="jindogg"
+   kind="file"
+   prop-time="2013-05-09T06:42:50.000000Z"/>
+<entry
+   committed-rev="470"
+   name="dcmd9202.h"
+   text-time="2013-05-09T06:42:50.000000Z"
+   committed-date="2013-05-08T06:05:37.532532Z"
+   checksum="c4b5599089b79b568dc09c5891822832"
+   last-author="jindogg"
+   kind="file"
+   prop-time="2013-05-09T06:42:50.000000Z"/>
+<entry
+   committed-rev="470"
+   name="dcmd9203.h"
+   text-time="2013-05-09T06:42:50.000000Z"
+   committed-date="2013-05-08T06:05:37.532532Z"
+   checksum="e9eb69e5c9862950d0d0df47c15d0530"
+   last-author="jindogg"
+   kind="file"
+   prop-time="2013-05-09T06:42:50.000000Z"/>
+<entry
+   committed-rev="470"
+   name="dcmd9005.h"
+   text-time="2013-05-09T06:42:50.000000Z"
+   committed-date="2013-05-08T06:05:37.532532Z"
+   checksum="c95a812d707b90c47079456bbb50b438"
+   last-author="jindogg"
+   kind="file"
+   prop-time="2013-05-09T06:42:50.000000Z"/>
+<entry
+   committed-rev="470"
+   name="dcmd9104.h"
+   text-time="2013-05-09T06:42:50.000000Z"
+   committed-date="2013-05-08T06:05:37.532532Z"
+   checksum="a336cafae71b8ea30aa5a7058240fd88"
+   last-author="jindogg"
+   kind="file"
+   prop-time="2013-05-09T06:42:50.000000Z"/>
+<entry
+   committed-rev="470"
+   name="dcmd9204.h"
+   text-time="2013-05-09T06:42:50.000000Z"
+   committed-date="2013-05-08T06:05:37.532532Z"
+   checksum="a2fd8b4e0ef8e2d92fe9acc066ce6850"
+   last-author="jindogg"
+   kind="file"
+   prop-time="2013-05-09T06:42:50.000000Z"/>
+<entry
+   committed-rev="470"
+   name="dcmd9006.h"
+   text-time="2013-05-09T06:42:50.000000Z"
+   committed-date="2013-05-08T06:05:37.532532Z"
+   checksum="7650399f80975470fc280c3085413f0f"
+   last-author="jindogg"
+   kind="file"
+   prop-time="2013-05-09T06:42:50.000000Z"/>
+<entry
+   committed-rev="470"
+   name="dcmd9105.h"
+   text-time="2013-05-09T06:42:50.000000Z"
+   committed-date="2013-05-08T06:05:37.532532Z"
+   checksum="2eaef8a2707ccb388236b5bbdfbef7b3"
+   last-author="jindogg"
+   kind="file"
+   prop-time="2013-05-09T06:42:50.000000Z"/>
+<entry
+   committed-rev="470"
+   name="dcmd9205.h"
+   text-time="2013-05-09T06:42:50.000000Z"
+   committed-date="2013-05-08T06:05:37.532532Z"
+   checksum="6025b229a39329be890288ec644364b1"
+   last-author="jindogg"
+   kind="file"
+   prop-time="2013-05-09T06:42:50.000000Z"/>
+<entry
+   committed-rev="470"
+   name="dcmdsock.h"
+   text-time="2013-05-09T06:42:50.000000Z"
+   committed-date="2013-05-08T06:05:37.532532Z"
+   checksum="1a0006f3ac40eb955be9a83cfe200463"
+   last-author="jindogg"
+   kind="file"
+   prop-time="2013-05-09T06:42:50.000000Z"/>
+</wc-entries>

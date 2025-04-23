@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<wc-entries
+   xmlns="svn:">
+<entry
+   committed-rev="470"
+   name=""
+   committed-date="2013-05-08T06:05:37.532532Z"
+   url="svn://172.16.9.207/ezwon/server/zangsi_with_dcmd/installserver/inc"
+   last-author="jindogg"
+   kind="dir"
+   uuid="ae599a11-4fef-40d6-8bf3-4dd85d011f42"
+   revision="674"/>
+<entry
+   committed-rev="470"
+   name="installproc.h"
+   text-time="2013-05-09T06:42:50.000000Z"
+   committed-date="2013-05-08T06:05:37.532532Z"
+   checksum="7a3a6efe6424c9f08a97420d26d64230"
+   last-author="jindogg"
+   kind="file"
+   prop-time="2013-05-09T06:42:50.000000Z"/>
+<entry
+   committed-rev="470"
+   name="installmain.h"
+   text-time="2013-05-09T06:42:50.000000Z"
+   committed-date="2013-05-08T06:05:37.532532Z"
+   checksum="566d1b50e9375f1c9cf01249bdadadde"
+   last-author="jindogg"
+   kind="file"
+   prop-time="2013-05-09T06:42:50.000000Z"/>
+<entry
+   committed-rev="470"
+   name="installcomlib.h"
+   text-time="2013-05-09T06:42:50.000000Z"
+   committed-date="2013-05-08T06:05:37.532532Z"
+   checksum="e4501394875bedd2609a1fb9cfaea0c3"
+   last-author="jindogg"
+   kind="file"
+   prop-time="2013-05-09T06:42:50.000000Z"/>
+<entry
+   committed-rev="470"
+   name="installdefine.h"
+   text-time="2013-05-09T06:42:50.000000Z"
+   committed-date="2013-05-08T06:05:37.532532Z"
+   checksum="4b342a93d62c358c62363837d4a7cfa3"
+   last-author="jindogg"
+   kind="file"
+   prop-time="2013-05-09T06:42:50.000000Z"/>
+<entry
+   committed-rev="470"
+   name="installsendproc.h"
+   text-time="2013-05-09T06:42:50.000000Z"
+   committed-date="2013-05-08T06:05:37.532532Z"
+   checksum="e206d0c2b0cc3be669509d6b85c4519e"
+   last-author="jindogg"
+   kind="file"
+   prop-time="2013-05-09T06:42:50.000000Z"/>
+<entry
+   committed-rev="470"
+   name="installsock.h"
+   text-time="2013-05-09T06:42:50.000000Z"
+   committed-date="2013-05-08T06:05:37.532532Z"
+   checksum="43758ce1de7773146ffc8677eaee9135"
+   last-author="jindogg"
+   kind="file"
+   prop-time="2013-05-09T06:42:50.000000Z"/>
+</wc-entries>

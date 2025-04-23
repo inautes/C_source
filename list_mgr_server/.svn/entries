@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<wc-entries
+   xmlns="svn:">
+<entry
+   committed-rev="597"
+   name=""
+   committed-date="2013-10-28T00:02:19.832716Z"
+   url="svn://172.16.9.207/filenori/server/zangsi_with_dcmd/dcmdsvr"
+   last-author="jindogg"
+   kind="dir"
+   uuid="b0f91eb5-12d8-47af-bf6c-ac0a4974f54d"
+   revision="610"/>
+<entry
+   name="src"
+   kind="dir"/>
+<entry
+   name="inc"
+   kind="dir"/>
+<entry
+   name="obj"
+   kind="dir"/>
+</wc-entries>

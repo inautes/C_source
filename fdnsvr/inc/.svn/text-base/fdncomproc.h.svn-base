@@ -1,0 +1,17 @@
+#ifndef _FDN_COMMON_PROC
+#define _FDN_COMMON_PROC
+
+
+#ifndef _FILE_OFFSET_BITS 
+#define _FILE_OFFSET_BITS 64
+#endif
+
+int RequestEol(int& Socket,char *pRecvHead, char *pRecvData, char* &pSendData);
+int FileCheckID(int& Socket,char *pRecvHead, char *pRecvData, char* &pSendData);
+int FileRequestIdDisconnect(int& Socket,char *pRecvHead, char *pRecvData, char* &pSendData);
+int RequesetUserList(int& Socket,char *pRecvHead, char *pRecvData, char* &pSendData);
+int AdminRequestIdDisconnect(int& Socket,char *pRecvHead, char *pRecvData, char* &pSendData);
+
+
+
+#endif

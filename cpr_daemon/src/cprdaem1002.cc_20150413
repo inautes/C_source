@@ -1,0 +1,964 @@
+/******************************************************************************
+ *   서브시스템 : daemon프로세스
+ *   프로그램명 : cprdaem1002.cc
+ *         기능 : 하루 한번 업로더 별로 제휴컨텐츠의 총 판매금액과 판매건수, 제휴사 수수료, 위디스크 수수료, 업로더 수수료를 집계한다.
+ *         설명 : 
+ *     설치위치 : 유료컨텐츠DB에 위치
+ *
+ *       작성자 : 황충선
+ *       작성일 : 2008/04/16
+ *     수정이력 : 가격정보를 t_cpr_price_hist에서 가져오는걸로 변경 - 20081117
+ 				  정산처리를 건바이건으로 변경 - 20081117
+ 				  2009/02/13 : 관리코드와 정산비율, 회사코드를 T_CPR_PRICE_HIST에서 조회.
+ 				  2010/09/16 - SBS이벤트(no.677):보류처리 대상에서 제외
+********************************************************************************
+1         2         3         4         5         6         7         8
+12345678901234567890123456789012345678901234567890123456789012345678901234567890
+*******************************************************************************/
+#include <mysql.h>
+#include <stdarg.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <signal.h>
+#include <unistd.h> //for sleep()
+#include <math.h>
+
+#include "daemcom.h"
+#include "commydb.h"
+
+#define  MAX_ROWS	1
+#define	 NUMBER		10
+#define	 NORMAL		11
+
+int cprdaem1002_process();
+int cprdaem1002_check_reserve_case(unsigned long ulId, double dDealPriceAmt, unsigned long ulSeqNo, char* pDealDate, char* pDealTime, char* pCompCd, char* pCongGu);
+int cprdaem1002_sum_mgr_dd();
+
+
+int cprdaem1002_process_init(int argc, char **argv);
+int cprdaem1002_process_term();
+void cprdaem1002_signal(int nSignal);
+int cprdaem1002_delete();
+
+MYSQL     *cpr_con;
+MYSQL	  *bck_con;
+MYSQL_RES *cpr_res;
+MYSQL_ROW  cpr_row;
+
+MYSQL_RES *cpr_res2;
+MYSQL_ROW  cpr_row2;
+
+bool gbIsUserDate      ; //날짜입력
+char gst_date[8+1];	// 처리일자
+char gst_time[6+1];	// 처리시작시간
+
+char gproc_log[80]; // 로그메시지버퍼
+int gnType = 0;
+
+//******************************************************************************
+//* cprdaem1002 main
+//******************************************************************************
+int cprdaem1002_process()
+{
+	char szQuery[1000];  // query string
+	memset(szQuery, 0x00, sizeof(szQuery));	
+
+	// 처리일자가 "00000000"일때는 시스템일자 -1을 한다.
+	if (strcmp(gst_date, "00000000") == 0)
+	{
+		gbIsUserDate = false;
+		strcpy(szQuery, "SELECT date_format(date_add(now(), INTERVAL - 1 DAY),'%Y%m%d') , date_format(now(),'%H%i%s')");
+
+
+		if (mysql_query(bck_con, szQuery))
+		{
+		    ZzLOG(ERROR, "sysdate: mysql_query error...\n");
+			ZzLOG(ERROR, "[%d](%s)",mysql_errno(bck_con), mysql_error(bck_con));
+			return -1;
+		}
+		
+		if (!(cpr_res = mysql_store_result(bck_con)))
+		{
+		    ZzLOG(ERROR, "sysdate: mysql_store_result error...\n");
+			ZzLOG(ERROR, "[%d](%s)",mysql_errno(bck_con), mysql_error(bck_con));
+			return -1;
+		}
+	 	if (mysql_num_rows(cpr_res)==0)
+	 	{
+		    ZzLOG(ERROR, "sysdate: mysql_num_rows error...\n");
+			ZzLOG(ERROR, "[%d](%s)",mysql_errno(bck_con), mysql_error(bck_con));
+			return -1;
+		}
+		cpr_row = mysql_fetch_row(cpr_res);
+		memset(gst_date, 0x00, sizeof(gst_date));
+		strcpy(gst_date,   getstr(cpr_row, 0));
+		strcpy(gst_time,   getstr(cpr_row, 1));
+		mysql_free_result(cpr_res);
+				
+	}
+	else
+	{
+		gbIsUserDate=true;
+
+	}
+	
+
+	//금액이 정상적으로 책정되지않은 컨텐츠의 딜정보를 찾아 보류처리.
+
+
+	if( cprdaem1002_sum_mgr_dd())
+	{
+		ZzLOG(ERROR, "cprdaem1002_sum_mgr_dd() 실패!!!\n");
+		return -1;
+	}
+
+	return 0;
+}
+
+//******************************************************************************
+//* cprdaem1002 db 처리로직
+//******************************************************************************
+int cprdaem1002_check_reserve_case(unsigned long ulId, double dDealPriceAmt, unsigned long ulSeqNo, char* pDealDate, char* pDealTime, char* pCompCd, char* pCongGu)
+{
+	char szQuery[1600];		// query string
+
+	//캐쉬가 제대로 박히지 않은 것들 추출하여 proc_yn를 R로 바꾼다.
+	
+	double dCprPriceAmt = 0;
+	
+	MYSQL_RES* cpr_res = NULL;
+	MYSQL_ROW  cpr_row = NULL;
+
+	/*
+	수정일 : 20080920 
+	수정자 : 황충선
+	수정내용 : T_CPR_CONT_MAP_SUB에 chi_id가 중복해서 들어간 경우 가격산출이 중복되지 않게 가격산출 쿼리에서 chi_id로 그룹바이후
+			   가격합산을 기존 쿼리로 하는 것에서 코드로 변경
+	*/
+	memset(szQuery, 0x00, sizeof(szQuery));
+	sprintf(szQuery, " select chi_id "
+					 " from zangsi_cpr.T_CPR_CONT_MAP_SUB "
+					 " where id = %lu and cont_gu = '%s' "
+					 " group by id, chi_id "
+					 ,ulId, pCongGu);
+	
+	if (mysql_query(bck_con, szQuery))
+	{
+	    ZzLOG(ERROR, "cprdaem1002_check_reserve_case: select error...\n");
+		ZzLOG(ERROR, "cprdaem1002_check_reserve_case: [%d](%s)\n",mysql_errno(bck_con), mysql_error(bck_con));
+		ZzLOG(ERROR, "%s\n\n",szQuery);
+		return -1;
+	}
+	if (!(cpr_res = mysql_store_result(bck_con))) 
+	{
+	    ZzLOG(ERROR, "cprdaem1002_check_reserve_case: mysql_store_result error...\n");
+		ZzLOG(ERROR, "[%d](%s)\n",mysql_errno(bck_con), mysql_error(bck_con));
+		return -1;
+	}
+	if (mysql_num_rows(cpr_res) <= 0)	
+	{
+		mysql_free_result(cpr_res);	
+	  ZzLOG(ALWAY, "cprdaem1002_check_reserve_case: %lu는 T_CPR_CONT_MAP_SUB에 정보가 없음[%lu].\n", ulId, ulSeqNo);
+	
+		memset(szQuery, 0x00, sizeof(szQuery));
+		sprintf(szQuery, " update zangsi_cpr.T_CPR_DEAL_INFO set proc_yn = 'R' where deal_date = '%s' and id = %lu "
+						 ,gst_date
+						 ,ulId);
+		//ZzLOG(ALWAY, "cprdaem1002_check_reserve_case : %s\n", szQuery);
+		if (mysql_query(cpr_con, szQuery))
+		{
+		    ZzLOG(ERROR, "cprdaem1002_check_reserve_case: update T_CPR_DEAL_INFO error...\n");
+			ZzLOG(ERROR, "cprdaem1002_check_reserve_case: [%d](%s)\n",mysql_errno(cpr_con), mysql_error(cpr_con));
+			ZzLOG(ERROR, "%s\n\n",szQuery);
+			return -1;
+	  }
+	    return 1;
+	}
+	while(cpr_row = mysql_fetch_row(cpr_res))
+	{
+		MYSQL_RES *res;
+		MYSQL_ROW  row;
+		memset(szQuery, 0x00, sizeof(szQuery));
+		//T_CPR_PRICE_HIST에서 가격변경된 내역 가져옴.
+
+		sprintf(szQuery, " select price_amt from zangsi_cpr.T_CPR_PRICE_HIST  "
+						 " where chi_id = %lu and comp_cd = '%s' " 
+						 " and concat(apply_date, apply_time) <= '%s%s' "
+						 " order by apply_date desc, apply_time desc limit 1 "
+						 , (unsigned long)getnum(cpr_row,0), pCompCd, pDealDate, pDealTime);
+
+		if (mysql_query(bck_con, szQuery))
+		{
+		    ZzLOG(ERROR, "cprdaem1002_check_reserve_case: select T_CPR_PRICE_HIST error...\n");
+			ZzLOG(ERROR, "cprdaem1002_check_reserve_case: [%d](%s)\n",mysql_errno(bck_con), mysql_error(bck_con));
+			ZzLOG(ERROR, "%s\n\n",szQuery);
+			mysql_free_result(cpr_res);	
+			return -1;
+	    }
+	   	if (!(res = mysql_store_result(bck_con))) 
+		{
+		    ZzLOG(ERROR, "cprdaem1002_check_reserve_case: mysql_store_result error...\n");
+			ZzLOG(ERROR, "[%d](%s)\n",mysql_errno(bck_con), mysql_error(bck_con));
+			mysql_free_result(cpr_res);	
+			return -1;
+		}
+		if (mysql_num_rows(res) <= 0)	
+	 	{
+	 		mysql_free_result(res);
+			mysql_free_result(cpr_res);	
+		    ZzLOG(ALWAY, "cprdaem1002_check_reserve_case: 금액정보 없음.chi_id[%lu] seq_no[%lu]\n", (unsigned long)getnum(cpr_row,0), ulSeqNo);
+			
+			memset(szQuery, 0x00, sizeof(szQuery));
+			sprintf(szQuery, " update zangsi_cpr.T_CPR_DEAL_INFO set proc_yn = 'R' where seq_no = %lu"
+							 ,ulSeqNo);
+			//ZzLOG(ALWAY, "cprdaem1002_check_reserve_case : %s\n", szQuery);
+			if (mysql_query(cpr_con, szQuery))
+			{
+			    ZzLOG(ERROR, "cprdaem1002_check_reserve_case: update T_CPR_DEAL_INFO error...\n");
+				ZzLOG(ERROR, "cprdaem1002_check_reserve_case: [%d](%s)\n",mysql_errno(cpr_con), mysql_error(cpr_con));
+				ZzLOG(ERROR, "%s\n\n",szQuery);
+				return -1;
+		    }
+		    return 1;
+		}
+		else
+		{
+			double dPriceAmt = 0;
+			row = mysql_fetch_row(res);
+			dPriceAmt = getnum(row, 0);
+			mysql_free_result(res);
+			
+			dCprPriceAmt = dCprPriceAmt + dPriceAmt;
+		}
+	}
+	mysql_free_result(cpr_res);
+	
+	
+	
+	//if(dDealPriceAmt != dCprPriceAmt || dDealPriceAmt == 0)
+	//if(strcmp(pCompCd, "010022") != 0 && strcmp(pCompCd, "010021") != 0 && (dDealPriceAmt != dCprPriceAmt || dDealPriceAmt == 0)) 
+	if((dDealPriceAmt != dCprPriceAmt) || (dDealPriceAmt == 0)) 
+		// MBC는 체크로직에서 제외. 20100630 (MBC이벤트 700원짜리 컨텐츠 땜에)
+		// no.677
+	{
+		ZzLOG(ALWAY,"cprdaem1002_check_reserve_case: seq_no[%lu] dDealPriceAmt:%.0f -- dCprPriceAmt:%.0f[%s] \n", ulSeqNo, dDealPriceAmt, dCprPriceAmt, pCompCd);
+		memset(szQuery, 0x00, sizeof(szQuery));
+		sprintf(szQuery, " update zangsi_cpr.T_CPR_DEAL_INFO set proc_yn = 'R' where seq_no = %lu "
+						 ,ulSeqNo);
+		//ZzLOG(ALWAY, "cprdaem1002_check_reserve_case : %s\n", szQuery);
+		if (mysql_query(cpr_con, szQuery))
+		{
+		    ZzLOG(ERROR, "cprdaem1002_check_reserve_case: update T_CPR_DEAL_INFO error...\n");
+			ZzLOG(ERROR, "cprdaem1002_check_reserve_case: [%d](%s)\n",mysql_errno(cpr_con), mysql_error(cpr_con));
+			ZzLOG(ERROR, "%s\n\n",szQuery);
+			return -1;
+	    }
+	    return 1;
+	}				
+	return 0;
+}
+
+
+int cprdaem1002_sum_mgr_dd()
+{
+    ZzLOG(ALWAY, "---------------------------------------------------------\n");
+    ZzLOG(ALWAY, "cprdaem1002_sum_mgr_dd start - gproc_date : [%s]\n", gst_date);  
+    ZzLOG(ALWAY, "---------------------------------------------------------\n");
+	/*
+	T_CPR_DEAL_INFO에서 셀렉트
+	엮어있는 chi_id를 알아내어 가격을 t_cpr_price_hist에서 가져옴	
+	2008/12/17 - 황충선 : 제휴아이디 포함. 맴핑 정보가 없으면 보류처리함.
+	*/
+	MYSQL_RES *res;
+	MYSQL_ROW  row;
+
+	MYSQL_RES *res1;
+	MYSQL_ROW  row1;
+	
+	char szQuery[1600];		// query string
+	int  ret;
+	
+	char szBuffer[600];
+
+	unsigned long ulCount = 0;
+
+	unsigned long ulId = 0;
+	unsigned long ulDealNo = 0;
+	unsigned long ulSeqNo = 0;
+	char szDealDate[8+1];
+	memset(szDealDate, 0x00, sizeof(szDealDate));
+	
+	char szDealTime[6+1];
+	memset(szDealTime, 0x00, sizeof(szDealTime));
+	
+	char szSaleCd[2+1];
+	memset(szSaleCd, 0x00, sizeof(szSaleCd));
+
+	char szCompCd[6+1];
+	memset(szCompCd, 0x00, sizeof(szCompCd));
+	
+	char szContGu[2+1];
+	memset(szContGu, 0x00, sizeof(szContGu));
+
+//	char szMinorCode[4];
+//	memset(szMinorCode, 0x0, sizeof(szMinorCode));
+	
+//	ZzGetCharFromLength(pCompCd, szMinorCode, 4, 5);
+	
+	
+	while(1)
+	{
+		
+		memset (szQuery, 0x00, sizeof(szQuery));
+		if(ulSeqNo == 0)
+		{
+			sprintf(szQuery, " select deal_no, id, deal_date, deal_time, sale_cd, comp_cd, cont_gu, seq_no, price_amt, cpr_amt from zangsi_cpr.T_CPR_DEAL_INFO "
+							 " where deal_date = '%s' and cont_cd = '00' and proc_yn = 'N' and service_gu='1' limit 100 " //20130410
+							 , gst_date);	
+		}	
+		else
+		{
+			sprintf(szQuery, " select deal_no, id, deal_date, deal_time, sale_cd, comp_cd, cont_gu, seq_no, price_amt, cpr_amt from zangsi_cpr.T_CPR_DEAL_INFO "
+							 " where seq_no > %lu and cont_cd = '00' and deal_date = '%s' and proc_yn = 'N' and service_gu='1'  limit 100 " //20130410
+							 , ulSeqNo, gst_date);	
+		}	
+
+
+		if (mysql_query(bck_con, szQuery))
+		{
+		    ZzLOG(ERROR, "cprdaem1002_sum_mgr_dd: select T_CPR_DEAL_INFO error...\n");
+			ZzLOG(ERROR, "cprdaem1002_sum_mgr_dd: [%d](%s)\n",mysql_errno(bck_con), mysql_error(bck_con));
+			ZzLOG(ERROR, "%s\n\n",szQuery);
+			return -1;
+	    }
+	   	if (!(cpr_res = mysql_store_result(bck_con))) 
+		{
+		    ZzLOG(ERROR, "cprdaem1002_sum_mgr_dd: mysql_store_result error...\n");
+			ZzLOG(ERROR, "[%d](%s)\n",mysql_errno(bck_con), mysql_error(bck_con));
+			return -1;
+		}
+		if (mysql_num_rows(cpr_res) <= 0)	
+	 	{
+		    ZzLOG(ALWAY, "cprdaem1002_sum_mgr_dd: 처리할 자료 없음. 정산한 거래건수 - (%lu)\n", ulCount);
+		    mysql_free_result(cpr_res);
+		    return 0;
+		}
+		
+		while(cpr_row = mysql_fetch_row(cpr_res))
+		{
+			ulId = 0;
+			ulDealNo = 0;
+			ulSeqNo = 0;
+			memset(szDealDate, 0x00, sizeof(szDealDate));
+			memset(szDealTime, 0x00, sizeof(szDealTime));
+			memset(szCompCd, 0x00, sizeof(szCompCd));
+			
+			ulDealNo = (unsigned long)getnum(cpr_row, 0);
+			ulId = (unsigned long)getnum(cpr_row, 1);
+			strcpy(szDealDate, getstr(cpr_row, 2));
+			strcpy(szDealTime, getstr(cpr_row, 3));
+			strcpy(szSaleCd, getstr(cpr_row, 4));
+			strcpy(szCompCd, getstr(cpr_row, 5));
+			strcpy(szContGu, getstr(cpr_row, 6));
+			ulSeqNo = (unsigned long)getnum(cpr_row, 7);
+			double dDealPriceAmt = getnum(cpr_row, 8);
+			double dDealCprAmt = getnum(cpr_row, 9);
+			double dCheckCprAmt = 0;
+			
+			/*
+			체크로직 건건이 수행.
+			*/
+			
+			int nRes = cprdaem1002_check_reserve_case(ulId, dDealPriceAmt, ulSeqNo, szDealDate, szDealTime, szCompCd, szContGu);
+			if(nRes < 0)
+			{
+				ZzLOG(ERROR, "cprdaem1002_sum_mgr_dd: cprdaem1002_check_reserve_case() fail...[%lu]\n", ulSeqNo);
+				mysql_free_result(cpr_res);	
+				return -1;
+			}
+			else if(nRes == 1)
+			{
+				continue;
+			}
+				
+			char szSaleCd2[2+1];
+			memset(szSaleCd2, 0x00, sizeof(szSaleCd2));
+			
+			strcpy(szSaleCd2, szSaleCd);
+//printf("> a.szSaleCd : [%s] [%s]\n\n", szSaleCd, szSaleCd2);
+			
+
+			memset(szQuery, 0x00, sizeof(szQuery));
+			sprintf(szQuery, " select chi_id "
+							 " from zangsi_cpr.T_CPR_CONT_MAP_SUB"
+							 " where id = %lu and cont_gu = '%s' " 
+							 , ulId
+							 , szContGu);
+			
+			if (mysql_query(bck_con, szQuery))
+			{
+			    ZzLOG(ERROR, "cprdaem1002_sum_mgr_dd: select error...\n");
+				ZzLOG(ERROR, "cprdaem1002_sum_mgr_dd: [%d](%s)\n",mysql_errno(bck_con), mysql_error(bck_con));
+				ZzLOG(ERROR, "%s\n\n",szQuery);
+				mysql_free_result(cpr_res);	
+				return -1;
+		    }
+		   	if (!(res = mysql_store_result(bck_con))) 
+			{
+			    ZzLOG(ERROR, "cprdaem1002_sum_mgr_dd: mysql_store_result error...\n");
+				ZzLOG(ERROR, "[%d](%s)\n",mysql_errno(bck_con), mysql_error(bck_con));
+				return -1;
+			}
+			if (mysql_num_rows(res) <= 0)	
+		 	{
+		 		char szProcYn[1+1];
+		 		memset(szProcYn, 0x00, sizeof(szProcYn));
+		 		if(strcmp(szSaleCd, "00") == 0)
+		 		{
+				    ZzLOG(ERROR, "cprdaem1002_sum_mgr_dd: 데이터 에러!!(%lu)\n", ulId);
+					ZzLOG(ERROR, "[%d](%s)\n",mysql_errno(bck_con), mysql_error(bck_con));
+					ZzLOG(ERROR, "%s\n\n",szQuery);
+					strcpy(szProcYn, "R");
+				}
+				else
+				{
+					strcpy(szProcYn, "U");
+				}
+
+			    mysql_free_result(res);
+			    
+		    	memset(szQuery, 0x00, sizeof(szQuery));
+				sprintf(szQuery, " update zangsi_cpr.T_CPR_DEAL_INFO set proc_yn = '%s' "
+								 " where seq_no = %lu ", szProcYn, ulSeqNo);
+				
+				
+				if (mysql_query(cpr_con, szQuery))
+				{
+				    ZzLOG(ERROR, "cprdaem1002_sum_mgr_dd: update T_CPR_DEAL_INFO error...\n");
+					ZzLOG(ERROR, "cprdaem1002_sum_mgr_dd: [%d](%s)\n",mysql_errno(cpr_con), mysql_error(cpr_con));
+					ZzLOG(ERROR, "%s\n\n",szQuery);
+					return -1;
+			    }
+			    
+			    continue;
+			}
+
+			while(row = mysql_fetch_row(res))
+			{
+				unsigned long ulChiId = (unsigned long)getnum(row, 0);
+				
+				double dPriceAmt = 0;
+				double dSaleAmt = 0;
+				double dCompAmt = 0;
+				double dCprAmt = 0;
+				double dCprPaymentRate = 0;
+
+				char szMgrCd[20+1];
+				memset(szMgrCd, 0x00, sizeof(szMgrCd));
+
+				
+				memset(szQuery, 0x00, sizeof(szQuery));
+
+				sprintf(szQuery, " select price_amt, mgr_cd, comp_cd, cpr_payment_rate, apply_date, apply_time from zangsi_cpr.T_CPR_PRICE_HIST  "
+								 " where chi_id = %lu and comp_cd = '%s' " 
+								 " and concat(apply_date, apply_time) <= '%s%s' "
+								 " order by apply_date desc, apply_time desc limit 1 "
+								 , ulChiId, szCompCd, szDealDate, szDealTime);
+				
+				if (mysql_query(bck_con, szQuery))
+				{
+				    ZzLOG(ERROR, "cprdaem1002_sum_mgr_dd: select T_CPR_PRICE_HIST error...\n");
+					ZzLOG(ERROR, "cprdaem1002_sum_mgr_dd: [%d](%s)\n",mysql_errno(bck_con), mysql_error(bck_con));
+					ZzLOG(ERROR, "%s\n\n",szQuery);
+					mysql_free_result(cpr_res);
+					mysql_free_result(res);
+					return -1;
+			    }
+			   	if (!(res1 = mysql_store_result(bck_con))) 
+				{
+				    ZzLOG(ERROR, "cprdaem1002_sum_mgr_dd: mysql_store_result error...\n");
+					ZzLOG(ERROR, "[%d](%s)\n",mysql_errno(bck_con), mysql_error(bck_con));
+					mysql_free_result(cpr_res);
+					mysql_free_result(res);
+					return -1;
+				}
+				if (mysql_num_rows(res1) <= 0)	
+			 	{
+				    ZzLOG(ERROR, "cprdaem1002_sum_mgr_dd: 금액정보 없음!!(%lu)\n", ulChiId);
+				    ZzLOG(ERROR, "cprdaem1002_sum_mgr_dd: query (%s)\n", szQuery);
+					ZzLOG(ERROR, "[%d](%s)\n",mysql_errno(bck_con), mysql_error(bck_con));
+				    mysql_free_result(res1);
+				    return -1;
+				}
+				row1 = mysql_fetch_row(res1);
+
+				dPriceAmt = getnum(row1, 0);
+
+				memset(szMgrCd, 0x00, sizeof(szMgrCd));
+				strcpy(szMgrCd, getstr(row1,1));
+
+				memset(szCompCd, 0x00, sizeof(szCompCd));
+				strcpy(szCompCd, getstr(row1,2));
+
+				dCprPaymentRate = atof(getstr(row1,3));
+
+				mysql_free_result(res1);
+
+				if(dCprPaymentRate > 0)
+				{
+					dCprPaymentRate = dCprPaymentRate * 0.01;
+				}
+				else if(dCprPaymentRate <= 0)
+				{	
+					MYSQL_RES *price_res;
+					MYSQL_ROW price_row;
+
+					ZzLOG(ERROR, "cprdaem1002_sum_mgr_dd: 거래비율 없음. seq_no(%lu), chi_id(%lu) szDealDate,Time-[%s],[%s]\n"
+					           , ulSeqNo, ulChiId, szDealDate, szDealTime);
+
+					ZzLOG(ERROR, "cprdaem1002_sum_mgr_dd: szQuery[%s]\n", szQuery);
+
+					memset(szQuery, 0x00, sizeof(szQuery));
+					sprintf(szQuery, " select minor_name from zangsi_cpr.T_MINOR_CODE where major_code = '82' and minor_code = '%s' ", szCompCd);	
+					
+					if (mysql_query(bck_con, szQuery))
+					{
+					    ZzLOG(ERROR, "cprdaem1002_sum_mgr_dd: select T_MINOR_CODE error...\n");
+						ZzLOG(ERROR, "cprdaem1002_sum_mgr_dd: [%d](%s)\n",mysql_errno(bck_con), mysql_error(bck_con));
+						ZzLOG(ERROR, "%s\n\n",szQuery);
+						mysql_free_result(cpr_res);
+						mysql_free_result(res);
+						return -1;
+				    }
+				   	if (!(price_res = mysql_store_result(bck_con))) 
+					{
+					    ZzLOG(ERROR, "cprdaem1002_sum_mgr_dd: mysql_store_result error...\n");
+						ZzLOG(ERROR, "[%d](%s)\n",mysql_errno(bck_con), mysql_error(bck_con));
+						mysql_free_result(cpr_res);
+						mysql_free_result(res);
+						return -1;
+					}
+					if (mysql_num_rows(price_res) <= 0)	
+				 	{
+					    ZzLOG(ERROR, "cprdaem1002_sum_mgr_dd: T_MINOR_CODE 비율정보 없음!!\n");
+					    ZzLOG(ERROR, "cprdaem1002_sum_mgr_dd: query (%s)\n", szQuery);
+						ZzLOG(ERROR, "[%d](%s)\n",mysql_errno(bck_con), mysql_error(bck_con));
+						mysql_free_result(price_res);
+						mysql_free_result(cpr_res);
+						mysql_free_result(res);
+					    return -1;
+					}
+					price_row = mysql_fetch_row(price_res);
+
+					char szRate[2];
+					memset(szRate, 0x00, sizeof(szRate));
+					
+					strcpy(szRate, getstr(price_row,0));
+					dCprPaymentRate = atof(szRate);
+					
+					dCprPaymentRate = dCprPaymentRate * 0.01;
+					
+					mysql_free_result(price_res);
+				}				
+
+				char szTableName[126];
+				memset(szTableName, 0x00, sizeof(szTableName));
+				if(strcmp(szSaleCd, "00") ==0)
+				{
+					dCprAmt = dPriceAmt * dCprPaymentRate;
+					dSaleAmt = dPriceAmt * 0.05;
+					dCompAmt = (dPriceAmt - dCprAmt) - dSaleAmt; 
+					strcpy(szTableName, "T_SUM_MGR_DD");
+				}
+				else
+				{
+					double dSubCprAmt  = dPriceAmt * dCprPaymentRate;
+					dCprAmt = floor(dSubCprAmt);
+
+					dCompAmt = dPriceAmt - dCprAmt; 
+					strcpy(szTableName, "T_SUM_MGR_USER_DD");
+				}
+
+				dCheckCprAmt = dCheckCprAmt + dCprAmt;
+				
+				memset(szQuery, 0x00, sizeof(szQuery));
+				sprintf(szQuery, "select * from zangsi_cpr.%s "
+								 " where cont_cd = '00' and sum_date = '%s' and mgr_cd = '%s' and comp_cd = '%s'"
+								 , szTableName, szDealDate, szMgrCd, szCompCd);
+				
+
+				if (mysql_query(cpr_con, szQuery))
+				{
+				    ZzLOG(ERROR, "cprdaem1002_sum_mgr_dd: select %s error...\n", szTableName);
+					ZzLOG(ERROR, "cprdaem1002_sum_mgr_dd: [%d](%s)\n",mysql_errno(cpr_con), mysql_error(cpr_con));
+					ZzLOG(ERROR, "%s\n\n",szQuery);
+					mysql_free_result(cpr_res);
+					mysql_free_result(res);
+					return -1;
+			    }
+			   	if (!(res1 = mysql_store_result(cpr_con))) 
+				{
+				    ZzLOG(ERROR, "cprdaem1002_sum_mgr_dd: mysql_store_result error...\n");
+					ZzLOG(ERROR, "[%d](%s)\n",mysql_errno(cpr_con), mysql_error(cpr_con));
+					mysql_free_result(cpr_res);
+					mysql_free_result(res);
+					return -1;
+				}
+				if (mysql_num_rows(res1) <= 0)	
+			 	{
+			 		memset(szQuery, 0x00, sizeof(szQuery));
+			 		sprintf(szQuery, " insert into zangsi_cpr.%s values ( "
+			 						 " '%s', '%s', '%s', '00', %d, 1, %5.1f, %5.1f, %5.1f, 'N') "
+			 						 , szTableName, szDealDate, szMgrCd, szCompCd
+			 						 , (int)dPriceAmt, dCprAmt, dCompAmt, dSaleAmt);
+				}
+				else
+				{
+			 		memset(szQuery, 0x00, sizeof(szQuery));
+			 		sprintf(szQuery, " update zangsi_cpr.%s "
+			 						 " set price_amt = price_amt + %d, sale_cnt = sale_cnt + 1,"
+			 						 " cpr_amt = cpr_amt + %5.1f, comp_amt = comp_amt + %5.1f, sale_amt = sale_amt + %5.1f "
+			 						 " where cont_cd = '00' and sum_date = '%s' and mgr_cd = '%s' and comp_cd = '%s' "
+			 						 , szTableName, (int)dPriceAmt, dCprAmt, dCompAmt, dSaleAmt
+			 						 , szDealDate, szMgrCd, szCompCd);
+				}
+				mysql_free_result(res1);
+				
+				ZzLOG(ALWAY,"\n\n deal_no : [%lu]\n(%s)\n", ulDealNo, szQuery);
+				if (mysql_query(cpr_con, szQuery))
+				{
+				    ZzLOG(ERROR, "cprdaem1002_sum_mgr_dd: INSERT %s error...\n", szTableName);
+					ZzLOG(ERROR, "cprdaem1002_sum_mgr_dd: [%d](%s)\n",mysql_errno(cpr_con), mysql_error(cpr_con));
+					ZzLOG(ERROR, "%s\n\n",szQuery);
+					mysql_free_result(cpr_res);
+					mysql_free_result(res);
+					mysql_free_result(res1);
+					return -1;
+			    }
+
+			}
+			
+			memset(szQuery, 0x00, sizeof(szQuery));
+			
+			char szDealCprAmt[16];
+			memset(szDealCprAmt, 0x00, sizeof(szDealCprAmt));
+			
+			char szCheckCprAmt[16];
+			memset(szCheckCprAmt, 0x00, sizeof(szCheckCprAmt));
+			
+			sprintf(szCheckCprAmt, "%.1f", dCheckCprAmt);
+			sprintf(szDealCprAmt, "%.1f", dDealCprAmt);
+			
+			if(strcmp(szCheckCprAmt, szDealCprAmt) != 0)
+			{
+				sprintf(szQuery, " update zangsi_cpr.T_CPR_DEAL_INFO set proc_yn = 'Y', cpr_amt = %.1f, comp_amt = price_amt - (%.1f + sale_amt) "
+								 " where seq_no = %lu ", dCheckCprAmt, dCheckCprAmt, ulSeqNo);
+				ZzLOG(ALWAY, "cprdaem1002_sum_mgr_dd: seq_no=[%lu] dDealCprAmt[%.1f] dCheckCprAmt[%.1f]\n",ulSeqNo, dDealCprAmt, dCheckCprAmt);
+			}
+			else
+			{			
+				sprintf(szQuery, " update zangsi_cpr.T_CPR_DEAL_INFO set proc_yn = 'Y' "
+								 " where seq_no = %lu ", ulSeqNo);
+			}
+				
+			if (mysql_query(cpr_con, szQuery))
+			{
+			    ZzLOG(ERROR, "cprdaem1002_sum_mgr_dd: update T_CPR_DEAL_INFO error...\n");
+				ZzLOG(ERROR, "cprdaem1002_sum_mgr_dd: [%d](%s)\n",mysql_errno(cpr_con), mysql_error(cpr_con));
+				ZzLOG(ERROR, "%s\n\n",szQuery);
+				mysql_free_result(cpr_res);
+				mysql_free_result(res);
+				return -1;
+		    }
+			
+			mysql_free_result(res);
+			ulCount++;
+		}
+		mysql_free_result(cpr_res);
+		
+	}
+	return 0;
+}
+
+//******************************************************************************
+//* cprdaem1002 db 처리로직
+//******************************************************************************
+
+/*****************************************************************************
+* 프로그램 시작루틴
+* 전역변수 초기화 및 데이타베이스 연결
+* (I) void
+* (R) int : 정상(0)/오류(-1)
+*****************************************************************************/
+int cprdaem1002_process_init(int argc, char **argv)
+{
+	char stemp[128];
+    /*
+    ** 전역변수 초기화
+    */
+
+#ifdef _DEBUG_
+    ZzInitGlobalVariable2("cprdaem1002", "/home/ezwon/zangsi_with_dcmd/cpr_daemon/log");
+#else
+    ZzInitGlobalVariable2("cprdaem1002", "/logs/daemon"); 
+#endif
+	
+
+    ZzLOG(ALWAY, "[cprdaem1002]*****************프로그램 시작*****************\n");  
+
+
+	if(strcmp(argv[1], "del") == 0)
+	{
+		cprdaem1002_delete();
+		return 1;
+	}	
+
+
+    // 파라미터 값 설정 및 초기화
+	//--------------------------------------------------------------------------
+	// DB 연결
+	//--------------------------------------------------------------------------
+	if (!(cpr_con=db_connect_cprdb("zangsi_cpr")))
+	{
+		ZzLOG(ERROR, "DB에 접속하지 못 하였습니다...\n");
+	   	return(-1); 
+	}
+
+	if (!(bck_con=db_connect_cprbckdb("zangsi_cpr")))
+	{
+		ZzLOG(ERROR, "bck DB에 접속하지 못 하였습니다...\n");
+		db_disconnect(cpr_con);
+	   	return(-1); 
+	}
+
+	memset(gst_date, 0x00, sizeof(gst_date));
+	strcpy(gst_date, argv[1]);
+
+    return (0);
+
+arg_error:
+    ZzLOG(ERROR, "usage : %s YYYYMMDD proctype\n", argv[0]);
+    ZzLOG(ERROR, "        YYYYMMDD(처리일자): 00000000 = 시스템일자 , proctype(처리타입) : all = 제휴아이디 포함 전체 데이터 집계. mgr: 제휴아이디 제외. user: 제휴아이디만 집계\n", argv[0]);
+    ZzPRT(ERROR, "usage : %s YYYYMMDD proctype\n", argv[0]);
+    ZzPRT(ERROR, "        YYYYMMDD(처리일자): 00000000 = 시스템일자 \nproctype(처리타입) : all = 제휴아이디 포함 전체 데이터 집계. mgr: 제휴아이디 제외. user: 제휴아이디만 집계\n", argv[0]);
+    return -1;
+}
+
+/***************************************************************************
+* 프로그램 종료루틴
+* 데이터베이스 종료 및 처리결과를 로그파일에 정의
+* (I) void
+* (R) int : 정상(0)/오류(-1)
+****************************************************************************/
+int cprdaem1002_process_term()
+{
+    // DB close
+
+	db_disconnect(cpr_con);	
+	db_disconnect(bck_con);	
+	
+	
+    ZzLOG(ALWAY, "[cprdaem1002]*****************프로그램 종료*****************\n");  
+
+    return (0);
+}
+
+/*****************************************************************************
+* 프로그램 시그널 처리
+* (I) void
+* (R) void
+*****************************************************************************/
+void  cprdaem1002_signal(int nSignal)
+{
+    cprdaem1002_process_term();
+}
+
+/*****************************************************************************
+* T_CPR_CONT_MAP_SUB 삭제된 컨텐츠 삭제(이번달 거래건이 없을 경우)
+* (I) void
+* (R) void
+*****************************************************************************/
+int cprdaem1002_delete()
+{
+	ZzLOG(ALWAY, "cprdaem1002_delete() start \n");
+	
+	MYSQL     *del_bck_con;
+	MYSQL     *del_cpr_con;
+	
+	if (!(del_bck_con=db_connect_nodb("zangsi")))
+	{
+		ZzLOG(ERROR, "bck DB에 접속하지 못 하였습니다...\n");
+	   	return(-1); 
+	}
+
+	if (!(del_cpr_con=db_connect_cprdb("zangsi_cpr")))
+	{
+		db_disconnect(del_bck_con);	
+		ZzLOG(ERROR, "bck DB에 접속하지 못 하였습니다...\n");
+	   	return(-1); 
+	}
+	
+	int nSelCnt = 0;
+	int nDelCnt = 0;
+	
+	unsigned long ulID = 0;
+
+	char szQuery[1000];
+	
+	while(1)
+	{
+		MYSQL_RES* res;
+		MYSQL_ROW  row;
+
+		ZzLOG(ALWAY, "cprdaem1002_delete: ID = [%lu]\n", ulID);
+		
+		memset(szQuery, 0x00, sizeof(szQuery));
+		sprintf(szQuery, " select id from zangsi_cpr.T_CPR_CONT_MAP_SUB where cont_gu = 'WE' and id > %lu" 
+						" order by id limit 1 ", ulID);
+		if (mysql_query(del_cpr_con, szQuery))
+		{
+		    ZzLOG(ERROR, "cprdaem1002_delete: mysql_query error...\n");
+		    ZzLOG(ERROR, "cprdaem1002_delete: query=[%s]\n", szQuery);
+			ZzLOG(ERROR, "[%d](%s)",mysql_errno(del_cpr_con), mysql_error(del_cpr_con));
+			return -1;
+		}
+		if (!(res = mysql_store_result(del_cpr_con)))
+		{
+		    ZzLOG(ERROR, "cprdaem1002_delete: mysql_store_result error...\n");
+		    ZzLOG(ERROR, "cprdaem1002_delete: query=[%s]\n", szQuery);
+			ZzLOG(ERROR, "[%d](%s)",mysql_errno(del_cpr_con), mysql_error(del_cpr_con));
+			return -1;
+		}
+	 	if (mysql_num_rows(res)==0)
+	 	{
+		    ZzLOG(ALWAY, "cprdaem1002_delete: 처리완료. 조회 건수 -- %d. 삭제 건수 -- %d\n", nSelCnt, nDelCnt);
+			break;
+		}
+		
+		nSelCnt++;
+	 	
+		row = mysql_fetch_row(res);
+		ulID = (unsigned long)getnum(row,0);
+		mysql_free_result(res);
+		
+		memset(szQuery, 0x00, sizeof(szQuery));
+		sprintf(szQuery, " select a.id from zangsi.T_CONTENTS_INFO a, zangsi.T_CONTENTS_FILE b " 
+						 " where a.id = b.id and a.id = %lu ", ulID);
+		if (mysql_query(del_bck_con, szQuery))
+		{
+		    ZzLOG(ERROR, "cprdaem1002_delete: mysql_query error...\n");
+		    ZzLOG(ERROR, "cprdaem1002_delete: query=[%s]\n", szQuery);
+			ZzLOG(ERROR, "[%d](%s)",mysql_errno(del_bck_con), mysql_error(del_bck_con));
+			return -1;
+		}
+		if (!(res = mysql_store_result(del_bck_con)))
+		{
+		    ZzLOG(ERROR, "cprdaem1002_delete: mysql_store_result error...\n");
+		    ZzLOG(ERROR, "cprdaem1002_delete: query=[%s]\n", szQuery);
+			ZzLOG(ERROR, "[%d](%s)",mysql_errno(del_bck_con), mysql_error(del_bck_con));
+			return -1;
+		}
+	 	if (mysql_num_rows(res)==0)
+	 	{
+	 		mysql_free_result(res);
+			memset(szQuery, 0x00, sizeof(szQuery));
+			sprintf(szQuery, " select seq_no from zangsi_cpr.T_CPR_DEAL_INFO " 
+							 " where id = %lu and cont_gu = 'WE' "
+							 " and substring(deal_date,1,6) >= substring(date_format(date_add(now(), interval -30 day),'%%Y%%m%%d'),1,6) "
+							 , ulID);
+			if (mysql_query(del_cpr_con, szQuery))
+			{
+			    ZzLOG(ERROR, "cprdaem1002_delete: mysql_query error...\n");
+			    ZzLOG(ERROR, "cprdaem1002_delete: query=[%s]\n", szQuery);
+				ZzLOG(ERROR, "[%d](%s)",mysql_errno(del_cpr_con), mysql_error(del_cpr_con));
+				return -1;
+			}
+			if (!(res = mysql_store_result(del_cpr_con)))
+			{
+			    ZzLOG(ERROR, "cprdaem1002_delete: mysql_store_result error...\n");
+			    ZzLOG(ERROR, "cprdaem1002_delete: query=[%s]\n", szQuery);
+				ZzLOG(ERROR, "[%d](%s)",mysql_errno(del_cpr_con), mysql_error(del_cpr_con));
+				return -1;
+			}
+		 	if (mysql_num_rows(res)==0)
+		 	{
+		 		mysql_free_result(res);
+		 		memset(szQuery, 0x00, sizeof(szQuery));
+		 		sprintf(szQuery, " insert into zangsi_cpr.T_CPR_CONT_MAP_SUB_HIST "
+		 						 " select * from zangsi_cpr.T_CPR_CONT_MAP_SUB  "
+		 						 " where id = %lu and cont_gu = 'WE' "
+		 						 , ulID);
+				if (mysql_query(del_cpr_con, szQuery))
+				{
+				    ZzLOG(ERROR, "cprdaem1002_delete: mysql_query error...\n");
+				    ZzLOG(ERROR, "cprdaem1002_delete: query=[%s]\n", szQuery);
+					ZzLOG(ERROR, "[%d](%s)",mysql_errno(del_cpr_con), mysql_error(del_cpr_con));
+					return -1;
+				}
+				
+		 		memset(szQuery, 0x00, sizeof(szQuery));
+		 		sprintf(szQuery, " delete from zangsi_cpr.T_CPR_CONT_MAP_SUB "
+		 						 " where id = %lu and cont_gu = 'WE' "
+		 						 , ulID);
+				if (mysql_query(del_cpr_con, szQuery))
+				{
+				    ZzLOG(ERROR, "cprdaem1002_delete: mysql_query error...\n");
+				    ZzLOG(ERROR, "cprdaem1002_delete: query=[%s]\n", szQuery);
+					ZzLOG(ERROR, "[%d](%s)",mysql_errno(del_cpr_con), mysql_error(del_cpr_con));
+					return -1;
+				}
+				
+				nDelCnt++;
+		    	ZzLOG(ALWAY, "cprdaem1002_delete: %lu 삭제 처리 완료. 현재 까지 삭제건 -- %d\n", ulID, nDelCnt);
+		 		
+			}
+			else
+			{
+				mysql_free_result(res);
+				ZzLOG(ALWAY, "cprdaem1002_delete: %lu 거래건 있음.\n", ulID);
+			}
+		}
+		else
+		{
+			mysql_free_result(res);
+		}
+		
+	}//end while()
+	return 0;
+}
+
+
+/*****************************************************************************
+*  프로그램 메인 
+*****************************************************************************/
+int main(int argc, char **argv)
+{                
+	char    szTemp[1024];
+	int     rc;
+                 
+	/*       
+	** SIGNAL 정의
+	*/       
+	signal(SIGTERM, cprdaem1002_signal);
+	signal(SIGINT,  cprdaem1002_signal);
+	signal(SIGQUIT, cprdaem1002_signal);
+	signal(SIGKILL, cprdaem1002_signal);
+	signal(SIGPIPE, SIG_IGN);
+	signal(SIGTTIN, SIG_IGN);
+	signal(SIGTTOU, SIG_IGN);
+	signal(SIGCHLD, SIG_IGN);
+	signal(SIGHUP,  SIG_IGN);
+	
+	if ( cprdaem1002_process_init(argc, argv) == 0 ) 
+	{
+		/* 프로그램 메인루틴 */
+		rc = cprdaem1002_process();
+		/* 프로그램 종료루틴 */                    
+		cprdaem1002_process_term();
+	}
+	return(0);
+}                
+/*****************************************************************************
+*  End of file...
+*****************************************************************************/

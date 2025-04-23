@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<wc-entries
+   xmlns="svn:">
+<entry
+   committed-rev="470"
+   name=""
+   committed-date="2013-05-08T06:05:37.532532Z"
+   url="svn://172.16.9.207/ezwon/server/zangsi_with_dcmd/daemon/cdaem_script"
+   last-author="jindogg"
+   kind="dir"
+   uuid="ae599a11-4fef-40d6-8bf3-4dd85d011f42"
+   revision="674"/>
+<entry
+   committed-rev="470"
+   name="cdaem_1230.sh"
+   text-time="2013-11-07T00:36:51.000000Z"
+   committed-date="2013-05-08T06:05:37.532532Z"
+   checksum="1966d5bdcd99a963940208dc108f009f"
+   last-author="jindogg"
+   kind="file"
+   prop-time="2013-11-07T00:36:51.000000Z"/>
+<entry
+   committed-rev="470"
+   name="cdaem_0800.sh"
+   text-time="2013-11-07T00:36:51.000000Z"
+   committed-date="2013-05-08T06:05:37.532532Z"
+   checksum="110d92f8e7b3b01b4be4ef5fcbfac0be"
+   last-author="jindogg"
+   kind="file"
+   prop-time="2013-11-07T00:36:51.000000Z"/>
+</wc-entries>

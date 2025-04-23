@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<wc-entries
+   xmlns="svn:">
+<entry
+   committed-rev="470"
+   name=""
+   committed-date="2013-05-08T06:05:37.532532Z"
+   url="svn://172.16.9.207/ezwon/server/zangsi_with_dcmd/dnmsvr/src"
+   last-author="jindogg"
+   kind="dir"
+   uuid="ae599a11-4fef-40d6-8bf3-4dd85d011f42"
+   revision="674"/>
+<entry
+   committed-rev="470"
+   name="dnmproc.cc"
+   text-time="2013-05-09T06:42:51.000000Z"
+   committed-date="2013-05-08T06:05:37.532532Z"
+   checksum="ba37b6c0afcda3336769e72774a1ff02"
+   last-author="jindogg"
+   kind="file"
+   prop-time="2013-05-09T06:42:51.000000Z"/>
+<entry
+   committed-rev="470"
+   name="dnmmain.cc"
+   text-time="2013-05-09T06:42:51.000000Z"
+   committed-date="2013-05-08T06:05:37.532532Z"
+   checksum="d7c9f8d97587d60ff27c1f315f9185fe"
+   last-author="jindogg"
+   kind="file"
+   prop-time="2013-05-09T06:42:51.000000Z"/>
+</wc-entries>

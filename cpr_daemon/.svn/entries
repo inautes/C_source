@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<wc-entries
+   xmlns="svn:">
+<entry
+   committed-rev="640"
+   name=""
+   committed-date="2013-08-08T05:30:31.087491Z"
+   url="svn://172.16.9.207/ezwon/server/zangsi_with_dcmd/cpr_daemon"
+   last-author="jindogg"
+   kind="dir"
+   uuid="ae599a11-4fef-40d6-8bf3-4dd85d011f42"
+   revision="674"/>
+<entry
+   name="log"
+   kind="dir"/>
+<entry
+   name="src"
+   kind="dir"/>
+<entry
+   name="bin"
+   kind="dir"/>
+<entry
+   name="inc"
+   kind="dir"/>
+<entry
+   committed-rev="514"
+   name="real.mk"
+   text-time="2013-05-13T03:01:39.000000Z"
+   committed-date="2013-05-09T05:54:37.239990Z"
+   checksum="e84fae9b73b6e1e913bf21695d4c109e"
+   last-author="jindogg"
+   kind="file"
+   prop-time="2013-05-13T03:01:39.000000Z"/>
+<entry
+   name="obj"
+   kind="dir"/>
+<entry
+   name="rbin"
+   kind="dir"/>
+<entry
+   committed-rev="514"
+   name="Makefile"
+   text-time="2013-05-13T03:01:39.000000Z"
+   committed-date="2013-05-09T05:54:37.239990Z"
+   checksum="8f57858c9b4121868abafd2e57f7c483"
+   last-author="jindogg"
+   kind="file"
+   prop-time="2013-05-13T03:01:39.000000Z"/>
+</wc-entries>

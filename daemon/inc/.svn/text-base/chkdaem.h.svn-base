@@ -1,0 +1,87 @@
+
+
+/******************************************************************************
+ *   서브시스템 : Daemon 
+ *   프로그램명 : chkdaem.h
+ *         기능 : 일정시간 마다 각 서버들의 상태를 채크 하여 관리자에게 
+                  알림 메시지 전송
+ *         설명 :
+ *       작성자 : 이형철
+ *       작성일 : 2005/01/18
+ *     수정이력 :
+********************************************************************************
+1         2         3         4         5         6         7         8
+12345678901234567890123456789012345678901234567890123456789012345678901234567890
+*******************************************************************************/
+#ifndef	_CHKDAEM_H_
+#define	_CHKDAEM_H_
+
+
+#define UPLOAD 1
+#define DOWNLOAD 2
+#define CASH 10
+
+#define FILE_UP_SERVER 1
+#define FILE_DN_SERVER 2
+#define FILE_CASH_SERVER 10
+#define WEB_SERVER 3
+#define CMD_SERVER 6
+
+#define  MAX_ROWS	5000
+
+#define RS_CHECK_SERVER_ONLINE 777 //서버 온라인
+#define RS_EOL 5
+#define RS_ERR 7
+
+#define RS_CMD_REQUEST_USER_LIST 		10051
+
+typedef struct _User_List  //10051 struct
+{
+	int nNumber;
+	char szUserIP[16];
+	char szUserID[12+4];
+	char szStartTime[30+2];	
+}USERLIST,*LPUSERLIST;
+
+
+//struct
+typedef struct _SERVER_INFO
+{
+	long my_port		  ;   // 내디스크 port
+	long dn_port          ;   // 다운로드port
+	long up_port          ;   // 업로드  port
+	char server_ip  [15+1];   // 서버IP
+	char server_id  [ 5+3];   // 서버ID
+	char szServerCode[3+1]   ;
+}SERVER_INFO,*LPSERVER_INFO;
+
+//function
+int upload_checker_run();
+int run();
+void signal_caller(int); //timer callback function 
+int GetServerInfo(LPSERVER_INFO pServerInfo, int *nServercount, char* pErrMsg);
+int SendPhoneMsg(char* pPhoneNum, char* pMsg,char* pErrMsg);
+int CheckServer(LPSERVER_INFO pServerInfo , int nServerCount);
+//0 is Connect Error , -1 is connect error -2 is Socket Error , 1 over is sucessed
+int ConnectServer(char* pServerID,char* pServerIP,unsigned int nPort  ,int nServerFlag);
+int RunWebProc(int nSocket);
+int RunFileProc(char* pServerID,int nSocket);
+int WaitRequest(char* pServerID,int nSocket,int nServerFlag);
+int SetTimer(long second);
+int process_init(int argc, char **argv);
+void  signal_exception(int nSignal);
+#endif
+
+
+/******************************************************************************
+ * End of file...
+ *****************************************************************************/
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+

@@ -1,0 +1,1894 @@
+/******************************************************************************
+ *   서브시스템 : 공통모듈
+ *   프로그램명 : cmdcomm.cc
+ *         기능 : Application 공통 함수
+ *         설명 :
+ *     수정이력 :
+ *
+********************************************************************************
+1         2         3         4         5         6         7         8
+12345678901234567890123456789012345678901234567890123456789012345678901234567890
+*******************************************************************************/
+#include <stdarg.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <memory.h>
+#include <unistd.h>
+#include <sys/time.h>
+#include <time.h>
+#include <sys/types.h>
+//#include <varargs.h>
+#include <errno.h>
+#include <signal.h>
+#include <sys/wait.h>
+#include <sys/utsname.h>
+
+#include "apdefine.h"
+#include "apstruct.h"
+#include "comcomm.h"
+#include "comhead.h"
+#include "comconf.h"
+
+#ifdef	_THREAD_MODULE_
+#include <pthread.h>
+#include "comthrd.h"
+#endif
+
+#ifndef _FILE_OFFSET_BITS
+#define _FILE_OFFSET_BITS 64
+#endif
+
+
+/*===========================================================================*/
+/* 전역변수 선언															 */
+/*===========================================================================*/
+static  long    	galSeqNumber[SEQUENCE_MAXCOUNT] = { -1L }; /* 일련번호 변수 */
+static	SUserParm_T *gpstUser;
+void	infCpyUserParm(SUserParm_T *pUser)		{ gpstUser = pUser; }
+
+
+
+/*****************************************************************************
+* 중복 실행 방지
+*****************************************************************************/
+int lockfile(int fd)
+ {
+         struct flock fl;
+
+         fl.l_type = F_WRLCK;
+         fl.l_start = 0;
+         fl.l_whence = SEEK_SET;
+         fl.l_len = 0;
+         return(fcntl(fd, F_SETLK, &fl));
+ }
+
+
+ int check_single_running(char *pos)
+ {
+         int fd;
+         char PROCESS_ID[16];
+         char LOCK_FILE_PATH[128];
+         char PROCESS_NAME[32];
+
+
+         memset(PROCESS_ID, 0x00, sizeof(PROCESS_ID));
+         memset(PROCESS_NAME, 0x00, sizeof(PROCESS_NAME));
+         memset(LOCK_FILE_PATH, 0x00, sizeof(LOCK_FILE_PATH));
+
+
+         sprintf(LOCK_FILE_PATH, "%s.pid",pos);
+
+		 syslog(LOG_INFO,"LOCK_FILE_PATH = %s \n",LOCK_FILE_PATH);
+         fd = open(LOCK_FILE_PATH, O_RDWR|O_CREAT, S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH);
+
+
+         if(fd < 0){
+                // log_trace(LOG_TRACE, "Can't Open:[%s]/[%s]\n", LOCK_FILE_PATH, strerror(errno));
+                 exit(1);
+         }
+
+
+         if(lockfile(fd) < 0){
+                 if(errno == EACCES || errno == EAGAIN){
+                         close(fd);
+                        // log_trace(LOG_TRACE, "Already Running:[%s]/[%s]\n", LOCK_FILE_PATH, strerror(errno));
+                         return (1);
+                 }
+                 //log_trace(LOG_TRACE, "Can't Lock:[%s]/[%s]\n", LOCK_FILE_PATH, strerror(errno));
+                 exit(1);
+         }
+
+
+         ftruncate(fd, 0);
+         sprintf(PROCESS_ID, "%ld", getpid());
+         write(fd, PROCESS_ID, strlen(PROCESS_ID)+1);
+         return (0);
+ }
+
+
+
+/*****************************************************************************
+*
+*****************************************************************************/
+
+int64_t atoi64(const char* str)
+{
+    int64_t lValue = 0;
+    int nSize = strlen(str);
+
+    for (size_t i = 0; i < nSize; i++)
+    {
+            lValue = lValue * 10 + str[i] - 48;
+    }
+
+    return lValue;
+}
+
+
+/*======================================================================
+// host명 가져오기
+======================================================================*/
+char* Func_getHostname()
+{
+	char host_name[256];
+	memset(host_name,0x00,sizeof(host_name));
+
+    if ( 0 != gethostname( host_name, sizeof( host_name)))
+    {
+		infLOG(ALWAY,"host_name is null\n");
+
+		struct utsname mysystem;
+		if(uname(&mysystem) == -1)
+		{
+			sprintf(host_name,"%s",mysystem.nodename);
+			infLOG(ALWAY,"host_name 2= %s\n", host_name);
+		}
+
+		return host_name;
+    }
+
+	infLOG(ALWAY,"host_name 1= %s\n", host_name);
+
+	return host_name;
+}
+
+/*****************************************************************************
+ * 홑따옴표를 특정 문자로 대체.
+ * arg(I) : 1. strSrcString : 입력 문자열
+			2. cReplace		: 대체 문자
+			3. pResult		: 결과 문자열
+ * return : 1. char			: 결과 문자열
+ ****************************************************************************/
+char* ReplaceSingleQuotation(char* strSrcString, char cReplace,char* pResult)
+{
+	char strResult[130000];
+	memset(strResult,0x00,sizeof(strResult));
+	int cTemp = 0;
+	int nSpecialCount=0;
+	int nFileLen = strlen(strSrcString);
+	int cOldTemp = 0;
+	for(unsigned long i=0; i<nFileLen ; i++)
+	{
+		if( i > 0 )
+		{
+			cOldTemp = strSrcString[i-1];
+		}
+		cTemp = strSrcString[i];
+		if( cTemp == '\'' && cOldTemp != '\\' )
+		{
+			strResult[nSpecialCount] = (char)cReplace;
+			nSpecialCount++;
+			strResult[nSpecialCount] = (char)cTemp;
+		}
+		else
+		{
+			if(cTemp<0)//한글 (is korean)
+			{
+				char* pHan = &strSrcString[i];
+				memcpy(&strResult[nSpecialCount] ,pHan,2);
+				nSpecialCount++;
+				i=i+1;
+			}
+			else
+			{
+				strResult[nSpecialCount] = (char)cTemp;
+			}
+		}
+		nSpecialCount++;
+	}
+	strcpy(pResult,strResult);
+	return pResult;
+}
+
+
+int	E_dump(int err_code, char *err_mesg, char* &pSendData)
+{
+
+	if (err_code != -999999)
+	{
+		infLOG(ERROR, "(%d):%s", err_code, err_mesg);
+	}
+	pSendData = new char[ERR_HEADER_SIZE];
+	ERR_HEADER eh;
+
+	eh.header.nErrorCode = err_code;    // ERROR 번호를 설정
+	eh.header.nDataSize  = 256;         // error message
+	eh.header.nDataCnt   = 0;
+	strcpy(eh.errmsg, err_mesg);
+	memcpy(pSendData,&eh,sizeof(ERR_HEADER));
+}
+
+/*****************************************************************************
+* 로그 파일명을 얻음
+* (I) 1. char *szAppName : 프로세스명
+*     2. char *szLogFile : 로그파일명
+*     3. char *szErrFile : 에러파일명
+* (R) void
+*****************************************************************************/
+void	infGetLogFileName(char *szAppName, char *szLogFile, char *szErrFile)
+{
+	char	szCurDate[30];
+	char	szLogBase[256];
+	int		len;
+    time_t	ct;
+    struct tm  *stm;
+	char    *pPath = NULL;
+
+    time( &ct ) ;
+    stm = localtime ( &ct ) ;
+
+	sprintf(szCurDate, "%04d%02d%02d", stm->tm_year+1900
+									 , stm->tm_mon + 1
+									 , stm->tm_mday );
+
+	sprintf(szAppName, "%s", infGetProcName(gpstUser));
+	sprintf(szLogBase, "%s", infGetLogFBase(gpstUser));
+	if ( !strlen(szAppName) ) sprintf(szAppName, "app");
+	if ( !strlen(szLogBase) ) sprintf(szLogBase, "dev");
+
+	if ( (pPath = getenv("LOG_DIR")) != NULL )
+	{
+#if 0
+fprintf(stdout, "%s`LOGPATH=%s\n", szAppName, pPath);
+#endif
+		memset(szLogBase, 0x00, sizeof(szLogBase));
+		sprintf(szLogBase, "%s/%s", pPath, szAppName);
+	}
+
+	len = sprintf(szLogFile, "%s_%s.log", szLogBase, szCurDate);
+	len = sprintf(szErrFile, "%s_%s.err", szLogBase, szCurDate);
+}
+
+
+/*****************************************************************************
+* Trace Log Write       : DLOG(int nLevel, char* pformat, ...)
+* 화일로 로그처리
+* 디버그 일때만 로그 남기기 위해 사용.
+*****************************************************************************/
+
+int		DLOG(int nLevel, char *pformat, ...)
+{
+#ifdef _DEBUG
+    char    szBuffer[4048];
+    char    szAppName[126];
+    char    szLogFile[126];
+    char    szErrFile[126];
+	char	szCurTime[20];
+	char	*pLevel = NULL;
+	FILE 	*fp = NULL;
+    va_list args;
+
+#ifdef	_THREAD_MODULE_
+	THREAD_LOCK_LOG();
+#endif
+
+    memset(szBuffer, 0x00, sizeof(szBuffer));
+    va_start(args, pformat);
+    vsprintf(szBuffer, pformat, args);
+    va_end(args);
+
+	switch ( nLevel )
+	{
+	case PRINT : pLevel = "PRINT"; break; /* 일반 사항인 경우 */
+	case TRACE : pLevel = "TRACE"; break; /* 일반 사항인 경우 */
+	case STATE : pLevel = "STATE"; break; /* 일반 사항인 경우 */
+	case CHECK : pLevel = "CHECK"; break; /* 체크 사항인 경우 */
+	case ERROR : pLevel = "ERROR"; break; /* 에러 사항인 경우 */
+	case ALWAY : pLevel = "ALWAY"; break; /* 항상             */
+	}
+
+	if ( nLevel < infGetLogLevel(gpstUser) )
+	{
+		#ifdef	_THREAD_MODULE_
+		THREAD_UNLK_LOG();
+		#endif
+		return RETOK;
+	}
+
+    NULLSET( szAppName );
+    NULLSET( szLogFile );
+    NULLSET( szErrFile );
+	NULLSET( szCurTime );
+
+	infGetCurTime(szCurTime);
+
+	infGetLogFileName(szAppName, szLogFile, szErrFile);
+
+#ifdef _PRINT_
+	if ( nLevel == PRINT )
+	{
+		fprintf(stdout, "%s`%s`%d`%s`%s", szCurTime, szAppName, (int)getpid(), pLevel, szBuffer);
+		return RETOK;
+	}
+#endif
+
+	/*
+	** 에러로그화일 생성
+	*/
+	if ( nLevel == ERROR && infGetErrorLog(gpstUser) )
+	{
+	 	if ( (fp = fopen64(szErrFile, "a+")) != NULL )
+		{
+			fprintf(fp, "%s`%s`%d`%s`%s", szCurTime, szAppName, (int)getpid(), pLevel, szBuffer);
+			fclose(fp);
+		}
+	}
+
+	/*
+	** 로그파일에 쓰기
+	*/
+	if ( (fp = fopen64(szLogFile, "a+")) != NULL )
+	{
+		fprintf(fp, "%s`%s`%d`%s`%s", szCurTime, szAppName, (int)getpid(), pLevel, szBuffer);
+		fclose(fp);
+	}
+
+#ifdef	_THREAD_MODULE_
+	THREAD_UNLK_LOG();
+#endif
+#endif
+	return RETOK;
+}
+
+
+/*****************************************************************************
+* Trace Log Write       : infLOG(int nLevel, char* pformat, ...)
+* 화일로 로그처리
+* (I) 1. int nLevel     : Log Level
+*     2. char * pformat : Input Data Format
+*     3. ...            : Input Data
+* (R) 1. 정상 : '0'
+*	  2. 오류 : 음수
+*****************************************************************************/
+int		infLOG(int nLevel, char *pformat, ...)
+{
+    char    szBuffer[4048];
+    char    szAppName[126];
+    char    szLogFile[126];
+    char    szErrFile[126];
+	char	szCurTime[20];
+	char	*pLevel = NULL;
+	FILE 	*fp = NULL;
+    va_list args;
+
+#ifdef	_THREAD_MODULE_
+	THREAD_LOCK_LOG();
+#endif
+
+    memset(szBuffer, 0x00, sizeof(szBuffer));
+    va_start(args, pformat);
+    vsprintf(szBuffer, pformat, args);
+    va_end(args);
+
+	switch ( nLevel )
+	{
+	case PRINT : pLevel = "PRINT"; break; /* 일반 사항인 경우 */
+	case TRACE : pLevel = "TRACE"; break; /* 일반 사항인 경우 */
+	case STATE : pLevel = "STATE"; break; /* 일반 사항인 경우 */
+	case CHECK : pLevel = "CHECK"; break; /* 체크 사항인 경우 */
+	case ERROR : pLevel = "ERROR"; break; /* 에러 사항인 경우 */
+	case ALWAY : pLevel = "ALWAY"; break; /* 항상             */
+	}
+
+	if ( nLevel < infGetLogLevel(gpstUser) )
+	{
+		#ifdef	_THREAD_MODULE_
+		THREAD_UNLK_LOG();
+		#endif
+		return RETOK;
+	}
+
+    NULLSET( szAppName );
+    NULLSET( szLogFile );
+    NULLSET( szErrFile );
+	NULLSET( szCurTime );
+
+	infGetCurTime(szCurTime);
+
+	infGetLogFileName(szAppName, szLogFile, szErrFile);
+
+#ifdef _PRINT_
+	if ( nLevel == PRINT )
+	{
+		fprintf(stdout, "%s`%s`%d`%s`%s", szCurTime, szAppName, (int)getpid(), pLevel, szBuffer);
+		return RETOK;
+	}
+#endif
+
+	/*
+	** 에러로그화일 생성
+	*/
+	if ( nLevel == ERROR && infGetErrorLog(gpstUser) )
+	{
+	 	if ( (fp = fopen64(szErrFile, "a+")) != NULL )
+		{
+			fprintf(fp, "%s`%s`%d`%s`%s", szCurTime, szAppName, (int)getpid(), pLevel, szBuffer);
+			fclose(fp);
+		}
+	}
+
+	/*
+	** 로그파일에 쓰기
+	*/
+	if ( (fp = fopen64(szLogFile, "a+")) != NULL )
+	{
+		fprintf(fp, "%s`%s`%d`%s`%s", szCurTime, szAppName, (int)getpid(), pLevel, szBuffer);
+		fclose(fp);
+	}
+
+#ifdef	_THREAD_MODULE_
+	THREAD_UNLK_LOG();
+#endif
+
+	return RETOK;
+}
+
+/*****************************************************************************
+* 문자열을 포멧형태로 변환
+* (I) 1. char *pDataStr : 문자열 데이터
+*     2. char *pFormStr : 포멧
+* (O) 1. char *pwantstr : 변환 문자열
+* (E) infToFormatString(szWant, szData, "XXXXXX-XXXXXXX");
+*     szWant : "123456-1234567"
+*     szData : "1234561234567"
+*****************************************************************************/
+void	infToFormatString(char *pwantstr, char *pDataStr, char *pFormStr)
+{
+    char    ch;
+
+    while ( (ch=*pFormStr) != 0x00 ) {
+        if ( ch == 'X' )
+        {
+            *pwantstr++ = *pDataStr++;
+        } else {
+            *pwantstr++ = ch;
+        }
+        pFormStr++;
+    }
+
+    *pwantstr = 0x00;
+}
+
+/*****************************************************************************
+* 시스템시간을 포멧형태로 얻음
+*****************************************************************************/
+int		infGetSysTime(char *pDataStr, char *pFormStr)
+{
+	char	*pdatasav = pDataStr;
+	time_t      ct;
+	struct tm  *stm;
+	long		value;
+	int			nSize, loop, real;
+
+	time( &ct ) ;
+	stm = localtime ( &ct ) ;
+
+	while (*pFormStr != 0x00) {
+		if    (memcmp(pFormStr, "YYYY", 4) == 0) { value = stm->tm_year+1900;}
+		else if (memcmp(pFormStr, "YY", 2) == 0) { value = stm->tm_year;	}
+		else if (memcmp(pFormStr, "MM", 2) == 0) { value = stm->tm_mon + 1;	}
+		else if (memcmp(pFormStr, "DD", 2) == 0) { value = stm->tm_mday;	}
+		else if (memcmp(pFormStr, "HH", 2) == 0) { value = stm->tm_hour;	}
+		else if (memcmp(pFormStr, "MI", 2) == 0) { value = stm->tm_min;		}
+		else if (memcmp(pFormStr, "SS", 2) == 0) { value = stm->tm_sec;		}
+		else {
+			*pDataStr++ = *pFormStr++;
+			continue;
+		}
+		nSize = 2;
+		if (memcmp(pFormStr, "YYYY", 4) == 0) nSize = 4;
+
+		memset(pDataStr, '0', nSize);
+
+		real = 0;
+		loop = nSize;
+		pDataStr += (nSize - 1);
+		while( loop-- > 0 ) {
+			*pDataStr = (char)((value % 10) + '0');
+			value /= 10;
+			real++;
+			if ( value <= 0 ) break;
+			pDataStr--;
+		}
+		pDataStr += real;
+		pFormStr += nSize;
+	}
+	*pDataStr = 0x00;
+
+	return(pDataStr - pdatasav);
+}
+
+/*****************************************************************************
+* 시스템시간을 포멧형태로 얻음
+*****************************************************************************/
+int		infTimeToFormatStr(char *pDataStr, char *pFormStr, struct tm *stm)
+{
+	char	*pdatasav = pDataStr;
+	long	value;
+	int		nSize, loop, real;
+
+	while (*pFormStr != 0x00) {
+		if    (memcmp(pFormStr, "YYYY", 4) == 0) { value = stm->tm_year+1900;}
+		else if (memcmp(pFormStr, "YY", 2) == 0) { value = stm->tm_year;	}
+		else if (memcmp(pFormStr, "MM", 2) == 0) { value = stm->tm_mon + 1;	}
+		else if (memcmp(pFormStr, "DD", 2) == 0) { value = stm->tm_mday;	}
+		else if (memcmp(pFormStr, "HH", 2) == 0) { value = stm->tm_hour;	}
+		else if (memcmp(pFormStr, "MI", 2) == 0) { value = stm->tm_min;		}
+		else if (memcmp(pFormStr, "SS", 2) == 0) { value = stm->tm_sec;		}
+		else {
+			*pDataStr++ = *pFormStr++;
+			continue;
+		}
+		nSize = 2;
+		if (memcmp(pFormStr, "YYYY", 4) == 0) nSize = 4;
+
+		memset(pDataStr, '0', nSize);
+
+		real = 0;
+		loop = nSize;
+		pDataStr += (nSize - 1);
+		while( loop-- > 0 ) {
+			*pDataStr = (char)((value % 10) + '0');
+			value /= 10;
+			real++;
+			if ( value <= 0 ) break;
+			pDataStr--;
+		}
+		pDataStr += real;
+		pFormStr += nSize;
+	}
+	*pDataStr = 0x00;
+
+	return(pDataStr - pdatasav);
+}
+
+/*****************************************************************************
+* 시스템시간을 포멧형태로 얻음
+*****************************************************************************/
+int		infGetSysDate(char *pDataStr, char *pFormStr)
+{
+	time_t      ct;
+	struct tm  *stm;
+
+	time( &ct ) ;
+	stm = localtime ( &ct ) ;
+	return infTimeToFormatStr(pDataStr, pFormStr, stm);
+}
+
+/*****************************************************************************
+* 시스템시간을  얻음
+*****************************************************************************/
+int		infGetStrTime(char *pDataStr, char *pFormStr, time_t chngtime)
+{
+    struct  tm	stm;
+
+    localtime_r(&chngtime, &stm);
+	return infTimeToFormatStr(pDataStr, pFormStr, &stm);
+}
+
+/*****************************************************************************
+* 시스템시간을  얻음
+*****************************************************************************/
+int		infGetStrDate(char *pDataStr, char *pFormStr, time_t chngtime)
+{
+    struct  tm	stm;
+
+    localtime_r(&chngtime, &stm);
+	return infTimeToFormatStr(pDataStr, pFormStr, &stm);
+}
+
+/*****************************************************************************
+* 시스템시간을  얻음 (HH:MI:SS:SEC)
+*****************************************************************************/
+char	*infGetCurTime(char *pszStr)
+{
+    struct  timeval stNow;
+    struct  timezone stZone;
+    struct  tm  stCtm;
+
+    gettimeofday (&stNow, &stZone);
+    localtime_r (&stNow.tv_sec, &stCtm);
+    sprintf(pszStr, "%02d:%02d:%02d.%03d",
+            stCtm.tm_hour,
+            stCtm.tm_min,
+            stCtm.tm_sec,
+            stNow.tv_usec/1000);
+
+    return(pszStr);
+}
+
+/*****************************************************************************
+* 시스템일자을 얻음 (YYYY/MM/DD)
+*****************************************************************************/
+char	*infGetCurDate(char *pszStr)
+{
+    struct  timeval stNow;
+    struct  timezone stZone;
+    struct  tm  stCtm;
+
+    gettimeofday (&stNow, &stZone);
+    localtime_r (&stNow.tv_sec, &stCtm);
+    sprintf(pszStr, "%04d/%02d/%02d",
+            stCtm.tm_year + 1900,
+            stCtm.tm_mon + 1,
+            stCtm.tm_mday);
+
+    return(pszStr);
+}
+
+/*****************************************************************************
+* DATE FORMAT CHECK
+*****************************************************************************/
+int		infDateFormatCheck(char *pDate)
+{
+    static int mm_days[12] = {31,0,31,30,31,30,31,31,30,31,30,31};
+    int nYear;
+    int nMonth;
+    int nDay;
+    char szYear[5];
+    char szMonth[3];
+    char szDay[3];
+
+    memset(szYear, '\0',5);
+    memset(szMonth,'\0',3);
+    memset(szDay,  '\0',3);
+
+    strncpy(szYear,  pDate  ,4);
+    strncpy(szMonth, pDate+4,2);
+    strncpy(szDay,   pDate+6,2);
+    nYear  = atoi(szYear);
+    nMonth = atoi(szMonth);
+    nDay   = atoi(szDay);
+
+    if  ((nYear < 1)||(nYear > 9999)||
+         (nMonth < 1)||(nMonth > 12) ) {
+        return 0;
+    }
+    if  (nYear%4==0 && nYear%100 != 0  || nYear%400==0) {
+        mm_days[1] = 29;
+    } else {
+        mm_days[1] = 28;
+    }
+    if  ((nDay < 1)||(nDay > mm_days[nMonth-1])) {
+        return 0;
+    }
+    return 1;
+}
+
+/*****************************************************************************
+* 문자열 데이타에서 cDest문자를 cChng문자로 변환
+* (B) 1. *pStr : 문자열 데이타
+* (I) 1. int nSize : 문자열 데이타
+*     2. char cDest : 비교문자
+*     3. char cChng : 대체문자
+*****************************************************************************/
+void	infChangeChar(char *pStr, int nSize, char cDest, char cChng)
+{
+	while ( nSize-- > 0 ) {
+		if ( *pStr == cDest ) {
+			*pStr = cChng;
+		}
+		pStr++;
+	}
+}
+
+/*****************************************************************************
+* 문자열에 SPACE로 초기화한 다음 문자열을 복사한다.
+* (I) 1. int nSize       : SPACE로 초기화 길이
+*     2. char *pDataStr : 복사 대상
+* (O) 1. char *memstr   : 초기화 및 복사 문자열
+*****************************************************************************/
+int     infStrSpaceSetAndCopy(char *pmemstr, int nSize, char *pDataStr)
+{
+    int length = strlen(pDataStr);
+
+    if ( nSize < length )
+    {
+        length = nSize;
+    }
+
+    memset(pmemstr, 0x20, nSize);
+    memcpy(pmemstr, pDataStr, length);
+    return nSize;
+}
+
+/*****************************************************************************
+* 문자열포인트에서 부터 문자열을 복사한다.
+* (I) 1. int nSize       : SPACE로 초기화 길이
+*     2. char *psrc : 복사 대상
+*     3. int pos    : 복사 대상 포인트 위치
+* (O) 1. char *pdes   : 문자열
+* (R) 1. int nSize : 복사 길이
+*****************************************************************************/
+int		infStrPointCopy(char *pdes, int nSize, char *psrc, int pos)
+{
+    memcpy( pdes, psrc + pos, nSize );
+    return nSize;
+}
+
+/*****************************************************************************
+* 문자열 데이터 내에서 특정문자열을 대체문자열로 바꾼다.
+* (I) 1. char *search : 특정문자열
+*     2. char *change : 대체문자열
+* (B) 1. char *source : 문자열 데이터
+* (E) 변환전 : temp = "123456ABCD";
+*     infStrReplace(temp, "ABCD", "EFGH");
+*     변환후 : temp = "123456EFGH";
+*****************************************************************************/
+void    infStrReplace(char *source, char *search, char *change)
+{
+    char    *ptr;
+    int     len = strlen(source);
+    int     pos = 0;
+
+    if ( (ptr = strstr(source, search)) != NULL )
+    {
+        pos = len - strlen(ptr);
+        memcpy((char*)&source[pos], change, strlen(change));
+    }
+}
+
+
+void infStrReplace(char* original, char* search, char* replace, char* result)
+{
+ char* movePtr = original;
+ char* samePtr = strstr(original,search);
+ int searchLength = strlen(search);
+ int replaceLength = strlen(replace);
+ int index = 0,i=0;
+ while((*movePtr)!='\0')
+ {
+  if(movePtr==samePtr)
+  {
+	   for(i=0;i<replaceLength;i++)
+		{
+			result[index++] = replace[i];
+		}
+	   //포인터 이동
+	   for(i=0;i<searchLength;i++)
+		{
+		 movePtr++;
+		}
+
+	   samePtr = strstr(movePtr,search);
+  }
+  else
+  {
+	   result[index] = *movePtr;
+	   index++;
+	   movePtr++;
+  }
+
+ }
+ result[index] = '\0';
+}
+
+/*****************************************************************************
+* 문자열 전체를 대문자로 변환 (알파벳)
+* (B) 1. char *pStr : 변환 전 문자열 포인트 및 변환 후 문자열 포인트
+****************************************************************************/
+void    infStrToUpper(char *pStr)
+{
+	while (*pStr != 0x00) {
+		if ((*pStr >= 'a') && (*pStr <= 'z')) {
+			*pStr = ('A' + (*pStr - 'a'));
+		}
+		pStr++;
+	}
+}
+
+/*****************************************************************************
+* 문자열 전체를 소문자로 변환 (알파벳)
+* (B) 1. char *pStr : 변환 전 문자열 포인트 및 변환 후 문자열 포인트
+****************************************************************************/
+void    infStrToLower(char *pStr)
+{
+	while (*pStr != 0x00) {
+		if ((*pStr >= 'A') && (*pStr <= 'Z')) {
+			*pStr = ('a' + (*pStr - 'A'));
+		}
+		pStr++;
+	}
+}
+
+/*****************************************************************************
+ * 문자열 포인트에 long value를 우측정렬
+ * arg(I) : 1. long nVlaue : long value
+ *          2. int nSize : 문자열 길이
+ * arg(O) : 1. char *pStr : 문자열 포인트
+ * return : 1. 문자열 길이
+ ****************************************************************************/
+int     infLongToStr(char *pStr, long lValue, int nSize)
+{
+    int     real = 0;
+    pStr += (nSize - 1);
+    if (lValue < 0) {
+        lValue = -lValue;
+    }
+    while (nSize-- > 0) {
+        *pStr-- = (char) ((lValue % 10L) + '0');
+        real++;
+        lValue /= 10L;
+        if (lValue <= 0) {
+            break;
+        }
+    }
+    return(real);
+}
+
+/*****************************************************************************
+ * 문자열 포인트에 특정 문자로 초기화 한 후 long value를 우측정렬
+ * arg(I) : 1. long nVlaue : long value
+ *          2. int nSize : 문자열 길이
+ *          3. char chFill : 특정 문자
+ * arg(O) : 1. char *pStr : 문자열 포인트
+ * return : 1. int : 문자열 길이
+ ****************************************************************************/
+int	    infLongToFillStr(char *pStr, long lValue, int nSize, char chFill)
+{
+	memset(pStr, chFill, nSize);
+	return infLongToStr(pStr, lValue, nSize);
+}
+
+/*****************************************************************************
+* 문자열 포인트의 특정문자 카운트 수를 체크
+* (I) 1. char *pStr : 문자열 포인트
+*     2. char chTarget : 특정문자
+* (O) 1. char *pStr : NULL 설정 문자열 포인트
+* (R) 1. int : pStr 길이
+*****************************************************************************/
+int		infCharCount(char *pStr, char chTarget)
+{
+	int		i;
+	int		nCount;
+
+	for ( i=0, nCount=0; i<strlen(pStr); i++ )
+	{
+    	char ch = pStr[i];
+        if ( ch == chTarget )
+        {
+			nCount++;
+		}
+	}
+	return nCount;
+}
+
+/*****************************************************************************
+* 문자열 포인트의 특정문자를 NULL로 설정 (앞부터)
+* (I) 1. char *pStr : 문자열 포인트
+*     2. char chTarget : 특정문자
+* (O) 1. char *pStr : NULL 설정 문자열 포인트
+* (R) 1. int : pStr 길이
+*****************************************************************************/
+int		infTrimLeft(char *pStr, char chTarget)
+{
+    int		nSize = strlen(pStr);
+    int     i, pos, flag;
+
+    for ( i=0, pos=0, flag=0; i<nSize; i++ ) {
+    	char ch = pStr[i];
+        if ( ch != chTarget )
+        {
+            if ( flag == 0 ) flag = 1;
+        }
+        if ( flag == 1 ) pStr[pos++] = ch;
+    }
+
+    pStr[pos] = 0x00;
+
+	return strlen(pStr);
+}
+
+/*****************************************************************************
+* 문자열 포인트의 특정문자를 NULL로 설정 (뒷부터)
+* (I) 1. char *pStr : 문자열 포인트
+*     2. char chTarget : 특정문자
+* (O) 1. char *pStr : NULL 설정 문자열 포인트
+* (R) 1. int : pStr 길이
+*****************************************************************************/
+int		infTrimRight(char *pStr, char chTarget)
+{
+	int     nSize = strlen(pStr) - 1;
+	int     i;
+
+	for( i=nSize; i>=0; i-- ) {
+		if ( pStr[i] != chTarget )
+		{
+			break;
+		}
+		pStr[i] = 0x00;
+	}
+
+	return strlen(pStr);
+}
+
+/*****************************************************************************
+* 문자열 포인트의 특정문자를 NULL로 설정 (앞부터)
+* (I) 1. char *pStr : 문자열 포인트
+* (R) 1. char *     : NULL 설정 문자열 포인트
+*****************************************************************************/
+char    *infHeadTrim(char *pStr)
+{
+	int    nSize = strlen(pStr);
+	int    i, pos;
+
+	for ( i=0, pos=0; i<nSize; i++ ) {
+		char    ch = pStr[i];
+		if ((ch != 0x20) && (ch != '\t') && (ch != '\r') && (ch != '\n')) {
+			pStr[pos++] = ch;
+		}
+	}
+	pStr[pos] = 0x00;
+	return (pStr);
+}
+
+/*****************************************************************************
+* 문자열 포인트의 특정문자를 NULL로 설정 (뒤부터)
+* (I) 1. char *pStr : 문자열 포인트
+* (R) 1. char *     : NULL 설정 문자열 포인트
+*****************************************************************************/
+char    *infTailTrim(char *pStr)
+{
+	int     nSize = strlen(pStr) - 1;
+	int     i;
+
+	for( i=nSize; i>=0; i-- ) {
+		char    ch = pStr[i];
+		if ((ch != 0x20) && (ch != '\t') && (ch != '\r') && (ch != '\n')) {
+			break;
+		}
+		pStr[i] = 0x00;
+	}
+	return (pStr);
+}
+
+/*****************************************************************************
+* 현재시간과 비교할 시간의 간격을 체크(경과)
+* (I) 1. time_t comptime : 비교할 시간
+*     2. int timesecs : 비교시간 간격
+* (R) 1. '0' : 비교시간 간격보다 이상이면 (거짓)
+*     2. '1' : 비교시간 간격보다 초과이면 (참)
+****************************************************************************/
+int     infIsElapseTimesecs(time_t comptime, int timesecs)
+{
+	if (difftime(time(NULL), comptime) > (double)timesecs) {
+		return(1);
+	}
+	return(0);
+}
+
+/*****************************************************************************
+* 현재시간과 비교할 시간의 간격을 체크(미만)
+* (I) 1. time_t comptime : 비교할 시간
+*     2. int timesecs : 비교시간 간격
+* (R) 1. '0' : 비교시간 간격보다 초과 (거짓)
+*     2. '1' : 비교시간 간격보다 이하이면 (참)
+*****************************************************************************/
+int     infIsRemainTimesecs(time_t comptime, int timesecs)
+{
+	if (difftime(time(NULL), comptime) <= (double)timesecs) {
+		return(1);
+	}
+	return(0);
+}
+
+
+/*******************************************************************************
+* 레코드 TIMEOUT처리예정시간(등록시간+INTERVAL_TIME)이 현재시간보다 큰가를 체크
+* (I) 1. char *szCmpTime : 등록시간
+*     2. int 	nInterval : INTERVAL (TIMEOUT 간격)
+* (O)
+* (R) 1. '1' : TIMEOUT시간이 현재시간보다 크다 (TIMEOUT 처리)
+*     2. '0' : TIMEOUT시간 미만
+*******************************************************************************/
+int		infIsIntervalTimeOver(char *szCmpTime, int nInterval)
+{
+	char			szCurTime[50];
+	char			szChkTime[50];
+	char			szTemp[20];
+	time_t			curtime;
+	time_t			chktime;
+	struct tm		*stm;
+
+	memset(szCurTime, 0x00, sizeof(szCurTime));
+	memset(szChkTime, 0x00, sizeof(szChkTime));
+
+#ifdef	_PRINT_
+	printf("infIsIntervalTimeOver`CmpTime => [%s]\n", szCmpTime);
+	printf("infIsIntervalTimeOver`Timeout => [%d]\n", nInterval);
+#endif
+
+    /*
+	** 현재의 시간을 구한다
+    */
+	time( &curtime );
+	stm = (struct tm *) localtime(&curtime);
+
+	localtime_r(&curtime, stm);
+	sprintf(szCurTime, "%04d%02d%02d%02d%02d%02d", stm->tm_year+1900
+												,  stm->tm_mon + 1
+												,  stm->tm_mday
+												,  stm->tm_hour
+												,  stm->tm_min
+												,  stm->tm_sec );
+
+#ifdef	_PRINT_
+	printf("infIsIntervalTimeOver`CurTime => [%s]\n", szCurTime);
+#endif
+
+	/*
+	** 문자열을 시간으로 변환
+	*/
+	memset(szTemp, 0x00, sizeof(szTemp)); sprintf(szTemp, "%-4.4s", (char*)&szCmpTime[0] ); stm->tm_year = atoi(szTemp) - 1900;
+	memset(szTemp, 0x00, sizeof(szTemp)); sprintf(szTemp, "%-2.2s", (char*)&szCmpTime[4] ); stm->tm_mon  = atoi(szTemp) - 1;
+	memset(szTemp, 0x00, sizeof(szTemp)); sprintf(szTemp, "%-2.2s", (char*)&szCmpTime[6] ); stm->tm_mday = atoi(szTemp);
+	memset(szTemp, 0x00, sizeof(szTemp)); sprintf(szTemp, "%-2.2s", (char*)&szCmpTime[8] ); stm->tm_hour = atoi(szTemp);
+	memset(szTemp, 0x00, sizeof(szTemp)); sprintf(szTemp, "%-2.2s", (char*)&szCmpTime[10]); stm->tm_min  = atoi(szTemp);
+	memset(szTemp, 0x00, sizeof(szTemp)); sprintf(szTemp, "%-2.2s", (char*)&szCmpTime[12]); stm->tm_sec  = atoi(szTemp)+nInterval;
+	chktime = mktime( stm );
+
+	localtime_r(&chktime, stm);
+	sprintf(szChkTime, "%04d%02d%02d%02d%02d%02d", stm->tm_year+1900
+												,  stm->tm_mon + 1
+												,  stm->tm_mday
+												,  stm->tm_hour
+												,  stm->tm_min
+												,  stm->tm_sec );
+#ifdef	_PRINT_
+	printf("infIsIntervalTimeOver`ChkTime => [%s]\n", szChkTime);
+#endif
+
+
+	/*
+	** 문자열을 비교
+	*/
+	if ( strcmp(szCurTime, szChkTime) > 0 ) return (1);
+
+	return (0);
+}
+
+/**************************************************************************
+* 시간을 체크하여 간격을 리턴
+* (I) 1.char *szTime1 : 시간 ("YYYYMMDDHHMISS")
+*     2.char *szTime2 : 시간 ("YYYYMMDDHHMISS")
+* (O) void
+* (R) int	: 시간1과 시간2의 간격(초)
+**************************************************************************/
+int     infGetDiffTime(char *szTime1, char *szTime2)
+{
+    char            szTemp[50];
+    time_t          time1;
+    time_t          time2;
+    struct tm       *stm;
+    time_t  ct;
+
+    time( &ct ) ;
+    stm = localtime ( &ct ) ;
+
+    /*
+    ** 문자열을 시간으로 변환
+    */
+    memset(szTemp, 0x00, sizeof(szTemp)); sprintf(szTemp, "%-4.4s", (char*)&szTime1[0] ); stm->tm_year = atoi(szTemp) - 1900;
+    memset(szTemp, 0x00, sizeof(szTemp)); sprintf(szTemp, "%-2.2s", (char*)&szTime1[4] ); stm->tm_mon  = atoi(szTemp) - 1;
+    memset(szTemp, 0x00, sizeof(szTemp)); sprintf(szTemp, "%-2.2s", (char*)&szTime1[6] ); stm->tm_mday = atoi(szTemp);
+    memset(szTemp, 0x00, sizeof(szTemp)); sprintf(szTemp, "%-2.2s", (char*)&szTime1[8] ); stm->tm_hour = atoi(szTemp);
+    memset(szTemp, 0x00, sizeof(szTemp)); sprintf(szTemp, "%-2.2s", (char*)&szTime1[10]); stm->tm_min  = atoi(szTemp);
+    memset(szTemp, 0x00, sizeof(szTemp)); sprintf(szTemp, "%-2.2s", (char*)&szTime1[10]); stm->tm_min  = atoi(szTemp);
+    memset(szTemp, 0x00, sizeof(szTemp)); sprintf(szTemp, "%-2.2s", (char*)&szTime1[12]); stm->tm_sec  = atoi(szTemp);
+    time1 = mktime( stm );
+
+    memset(szTemp, 0x00, sizeof(szTemp)); sprintf(szTemp, "%-4.4s", (char*)&szTime2[0] ); stm->tm_year = atoi(szTemp) - 1900;
+    memset(szTemp, 0x00, sizeof(szTemp)); sprintf(szTemp, "%-2.2s", (char*)&szTime2[4] ); stm->tm_mon  = atoi(szTemp) - 1;
+    memset(szTemp, 0x00, sizeof(szTemp)); sprintf(szTemp, "%-2.2s", (char*)&szTime2[6] ); stm->tm_mday = atoi(szTemp);
+    memset(szTemp, 0x00, sizeof(szTemp)); sprintf(szTemp, "%-2.2s", (char*)&szTime2[8] ); stm->tm_hour = atoi(szTemp);
+    memset(szTemp, 0x00, sizeof(szTemp)); sprintf(szTemp, "%-2.2s", (char*)&szTime2[10]); stm->tm_min  = atoi(szTemp);
+    memset(szTemp, 0x00, sizeof(szTemp)); sprintf(szTemp, "%-2.2s", (char*)&szTime2[12]); stm->tm_sec  = atoi(szTemp);
+    time2 = mktime( stm );
+
+    return (int)difftime(time1, time2);
+}
+
+/*******************************************************************************
+* 비교시간과 현재시간의 간격을 체크
+* (I) 1. char *szCmpTime : 비교시간(YYYYMMDDHHMISS)
+* (O)
+* (R) int   : 현재 시간과 비교한 간격(초)
+*****************************************************************************/
+int    infCurDiffTime(char *szCmpTime)
+{
+    char           szTemp[20];
+    time_t          curtime;
+    struct tm       *stm;
+
+    /*
+    ** 현재의 시간을 구한다
+    */
+    time( &curtime );
+    stm = (struct tm *) localtime(&curtime);
+
+    /*
+    ** 문자열을 시간으로 변환
+    */
+    NULLSET(szTemp); sprintf(szTemp, "%-4.4s", (char*)&szCmpTime[0] ); stm->tm_year = atoi(szTemp) - 1900;
+    NULLSET(szTemp); sprintf(szTemp, "%-2.2s", (char*)&szCmpTime[4] ); stm->tm_mon  = atoi(szTemp) - 1;
+    NULLSET(szTemp); sprintf(szTemp, "%-2.2s", (char*)&szCmpTime[6] ); stm->tm_mday = atoi(szTemp);
+    NULLSET(szTemp); sprintf(szTemp, "%-2.2s", (char*)&szCmpTime[8] ); stm->tm_hour = atoi(szTemp);
+    NULLSET(szTemp); sprintf(szTemp, "%-2.2s", (char*)&szCmpTime[10]); stm->tm_min  = atoi(szTemp);
+    NULLSET(szTemp); sprintf(szTemp, "%-2.2s", (char*)&szCmpTime[12]); stm->tm_sec  = atoi(szTemp);
+    curtime = mktime( stm );
+    return (int)difftime(time(NULL), curtime);
+}
+
+/*****************************************************************************
+ * 문자열데이타에 구분자를 마지막포인트에 첨가
+ * (I) 1. char chDelimiter : 구분자
+ *     2. char *pSrc : 복사할 문자열데이타
+ * (O) 1. char *pDec : 구분자를 첨가한 문자열 데이타
+ * (R) 1. int : 문자열 길이
+ *****************************************************************************/
+int		infAddDelimiter(char *pDes, char chDelimiter, char *pSrc)
+{
+	int		nLength = strlen(pSrc);
+
+	memcpy(pDes, pSrc, nLength);
+	*(pDes + nLength) = chDelimiter;
+	return(nLength + 1);
+}
+
+/*****************************************************************************
+* 문자열에서 구분자의 갯수를 구한다.
+* (I) 1. char* pStr   : 문자열 데이터
+*     2. char chDelimiter : 구분자
+* (R) 1. int		  : 구분자 갯수
+*****************************************************************************/
+int		infGetDelimitCount(char *pStr, char chDelimiter)
+{
+	int		nSize  = strlen(pStr);
+	int		nCount = 0;
+
+	while ( nSize-- > 0 ) {
+		if ( *pStr == chDelimiter ) {
+			nCount++;
+		}
+		pStr++;
+	}
+
+	return nCount;
+}
+
+/*****************************************************************************
+* 문자열에서 구분자의 위치값에 해당되는 데이터를 구한다.
+* (I) 1. char* pStr   : 얻고자하는 문자열 데이터
+*     2. char chDelimiter : 구분자
+* 	  3. char* pdat	  : 구분자 데이터
+*	  4. int position : 구분자의 위치(0부터 시작)
+* (R) 1. int          : 구분자 데이터의 길이
+*****************************************************************************/
+int		infGetDelimitData(char *pStr, char chDelimiter, char *pdat, int position)
+{
+	char	data[256];
+	int		nSize = strlen(pStr);
+	int		count, point;
+	int		i;
+
+	memset(data, 0x00, sizeof(data));
+
+	for ( i=0, count=0, point=0; i<nSize; i++ ) {
+		char ch = pStr[i];
+		if ( ch == chDelimiter ) {
+			count++;
+			continue;
+		}
+
+		if ( position != count ) continue;
+
+		data[point++] = ch;
+	}
+
+	return sprintf(pdat, "%s", data);
+}
+
+/*****************************************************************************
+* Sleep 처리
+* (I) 1. int nSeconds : Sleep 초
+* (O) void
+* (R) void
+*****************************************************************************/
+void	infSleep(int nSeconds)
+{
+	time_t curtime;
+
+	time( &curtime );
+	while( infIsRemainTimesecs(curtime, nSeconds-1) )
+	{
+		sleep( nSeconds );
+	}
+}
+
+/*****************************************************************************
+* Wait Sleep 처리
+* (I) 1. int nSeconds : Sleep 초
+* (O) void
+* (R) void
+*****************************************************************************/
+void	infWaits(int nSeconds)
+{
+	wait( (int*)0 );
+	sleep( nSeconds );
+}
+
+/*****************************************************************************
+* 에러 코드 및 메시지를 설정
+* (I) 1. int nCode : 에러 코드
+*     2. char *szMsg : 에러 메시지
+* (O) 1. SErrCheck_T *pError : 에러 정보
+* (R) void
+*****************************************************************************/
+void	infSetError(SErrCheck_T *pError, int nCode, char *szMsg)
+{
+	pError->nCode = nCode;
+	sprintf(pError->szMsg, "%s", szMsg);
+}
+
+/*****************************************************************************
+* PROCESS COUNT CHECK
+* (I) 1. char *szProcName : 프로세스 명
+* (O) void
+* (R) 1. int nCnt : 실행중인 프로세스 카운트 수
+*****************************************************************************/
+int		infGetRunningProcessCount(char *szProcName)
+{
+	FILE*	fp;
+	int		rc;
+	int		nCnt = -1;
+	char	szFileName[256];
+	char	szCommand[256];
+	char	szBuffer[256];
+	char	szCurDate[20];
+    struct  timeval stNow;
+    struct  timezone stZone;
+    struct  tm  stCtm;
+
+    gettimeofday (&stNow, &stZone);
+    localtime_r (&stNow.tv_sec, &stCtm);
+    sprintf(szCurDate, "%04d%02d%02d%02d%02d%02d%03d",
+            stCtm.tm_year+1900,
+            stCtm.tm_mon + 1,
+            stCtm.tm_mday,
+            stCtm.tm_hour,
+            stCtm.tm_min,
+            stCtm.tm_sec,
+            stNow.tv_usec/1000);
+
+	sprintf(szFileName, "%s_%s.tmp", szProcName, szCurDate);
+
+	/*
+	** PROCESS STATUS CHECK
+	*/
+	sprintf(szCommand, "ps -e|grep %s|grep -v grep|grep -v ps|grep -v vi|grep -v tail|grep -v kill > %s", szProcName, szFileName);
+	if ( system(szCommand) != 0 )
+	{
+		fprintf(stdout, "system call`ps`error[%s]..[%s]\n", strerror(errno), szCommand);
+		exit(1);
+	}
+
+	if ( (fp=fopen(szFileName, "r")) == NULL )
+	{
+		fprintf(stdout, "file not open`%s`errno[%s]\n", szFileName, strerror(errno));
+		exit(1);
+	}
+
+	/*
+	** PROCESS COUNT
+	*/
+	for ( nCnt=0; ; nCnt++ )
+	{
+		if ( fgets(szBuffer, sizeof(szBuffer), fp) == NULL ) break;
+	}
+	fclose(fp);
+
+	/*
+	** TEMP FILE REMOVE
+	*/
+	sprintf(szCommand, "rm -f %s", szFileName);
+	if ( system(szCommand) != 0 )
+	{
+		fprintf(stdout, "system call`rm`error[%s]\n", strerror(errno));
+		exit(1);
+	}
+
+	return (nCnt);
+}
+
+/*****************************************************************************
+* errno 값에 대한 에러 메시지
+* (I) 1. int nErrno : errno
+* (R) 1. char * : 에러 문자열
+******************************************************************************/
+char*   infGetStrError(int nErrno)
+{
+    return strerror( abs(nErrno) );
+}
+
+/*****************************************************************************
+* DATABASE CONNECT STATUS CHECK (ORACLE)
+* (I) 1. int sqlcode : SQL CODE
+* (R) 1. 정상 : '1' - DB_CONNECT 상태
+*     2. 오류 : '0' - DB_RELEASE 상태
+******************************************************************************/
+int     infCheckOracleDB(int sqlcode)
+{
+    if ( sqlcode == -28    )    return DB_RELEASE;  /* your session has been killed */
+    if ( sqlcode == -1012  )    return DB_RELEASE;  /* not logged on */
+    if ( sqlcode == -1034  )    return DB_RELEASE;  /* ORACLE not available */
+    if ( sqlcode == -1089  )    return DB_RELEASE;  /* immediate shutdown in progress - no operations are permitted */
+    if ( sqlcode == -2134  )    return DB_RELEASE;  /* Invalid runtime context */
+    if ( sqlcode == -3114  )    return DB_RELEASE;  /* not connected to ORACLE */
+    if ( sqlcode == -3113  )    return DB_RELEASE;  /* end-of-file on communication channel */
+    if ( sqlcode == -12203 )    return DB_RELEASE;  /* TNS:unable to connect to destination */
+    if ( sqlcode == -12537 )    return DB_RELEASE;  /* TNS:connection closed */
+    if ( sqlcode == -12571 )    return DB_RELEASE;  /* TNS:packet writer failure
+    if ( sqlcode == -1003  )    return DB_RELEASE;  /* no statement parsed */
+
+    return DB_CONNECT;
+}
+
+/*****************************************************************************
+* 문자열(2바이트) 좌우의 값을 바꿈
+* (I) 1. char *str : 전 문자열
+* (O) 1. char *str : 후 문자열
+* (R) void
+******************************************************************************/
+void	infReverseStr(char *pStr)
+{
+	char	temp;
+
+	temp = pStr[0];
+	pStr[0] = pStr[1];
+	pStr[1] = temp;
+}
+
+/*****************************************************************************
+* 문자열(2바이트) 좌우의 값을 바꿔 INT값으로 변환
+* (I) 1. char *pStr : 바꿀 문자열
+* (O)
+* (R) 1. int 바꾼 후의 Integer 값
+******************************************************************************/
+short int	infReverseStrToShortInt(char *pStr)
+{
+    union {
+        char        ch[2];
+        short int   si;
+    } comp;
+
+	comp.ch[0] = pStr[1];
+	comp.ch[1] = pStr[0];
+
+	return (comp.si);
+}
+
+/*****************************************************************************
+* INT 타입(2바이트) 좌우의 값을 바꿔 문자열로 변환
+* (I) 1. int val : 바꿀 Integer값
+* (O) 1. char *pStr : 바꾼 문자열
+* (R) 1. '0' : 정상
+*     2. '-1' : 오류
+******************************************************************************/
+int		infReverseIntToStr(char *pStr, int val)
+{
+	union {
+        char        ch[2];
+        short int   si;
+    } comp;
+
+	if ( (val < 0) || (val > 65535) ) return(-1);
+
+    comp.si = (short int)val;
+
+    pStr[0] = comp.ch[1];
+    pStr[1] = comp.ch[0];
+
+	return (0);
+}
+
+/*****************************************************************************
+* SHORT INT 타입(2바이트) 좌우의 값을 바꿈
+* (I) 1. short int : 전
+* (O)
+* (R) 1. short int : 후
+******************************************************************************/
+short int	infReverseShortInt(short int val)
+{
+    char    temp;
+    union {
+        char        ch[2];
+        short int   si;
+    } comp;
+
+    comp.si = val;
+
+    temp = comp.ch[0];
+    comp.ch[0] = comp.ch[1];
+    comp.ch[1] = temp;
+
+    return (comp.si);
+}
+
+/*****************************************************************************
+* INT 타입(4바이트) 좌우의 값을 바꿈
+* (I) 1. short int : 전
+* (O)
+* (R) 1. short int : 후
+******************************************************************************/
+int	    infReverseInt(int val)
+{
+    char    temp[4];
+    union {
+        char        ch[4];
+        int         si;
+    } comp;
+
+    comp.si = val;
+
+    temp[0] = comp.ch[3];
+    temp[1] = comp.ch[2];
+    temp[2] = comp.ch[1];
+    temp[3] = comp.ch[0];
+
+    comp.ch[0] = temp[0];
+    comp.ch[1] = temp[1];
+    comp.ch[2] = temp[2];
+    comp.ch[3] = temp[3];
+
+    return (comp.si);
+}
+
+/*****************************************************************************
+* 문자열의 값을 INT값으로 변환
+* (I) 1. char *pStr : 문자열
+*     2. int nSize : 변환하고자하는 문자열의 길이
+* (O)
+* (R) 1. int : 변환 Integer 값
+******************************************************************************/
+int     infStrToInt(char *pStr, int nSize)
+{
+	char	szTemp[128];
+
+	memset(szTemp, 0x00, sizeof(szTemp));
+	memcpy(szTemp, pStr, nSize);
+
+	return atoi(szTemp);
+}
+
+/*****************************************************************************
+* 문자열의 값을 LONG값으로 변환
+* (I) 1. char *pStr : 문자열
+*     2. int nSize : 변환하고자하는 문자열의 길이
+* (O)
+* (R) 1. int : 변환 LONG 값
+******************************************************************************/
+long    infStrToLong(char *pStr, int nSize)
+{
+	char	szTemp[128];
+
+	memset(szTemp, 0x00, sizeof(szTemp));
+	memcpy(szTemp, pStr, nSize);
+
+	return atol(szTemp);
+}
+
+/*
+** 마지막 문자열이 한글인 경우 정상적신 글씨가 아닌경우는 NULL로 설정
+*/
+int  infBrokenHangulChangeNull(char *pStr)
+{
+    int     nEnd = strlen(pStr) - 1;
+    int     nHan = 0;
+    int     i;
+
+    if ( !(*(pStr+nEnd) & 0x80) ) return(0);
+
+    for ( i=nEnd; i>-1; i-- )
+    {
+        char    ch = *(pStr+i);
+        if ( ch & 0x80 )
+        {
+            nHan++;
+        }
+        else
+        {
+            if ( nHan % 2 )
+            {
+                *(pStr+nEnd) = 0x00;
+                return (0);
+            }
+            else
+            {
+                return (-1);
+            }
+        }
+    }
+    return (-1);
+}
+
+
+/*****************************************************************************
+ * Sequence Number Initailize
+ * arg(I) 1. char *szFileName : Sequence Number관리 파일명
+ *        2. int nMaxCount : Sequence Number 관리 ITEM Max Value
+ * return 1. int : '0'이면 참(Fixed)
+ ****************************************************************************/
+int     infInitSequence(char *szFileName, int nMaxCount)
+{
+    char    pDataStr[512], *pcur, *pnxt;
+    FILE   *fileP;
+    int     i;
+    long    lSeq;
+
+    if ( galSeqNumber[0] < 0L )
+	{
+        for (i=0; i<SEQUENCE_MAXCOUNT; i++) {
+            galSeqNumber[i] = 0L;
+        }
+        if ((fileP = fopen(szFileName, "r")) != NULL) {
+            if (fgets(pDataStr, sizeof(pDataStr), fileP) != NULL) {
+                if (memcmp(pDataStr, "SEQUENCE=", 9) == 0) {
+                    pcur = &pDataStr[9];
+                    for (i = 0; i < SEQUENCE_MAXCOUNT; i++) {
+                        if ((pnxt = strchr(pcur, '/')) != NULL) {
+                            *pnxt++ = 0x00;
+                        }
+                        if ((lSeq = atol(pcur)) > 0L) {
+                            galSeqNumber[i] = lSeq;
+                        }
+                        if ((pcur = pnxt) == NULL) {
+                            break;
+                        }
+                    }
+                }
+            }
+            fclose(fileP);
+        }
+        infTermSequence(szFileName, nMaxCount);
+    }
+    return(0);
+}
+
+/*****************************************************************************
+ * Sequence Number Count
+ * arg(I) 1. int nGetEntry : Sequence 관리 Item Number
+ *        2. long lMaxValue : Sequence Number Max Value
+ * return 1. long : Sequence Number Count Value
+ *        2. 1L   : 초기값(lMaxValue보다 lSeq value가 클 경우
+ ****************************************************************************/
+long    infNxtSequence(int nGetEntry, long lMaxValue)
+{
+    long    lSeq = ++galSeqNumber[nGetEntry];
+    if (lSeq > lMaxValue) {
+        lSeq = 1L;
+    }
+    return(lSeq);
+}
+
+/*****************************************************************************
+ * 현재의 Sequence Number를 얻음
+ * arg(I) 1. int nGetEntry : Sequence 관리 Item Number
+ *        2. long lMaxValue : Sequence Number Max Value
+ * return 1. long : Sequence Number Count Value
+ *        2. 1L   : 초기값(lMaxValue보다 lSeq value가 클 경우
+ ****************************************************************************/
+long    infGetSequence(int nGetEntry, long lMaxValue)
+{
+    long    lSeq = galSeqNumber[nGetEntry];
+    if (lSeq > lMaxValue) {
+        lSeq = 1L;
+    }
+    return(lSeq);
+}
+
+/*****************************************************************************
+ * Sequence Number Set
+ * arg(I) 1. int nSetEntry : Sequence 관리 Item Number
+ *        2. long lSetValue : Set Sequence Number
+ ****************************************************************************/
+void    infSetSequence(int nSetEntry, long lSetValue)
+{
+    if (nSetEntry < SEQUENCE_MAXCOUNT) {
+        galSeqNumber[nSetEntry] = lSetValue;
+    }
+}
+
+/*****************************************************************************
+ * Sequence Number를 파일에 Write
+ * arg(I) 1. char *szFileName : Write할 파일명
+ *        2. int nMaxCount : Sequence Number 관리 ITEM Max Value
+ * return 1. int : '0'이면 참(Fixed)
+ ****************************************************************************/
+int     infTermSequence(char *szFileName, int nMaxCount)
+{
+    FILE    *fileP;
+    int     i;
+    if (nMaxCount > SEQUENCE_MAXCOUNT) {
+        nMaxCount = SEQUENCE_MAXCOUNT;
+    }
+    if (nMaxCount <= 0) {
+        nMaxCount = 1;
+    }
+    if ((fileP = fopen(szFileName, "w+")) != NULL) {
+        fprintf(fileP, "SEQUENCE=%ld", galSeqNumber[0]);
+        for (i = 1; i < nMaxCount; i++) {
+            fprintf(fileP, "/%ld", galSeqNumber[i]);
+        }
+        fputc('\n', fileP);
+        fclose(fileP);
+    }
+    return(0);
+}
+
+/*****************************************************************************
+ * 문자열을 long value로 변환
+ * arg(I) : 1. char *pStr : 문자열
+ *          2. int nSize : 문자열 길이
+ * return : 1. long 문자열 변환값
+ ****************************************************************************/
+long     infStringToLong(char *pStr, int nSize)
+{
+        long    nNum = 0L;
+        char    ch;
+        int     minus = 0;
+        while ((nSize > 0) && (*pStr == 0x20)) {
+            pStr++;
+            nSize--;
+        }
+        if ((nSize > 0) && (*pStr == '-')) {
+            pStr++;
+            nSize--;
+            minus = 1;
+        }
+        while ((nSize > 0) && (*pStr == '0')) {
+            pStr++;
+            nSize--;
+        }
+        while (nSize-- > 0 ) {
+            ch = *pStr++;
+            if ((ch < '0') || (ch > '9')) {
+                break;
+            }
+            nNum = (nNum * 10) + (ch - '0');
+        }
+        return((minus) ? -nNum : nNum);
+}
+
+/*****************************************************************************
+ * 숫자 문자 체크
+ * arg(I) : 1. char *pStr : 문자열
+ *          2. ing nSize : 문자열 길이
+ * return : 1. '0'이상 부터 '9'이하인 값의 count
+ ****************************************************************************/
+int     infNumNumber(char *pStr, int nSize)
+{
+    int     nNum = 0;
+    while( nSize-- > 0 ) {
+        if ( (*pStr >= '0') && (*pStr <= '9')) {
+            nNum++;
+        }
+        pStr++;
+    }
+    return(nNum);
+}
+
+/*****************************************************************************
+ * 문자열에서 0x20(space)보다 큰 값을 체크
+ * arg(I) : 1. char *pStr : 문자열
+ *          2. int nSize : 문자열 길이
+ * return : 1. space 보다 큰 값의 count
+ ****************************************************************************/
+int     infNumString(char *pStr, int nSize)
+{
+    int    nNum = 0;
+    while( nSize-- > 0 ) {
+        if ( *((unsigned char*)pStr) > 0x20 ) {
+            nNum++;
+        }
+        pStr++;
+    }
+    return(nNum);
+}
+
+/*****************************************************************************
+ * 문자열 데이타가 수치형 문자열이며 그 숫치 값이 법위에 해당되는지 체크
+ * arg(I) : 1. char *pDataStr : 문자열 데이타
+ *          2. int nDataSize : 문자열 데이타 길이
+ *          3. int nBgnNumber : 비교 수치
+ *          4. int nEndNumber : 비교 수치
+ * return : 1. '0' : 거짓
+ *          2. '1' : 참
+ ****************************************************************************/
+int     infValidNumber(char *pDataStr, int nDataSize, int nBgnNumber, int nEndNumber)
+{
+    int     nNum9999 = infNumNumber(pDataStr, nDataSize);
+    if (nNum9999 < nDataSize) {
+        return(0);
+    }
+    if (nBgnNumber > 0L) {
+        long    datanNum = infStringToLong(pDataStr, nDataSize);
+        if ((datanNum < nBgnNumber) || (datanNum > nEndNumber)) {
+            return(0);
+        }
+    }
+    return(1);  /* 정상 */
+}
+
+/*****************************************************************************
+ * 문자열 데이타가 수치형 문자열 데이타 인지 체크
+ * arg(I) : 1. char pDataStr[] : 문자열 데이타
+ *          2. int nDataSize : 문자열 길이
+ *          3. int nMinSize : 비교 문자열 길이
+ * return : 1. '0' : 거짓
+ *          2. '1' : 참
+ ****************************************************************************/
+int     infValidString(char *pDataStr, int nDataSize, int nMinSize)
+{
+    int     nNumxxxx = infNumString(pDataStr, nDataSize);
+    if (nNumxxxx < nMinSize) {
+        return(0);
+    }
+    return(1);  /* 정상 */
+}
+
+/*****************************************************************************
+ * 문자열 포인트 값을 space(0x20)보다 작은 경우 space로 치환
+ * arg(B) 1. char *pStr : 문자열 포인트
+ * arg(I) 1. int nSize : 문장열 길이
+ * returm 1. int : space로 치환한 문자을 갯수
+ ****************************************************************************/
+int     infControlCharToSpace(char *pStr, int nSize)
+{
+    int     conv = 0;
+    while (nSize-- > 0) {
+        unsigned char   ch = *((unsigned char *)pStr);
+        if (ch < 0x20) {
+            *pStr = 0x20;
+            conv++;
+        }
+        pStr++;
+    }
+    return(conv);
+}
+
+/*****************************************************************************
+ * 문자열 길이의 문자열 버퍼에서 포인터별로 space가 아닌 문자를 카운트
+ * arg(I) : 1. char* pDataStr : 문자열 버퍼
+ *          2. int nDataSize  : 문자열 버퍼 길이
+ * return : 1. int 문자열 버퍼 길이
+ ****************************************************************************/
+int     infGetRealSize(char *pDataStr, int nDataSize)
+{
+    pDataStr += (nDataSize - 1);
+    while (nDataSize > 0) {
+        if (*pDataStr != 0x20) {
+            break;
+        }
+        pDataStr--;
+        nDataSize--;
+    }
+    return(nDataSize);
+}
+
+
+void strcpyA(char* pOutStr, char* pInStr)
+{
+	if(pInStr != NULL)
+	{
+		strcpy(pOutStr, pInStr);
+	}
+}
+
+/*****************************************************************************
+ * BATCH 프로그램 데이터 카운트 값을 얻음
+ * arg(I) : 1. SBatchCnt_T *pBatch : SBatchCnt_T 구조체 포인트
+ * return : 1. int : 각 멤버 변수 값
+ ****************************************************************************/
+int     infGetBatchTotCnt(SBatchCnt_T *pBatch)	{ return pBatch->nTotal;	}
+int     infGetBatchSucCnt(SBatchCnt_T *pBatch)	{ return pBatch->nSuccess;	}
+int     infGetBatchErrCnt(SBatchCnt_T *pBatch)	{ return pBatch->nError;	}
+int     infGetBatchSkpCnt(SBatchCnt_T *pBatch)	{ return pBatch->nSkip;		}
+
+/*****************************************************************************
+ * BATCH 프로그램 데이터 카운트 값을 증가
+ * arg(I) : 1. SBatchCnt_T *pBatch : SBatchCnt_T 구조체 포인트
+ * return : 1. int : 각 멤버 변수 값
+ ****************************************************************************/
+void	infIncBatchTotCnt(SBatchCnt_T *pBatch)	{ pBatch->nTotal++;		}
+void	infIncBatchSucCnt(SBatchCnt_T *pBatch)	{ pBatch->nSuccess++;	}
+void	infIncBatchErrCnt(SBatchCnt_T *pBatch)	{ pBatch->nError++;		}
+void	infIncBatchSkpCnt(SBatchCnt_T *pBatch)	{ pBatch->nSkip++;		}
+
+/*****************************************************************************
+ * BATCH 프로그램 데이터 카운트 값을 증가
+ * arg(I) : 1. SBatchCnt_T *pBatch : SBatchCnt_T 구조체 포인트
+ * return : 1. int : 각 멤버 변수 값
+ ****************************************************************************/
+void	infDecBatchTotCnt(SBatchCnt_T *pBatch)	{ pBatch->nTotal--;		}
+void	infDecBatchSucCnt(SBatchCnt_T *pBatch)	{ pBatch->nSuccess--;	}
+void	infDecBatchErrCnt(SBatchCnt_T *pBatch)	{ pBatch->nError--;		}
+void	infDecBatchSkpCnt(SBatchCnt_T *pBatch)	{ pBatch->nSkip--;		}
+
+
+/*======================================================================
+ void ReplaceSingleToBackslash(char* pString)
+ ex> StrReplace("te'st")
+ re> output is te\'st
+ ======================================================================*/
+void ReplaceSingleToBackslash(char* pString)
+{
+	int cTemp;
+	int nFileLen = strlen(pString);
+	int cReplace = '\'';
+	int cSingle = '\\\\\'';
+	for(int i=0; i<nFileLen ; i++)
+	{
+		cTemp = pString[i];
+		if( cTemp == cSingle ) // 96 is '
+		{
+			pString[i] = (char)cReplace;
+		}
+	}
+}
+/******************************************************************************
+ * End of file...
+ *****************************************************************************/
+
+/*
+char *replaceAll(char *s, const char *olds, const char *news) {
+		 char *result, *sr;
+	 	 size_t i, count = 0;
+	 	 size_t oldlen = strlen(olds); if (oldlen < 1) return s;
+	 	 size_t newlen = strlen(news);
+
+
+	 	 if (newlen != oldlen) {
+	 		 for (i = 0; s[i] != '\0';) {
+	 			 if (memcmp(&s[i], olds, oldlen) == 0) count++, i += oldlen;
+			   else i++;
+		   }
+		 } else i = strlen(s);
+
+		result = (char *) malloc(i + 1 + count * (newlen - oldlen));
+		if (result == NULL) return NULL;
+
+		sr = result;
+		while (*s) {
+		if (memcmp(s, olds, oldlen) == 0) {
+			memcpy(sr, news, newlen);
+			sr += newlen;
+			s  += oldlen;
+		} else *sr++ = *s++;
+	 }
+	 *sr = '\0';
+
+  return result;
+}
+ */
+

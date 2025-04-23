@@ -1,0 +1,23 @@
+echo "start copy to all dcmd server"
+ scp -oStrictHostKeyChecking=no -r -P 51004 /root/project1/server/zangsi_with_dcmd/rbin/dcmdserver root@116.124.129.100:/root/dcmdserver/bin/dcmdserver_20130207_new
+echo "---"
+# scp -oStrictHostKeyChecking=no -r -P 51004 /root/project1/server/zangsi_with_dcmd/rbin/dcmdserver root@1.234.48.162:/root/dcmdserver/bin/dcmdserver_20130207_new
+echo "---"
+ scp -oStrictHostKeyChecking=no -r -P 51004 /root/project1/server/zangsi_with_dcmd/rbin/dcmdserver root@211.237.13.18:/root/dcmdserver/bin/dcmdserver_20130207_new
+echo "---"
+ scp -oStrictHostKeyChecking=no -r -P 51004 /root/project1/server/zangsi_with_dcmd/rbin/dcmdserver root@1.234.48.138:/root/dcmdserver/bin/dcmdserver_20130207_new
+echo "---"
+ scp -oStrictHostKeyChecking=no -r -P 51004 /root/project1/server/zangsi_with_dcmd/rbin/dcmdserver root@116.124.129.226:/root/dcmdserver/bin/dcmdserver_20130207_new
+echo "---"
+ scp -oStrictHostKeyChecking=no -r -P 51004 /root/project1/server/zangsi_with_dcmd/rbin/dcmdserver root@211.237.13.34:/root/dcmdserver/bin/dcmdserver_20130207_new
+echo "---"
+ scp -oStrictHostKeyChecking=no -r -P 51004 /root/project1/server/zangsi_with_dcmd/rbin/dcmdserver root@61.109.248.36:/root/dcmdserver/bin/dcmdserver_20130207_new
+echo "---"
+ scp -oStrictHostKeyChecking=no -r -P 51004 /root/project1/server/zangsi_with_dcmd/rbin/dcmdserver root@116.122.159.227:/root/dcmdserver/bin/dcmdserver_20130207_new
+echo "---"
+ scp -oStrictHostKeyChecking=no -r -P 51004 /root/project1/server/zangsi_with_dcmd/rbin/dcmdserver root@211.237.13.2:/root/dcmdserver/bin/dcmdserver_20130207_new
+echo "---"
+ scp -oStrictHostKeyChecking=no -r -P 51004 /root/project1/server/zangsi_with_dcmd/rbin/dcmdserver root@211.237.13.50:/root/dcmdserver/bin/dcmdserver_20130207_new
+ scp -oStrictHostKeyChecking=no -r -P 51004 /root/project1/server/zangsi_with_dcmd/rbin/dcmdserver root@61.109.248.52:/root/dcmdserver/bin/dcmdserver_20130207_new
+echo "---"
+echo "end copy to all dcmd server"

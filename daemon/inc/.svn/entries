@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<wc-entries
+   xmlns="svn:">
+<entry
+   committed-rev="470"
+   name=""
+   committed-date="2013-05-08T06:05:37.532532Z"
+   url="svn://172.16.9.207/ezwon/server/zangsi_with_dcmd/daemon/inc"
+   last-author="jindogg"
+   kind="dir"
+   uuid="ae599a11-4fef-40d6-8bf3-4dd85d011f42"
+   revision="674"/>
+<entry
+   committed-rev="470"
+   name="DBStressTest.h"
+   text-time="2013-11-07T00:36:51.000000Z"
+   committed-date="2013-05-08T06:05:37.532532Z"
+   checksum="d303fc2cbcc92a32598db3d7e8f003a3"
+   last-author="jindogg"
+   kind="file"
+   prop-time="2013-11-07T00:36:51.000000Z"/>
+<entry
+   committed-rev="470"
+   name="commydb.h"
+   text-time="2013-11-07T00:36:51.000000Z"
+   committed-date="2013-05-08T06:05:37.532532Z"
+   checksum="39307566f8022641848ff90539743f15"
+   last-author="jindogg"
+   kind="file"
+   prop-time="2013-11-07T00:36:51.000000Z"/>
+<entry
+   committed-rev="470"
+   name="chkdaem.h"
+   text-time="2013-11-07T00:36:51.000000Z"
+   committed-date="2013-05-08T06:05:37.532532Z"
+   checksum="1f715322bfa39a69a92ff33b384d13c6"
+   last-author="jindogg"
+   kind="file"
+   prop-time="2013-11-07T00:36:51.000000Z"/>
+<entry
+   committed-rev="470"
+   name="DBStrProc.h"
+   text-time="2013-11-07T00:36:51.000000Z"
+   committed-date="2013-05-08T06:05:37.532532Z"
+   checksum="9aa74f86db92a9f5a4b702a2a8d09bf6"
+   last-author="jindogg"
+   kind="file"
+   prop-time="2013-11-07T00:36:51.000000Z"/>
+<entry
+   committed-rev="470"
+   name="check_dcmd.h"
+   text-time="2013-11-07T00:36:51.000000Z"
+   committed-date="2013-05-08T06:05:37.532532Z"
+   checksum="4896560b680484cdca9d45cb1b1cbb51"
+   last-author="jindogg"
+   kind="file"
+   prop-time="2013-11-07T00:36:51.000000Z"/>
+<entry
+   committed-rev="470"
+   name="chkdaem_socket.h"
+   text-time="2013-11-07T00:36:51.000000Z"
+   committed-date="2013-05-08T06:05:37.532532Z"
+   checksum="6821d7a5eb982bdd3fa82d1ac5a28499"
+   last-author="jindogg"
+   kind="file"
+   prop-time="2013-11-07T00:36:51.000000Z"/>
+<entry
+   committed-rev="470"
+   name="daemcom.h"
+   text-time="2013-11-07T00:36:51.000000Z"
+   committed-date="2013-05-08T06:05:37.532532Z"
+   checksum="83d6e23329dea654bcf8b530fc082ec9"
+   last-author="jindogg"
+   kind="file"
+   prop-time="2013-11-07T00:36:51.000000Z"/>
+</wc-entries>

@@ -1,0 +1,38 @@
+############################################################
+############################################################
+############################################################
+############################################################
+2013.05.09
+svn 도입 
+############################################################
+
+############################################################
+2013.04.10
+
+#모바일 유료화 추가 
+
+#zangsi_cpr
+T_CPR_DEAL_INFO 	T_CPR_DEAL_INFO.service_gu
+T_DEAL_INFO_FILE        	service_gu ( 1 pc : 2 mobile )
+T_CPR_MOB_CONT_LIST
+T_CPR_MOB_CONT_LIST_HIST
+T_CONTENTS_TEMPLIST_SUB		mob_price_amt,mob_service_yn
+
+#zangsi
+T_MOB_CONTENTS_INFO
+T_MOB_CONTENTS_INFO_DEL
+T_DEAL_INFO        	down_st_date ( 1 pc : 2 mobile )
+T_CONTENTS_VIR_ID  	mob_service_yn
+T_CONTENTS_VIR_ID2 	mob_service_yn
+
+#수정사항
+dcmdsvr/fups4001.cc
+dcmdsvr/fups4006.cc
+cpr_daemon/src/cprdaem1001.cc
+cpr_daemon/src/cprdaem1002.cc
+daemon/src/daem5004.cc
+
+#스트리밍 strm 
+send_daemon
+
+###########################################################

@@ -1,0 +1,335 @@
+/******************************************************************************
+ *   서브시스템 : CMD서버
+ *   프로그램명 : cmdmain.cc
+ *         기능 : CMD서버의 Main
+ *         설명 :
+ *       작성자 : 이형철
+ *       작성일 : 2004/02/16
+ *     수정이력 :
+********************************************************************************
+1         2         3         4         5         6         7         8
+12345678901234567890123456789012345678901234567890123456789012345678901234567890
+*******************************************************************************/
+#include <map>
+#include <pthread.h>
+#include <unistd.h>
+#include <time.h>
+#include <sys/socket.h>
+#include <sys/stat.h>
+#include <signal.h>
+#include <arpa/inet.h>
+#include <sys/un.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+//#include <arpa/inet.h>
+#include <errno.h>
+#include <fcntl.h>
+#include <sys/types.h>
+#include <dirent.h>
+
+#include "dnmmain.h"
+#include "apstruct.h"
+#include "apdefine.h"
+#include "comcomm.h"
+#include "comconf.h"
+
+using namespace std;
+//#define __DEBUG
+
+/*===========================================================================*/
+/* 전역변수 선언															 */
+/*===========================================================================*/
+
+SUserParm_T gstUserParm;
+char	errMsg[256];
+
+multimap<int,USERINFO> m_UserList;
+
+
+pthread_cond_t async_cond = PTHREAD_COND_INITIALIZER;
+pthread_mutex_t mutex_lock = PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t async_mutex = PTHREAD_MUTEX_INITIALIZER;
+
+
+unsigned long int ChangeEndian(unsigned long int uiInput)
+{
+    return ( uiInput >> 24 ) | ( ( uiInput >> 8 ) & 0x0000FF00 ) \
+       | ( ( uiInput <<  8 ) & 0x00FF0000 ) | ( uiInput << 24 );
+}
+
+/*============================================================================*/
+/* 함수 프로토타입                                                            */
+/*============================================================================*/
+int     infInitProcess(int, char**);
+int     infMainRoutine(int, char**);
+void    infTermProcess();
+
+
+/*****************************************************************************
+* CMD서버 Main
+* (I) 1. int argc    : Argument Count 수
+*     2. char **argv : Argunment Data Point
+*****************************************************************************/
+int main(int argc, char** argv)
+{
+    /*
+    ** 초기화작업 서버명.cfg파일을 읽어 환경 Setting을 한다.
+    ** lib_src/apconfig.c
+    */
+
+    infInitProcess(argc, argv);
+    infMainRoutine(argc, argv);
+    infTermProcess();
+}
+
+/*****************************************************************************
+* 프로그램 시작
+* (I) 1. int argc    : Argument Count 수
+*     2. char **argv : Argunment Data Point
+* (R) 1. 정상 : '0'
+*     2. 오류 : 음수 
+*****************************************************************************/
+int     infInitProcess(int argc, char** argv) 
+{
+//    infLOG(ALWAY, "================= 프로그램 시작 ====================\n"); 
+    return RETOK;
+}
+
+/*****************************************************************************
+* 프로그램 종료
+* (I) void
+* (R) void
+*****************************************************************************/
+void    infTermProcess()
+{
+    infLOG(ERROR, "================= 프로그램 종료 ==================\n"); 
+    exit(0);
+}
+
+/*******************************************************************************
+* SOCKET CLOSE
+* (I) SUserParm_T *pUser : 사용자 정의 변수 구조체
+* (R) int iSockId : Socket Connect ID
+*******************************************************************************/
+int     infReleaseSocket()
+{
+	
+	infLOG(ALWAY, "================= 프로그램 종료 ==================\n"); 
+    return 0;
+}
+
+/*****************************************************************************
+* SIGNAL HANDLING
+* (I) int nSigNo : Signal Number
+* (R) void
+*****************************************************************************/
+//void    infSigHandler(int nSigNo)
+void infSigHandler(int nSigNo, siginfo_t *siginfo,void* p) 
+{
+
+	infLOG(ALWAY, "infMainRoutine       ] infSigHandler`SigNo[%d]\n", nSigNo);
+
+	sigset_t sigset, oldset;
+    sigfillset(&sigset);
+    // 새로들어오는 모든 시그널에 대해서 block 한다. 
+    if (sigprocmask(SIG_BLOCK, &sigset, &oldset) < 0)
+    {
+		infLOG(ERROR, "infMainRoutine    ERR] infSigHandler`SigNo[%d]\n", nSigNo);    	
+    	#ifdef __DEBUG
+        printf("infMainRoutine       ] sigprocmask %d error \n", nSigNo);
+        #endif
+    }
+    
+	multimap<int,USERINFO>::iterator mi;
+	
+    int i;
+
+	#ifdef __DEBUG
+	printf("infMainRoutine       ] infSigHandler`SigNo[%d]\n", nSigNo);
+	#endif
+
+
+
+	mi = m_UserList.find(siginfo->si_pid);
+	if( mi != m_UserList.end())
+	{
+		m_UserList.erase(mi);
+		
+		#ifdef __DEBUG
+		printf("infMainRoutine       ] close socket %d\n",mi->first);
+		#endif
+		infLOG(ALWAY, "infMainRoutine       ] Close Socket ( %d ) \n",mi->first);
+		
+		close(mi->first);
+	
+	}
+}
+
+
+int CreateTCPServerSocket(unsigned short port)
+{
+    int sock;                        /* socket to create */
+    struct sockaddr_in ServAddr; /* Local address */
+
+    /* Create socket for incoming connections */
+    if ((sock = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP)) < 0)
+    {
+    	#ifdef __DEBUG
+    	printf("make socket failed\n");
+    	#endif
+    	return -1;	
+    }
+      
+     int value = 1;
+    
+    int st = setsockopt(sock,SOL_SOCKET,SO_REUSEADDR ,&value,sizeof(value));
+     
+    if(st != 0)
+	{
+		#ifdef __DEBUG
+	//			01234567890123456789]	
+		printf("CreateServerSocket	]  setsockopt error SOL_SOCKET errornum ( %d )\n",errno);
+		#endif					
+		infLOG(ERROR, "CreateServerSocket	] setsockopt error SOL_SOCKET errornum ( %d )\n",errno);
+
+	}
+    
+		
+    /* Construct local address structure */
+    memset(&ServAddr, 0, sizeof(ServAddr));   /* Zero out structure */
+    ServAddr.sin_family = AF_INET;                /* Internet address family */
+    ServAddr.sin_addr.s_addr = htonl(INADDR_ANY); /* Any incoming interface */
+    ServAddr.sin_port = htons(port);              /* Local port */
+	
+	
+    if (bind(sock, (struct sockaddr *) &ServAddr, sizeof(ServAddr)) < 0)
+    {
+    	#ifdef __DEBUG
+    	printf("blind failed\n");
+    	#endif
+    	return -1;
+    }
+
+    /* Mark the socket so it will listen for incoming connections */
+    if (listen(sock, 65535) < 0)
+    {
+    	#ifdef __DEBUG
+    	printf("listen failed\n");
+    	#endif
+    	return -1;    	
+    }
+        
+
+    return sock;
+}
+
+
+int infMainRoutine(int argc,char** argv)
+{
+    
+	int servSock;                    /* Socket descriptor for server */
+    int clntSock;                    /* Socket descriptor for client */
+    unsigned short ServPort;     /* Server port */
+    pthread_t threadID;              /* Thread ID from pthread_create() */
+    
+    struct ThreadArgs *threadArgs;   /* Pointer to argument structure for thread */
+
+    if (argc != 2)     /* Test for correct number of arguments */
+    {
+        printf("Usage:  %s <SERVER PORT - 5003 >\n", argv[0]);
+        exit(1);
+    }
+    struct sigaction intsig; 
+	
+	intsig.sa_sigaction = infSigHandler; 
+	    	
+
+	sigemptyset(&intsig.sa_mask); 
+	intsig.sa_flags = SA_SIGINFO; 
+	
+	if (sigaction(SIGPIPE, &intsig, 0) == -1) 
+	{
+		#ifdef __DEBUG
+		printf("infMainRoutine       ] sigaction error ( SIGPIPE )\n");
+		#endif
+		infLOG(ERROR, "infMainRoutine       ] sigaction error ( SIGPIPE ) \n"); 
+	}
+ 
+    ServPort = atoi(argv[1]);  /* First arg:  local port */
+    servSock = CreateTCPServerSocket(ServPort);
+    
+    infSetUserParm(&gstUserParm, argc, argv);
+	
+	infLOG(ALWAY, "프로세스 시작 \n"); 
+	
+	
+    for (;;) /* run forever */
+    {
+
+	//	clntSock = AcceptTCPConnection(servSock);
+
+//////////////////////////////// accept //////////////////////////////
+	
+	    struct sockaddr_in ClntAddr; /* Client address */
+	    unsigned int clntLen;            /* Length of client address data structure */
+	
+	    /* Set the size of the in-out parameter */
+	    clntLen = sizeof(ClntAddr);
+	    
+	    /* Wait for a client to connect */
+	    if ((clntSock = accept(servSock, (struct sockaddr *) &ClntAddr, &clntLen)) < 0)
+	    {
+	    	char szErrMsg[255];
+	    	memset(szErrMsg,0x00,255);
+	    	
+	    	int err_num =errno;
+	    	
+	    	#ifdef __DEBUG
+	    	printf("infMainRoutine       ] accept failed  %d %s\n",err_num,szErrMsg);
+	    	#endif
+
+			infLOG(ERROR, "infMainRoutine       ] accept failed  %d %s\n",err_num,szErrMsg);
+			    	
+	    	continue;
+	    }
+	    
+	    /* clntSock is connected to a client! */
+	    
+	    #ifdef __DEBUG
+	    printf("infMainRoutine       ] Handling client %s port = %d socket num == %d	\n", inet_ntoa(ClntAddr.sin_addr),ClntAddr.sin_port,clntSock);
+	    #endif
+	    
+		
+    
+ ///////////////////////////////accept end /////////////////////////////////
+ 
+        /* Create separate memory for client argument */
+      /*  if ((threadArgs = (struct ThreadArgs *) malloc(sizeof(struct ThreadArgs))) 
+               == NULL)
+            DieWithError("malloc() failed");
+   */
+       
+        
+		LPUSERINFO pUserInfo = new USERINFO;
+		sprintf(pUserInfo->thread.userIP ,"%s", inet_ntoa(ClntAddr.sin_addr));
+		pUserInfo->thread.clntSock = clntSock;
+
+        if (pthread_create(&threadID, NULL, ThreadMain, (void *) pUserInfo) != 0)
+	        {
+	        	printf("infMainRoutine       ] main thread create error\n");
+	    	}
+			else
+			{
+				#ifdef __DEBUG
+				printf("infMainRoutine       ] Create with thread %ld\n", (long int) threadID);
+				#endif
+				
+				//mutex
+			}
+    }
+    return 1;
+    /* NOT REACHED */
+}
+
+

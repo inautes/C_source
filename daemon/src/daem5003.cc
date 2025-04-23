@@ -1,0 +1,877 @@
+/******************************************************************************
+ *   서브시스템 : daemon프로세스
+ *   프로그램명 : daem5003
+ *         기능 : 삭제된 컨텐츠 파일 Delete 처리
+ *         설명 : 1. 프로세스 처리 예정시간 - 07:00 ~ 09:00사이에 수행.
+ *                2. 디비정보가 삭제된 컨텐츠에 대해서 실제 파일삭제 처리
+ 				  3. 네트워크 오류 유무 판단 ( 링크 스피드 확인 )
+ *     설치위치 : 컨텐츠 서버
+ *
+ *       작성자 : LEE
+ *       작성일 : 2004/02/16
+ *     수정이력 : 2007/02/10
+ *		 수정자 : HCS
+
+ daem5003_process() : zangsi.T_CONTENTS_DEL 목록 삭제, file_del_yn = 'Y' 업데이트
+ daem5003_file_del_process() : -30일 이전 업로드 실패 파일, T_CONTENTS_TEMP
+
+********************************************************************************
+1         2         3         4         5         6         7         8
+12345678901234567890123456789012345678901234567890123456789012345678901234567890
+*******************************************************************************/
+#include <mysql.h>
+#include <stdarg.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <signal.h>
+#include <sys/stat.h>
+#include <errno.h>
+#include <sys/vfs.h>
+#include <unistd.h>     /* for close() */
+#include <math.h>
+
+#include "daemcom.h"
+#include "commydb.h"
+
+#define  MAX_ROWS	1
+#define _DEBUG_
+
+int RunSystem(char* pSystemQuery);
+int daem5003_process();
+int daem5003_process_db();
+int daem5003_file_del_process();
+int daem5003_process_deletefile();
+int daem5003_process_init(int argc, char **argv);
+int daem5003_process_term();
+void daem5003_signal(int nSignal);
+void UpdateDiskSize();
+
+MYSQL     *con;
+MYSQL_RES *res;
+MYSQL_ROW  row;
+
+MYSQL_RES *res2;
+MYSQL_ROW  row2;
+
+char   gserver_id [  5+1];	// 서버ID
+char   gcont_gu   [  2+1];	// 서버구분
+char   gproc_date [  8+1];	// 처리일자
+char   gdel_date  [  8+1];	// 삭제예정일
+char   gfile_path [255+1];	// 파일결로
+char   gfile_name [ 30+1];	// 파일이름
+char   gfolder_yn [ 2   ];
+unsigned long gid         ;	// 컨텐츠ID
+double gfile_size        ;	// 파일크기
+char   gdel_date_ago_3day [  8+1];	// 삭제예정일자
+char   gdel_date_ago_14day [  8+1];	// 삭제예정일자
+
+//******************************************************************************
+//* daem5003 main
+//******************************************************************************
+int RunSystem(char* pSystemQuery)
+{
+	int nError = 0;
+	nError = system(pSystemQuery);
+
+	if(nError == 127 || nError < 0)
+	{
+		ZzLOG(ERROR,"system()호출에 실패 했습니다. nError : [%d]", nError);
+		return -1;
+	}
+	return 0;
+}
+
+
+void UpdateDiskSize()
+{
+	char szQuery[1000];		// query string
+	int  ret;
+	struct stat64 statbuf;
+
+
+	MYSQL_RES *tmp_res;
+	MYSQL_ROW  tmp_row;
+
+	memset (szQuery, 0x00, sizeof(szQuery));
+	sprintf(szQuery, "select a.root_path from zangsi.T_SERVER_INFO  a where a.server_id = '%s' ; /* daem5003 */" ,gserver_id);
+
+	if (mysql_query(con, szQuery)){
+	    return;
+    }
+
+	if (!(tmp_res = mysql_store_result(con)))
+	{
+		ZzLOG(ERROR, "[%d](%s)",mysql_errno(con), mysql_error(con));
+		return ;
+	}
+ 	if (mysql_num_rows(tmp_res)==0)
+ 	{
+		ZzLOG(ERROR, "[%d](%s)",mysql_errno(con), mysql_error(con));
+		mysql_free_result(tmp_res);
+		return ;
+	}
+	tmp_row = mysql_fetch_row(tmp_res);
+
+	char disk_name[256]; memset(disk_name,0,256);
+	strcpy(disk_name,   getstr(tmp_row, 0));
+	mysql_free_result(tmp_res);
+
+	struct statfs64 fs;
+	ret = statfs64(disk_name, &fs) ;
+	ZzLOG(ALWAY,"statfs ret [ %d ] error [ %d ] error msg [ %s ] \n",ret,errno,strerror(errno));
+	double total		= 	(double)fs.f_bsize * (double)fs.f_blocks;
+	double remainder	= (double)fs.f_bsize * (double)fs.f_bavail;
+
+	/* 2016-10-12 디스크 사용량 체크후 사용량이 99% 이상이면 컨텐츠서버의 업로드를 차단한다. 이동민 */
+
+	double nUsePercent = (total-remainder)*100/total;
+
+	ZzLOG(ALWAY,"UseDiskPercent  [ %.f ] ] \n",nUsePercent);
+	if ( nUsePercent > 99.3 )
+	{
+		sprintf(szQuery,	 "UPDATE zangsi.T_SERVER_INFO"
+								 " SET disk_size = %15.0f , disk_use   = %15.0f , real_disk_use   = %15.0f "
+								 " WHERE server_id  = '%s' ; /* daem5003 */ "
+								 ,total
+								 ,total-remainder
+								 ,remainder
+								 ,gserver_id
+								 );
+		ZzLOG(ALWAY, "%s\n\n",szQuery);
+
+	}
+	else
+	{
+		sprintf(szQuery,	 "UPDATE zangsi.T_SERVER_INFO"
+							 " SET disk_size = %15.0f , disk_use   = %15.0f , real_disk_use   = %15.0f "
+							 " WHERE server_id  = '%s' ; /* daem5003 */ "
+							 ,total
+							 ,total-remainder
+							 ,remainder
+							 ,gserver_id
+							 );
+		ZzLOG(ALWAY, "%s\n\n",szQuery);
+	}
+
+	ZzLOG(ALWAY, "%s\n\n",szQuery);
+
+	if (mysql_query(con, szQuery)){
+		ZzLOG(ERROR, "process_db: UPDATE zangsi.T_SERVER_INFO error...\n");
+		return ;
+	}
+
+	if( ret != 0) //err
+	{
+		return ;
+	}
+
+
+}
+
+int daem5003_file_del_process()
+{
+	//T_CONTENTS_TEMP
+	//sfile_path와 sfile_name, folder_yn에 대한 정보를 얻는다.
+
+	ZzLOG(ALWAY,"------------daem5003_file_del_process() start-------------\n");
+    ZzLOG(ALWAY, "gproc_date : [%s]\n", gproc_date);
+    ZzLOG(ALWAY, "gdel_date_ago_14day : [%s]\n", gdel_date_ago_14day);
+    ZzLOG(ALWAY, "gserver_id : [%s]\n", gserver_id);
+    ZzLOG(ALWAY, "---------------------------------------------------------\n");
+
+	char szQuery[1000];
+	memset(szQuery, 0x00, sizeof(szQuery));
+	//con = NULL;
+	res = NULL;
+	row = NULL;
+
+	char   szproc_date [  8+1];	// 처리일자
+	memset(szproc_date, 0x00, sizeof(szproc_date));
+
+	int	nRowcnt = 0;
+
+	sprintf(szQuery, "SELECT date_format(date_add(now(), INTERVAL -30 DAY),'%Y%m%d') ; /* daem5003 */ ");
+	ZzLOG(ALWAY,szQuery);
+
+	if (mysql_query(con, szQuery))
+	{
+	   ZzLOG(ERROR, "daem5003_file_del_process: mysql_query error...\n");
+		ZzLOG(ERROR, "[%d](%s)",mysql_errno(con), mysql_error(con));
+		return -1;
+	}
+	if (!(res = mysql_store_result(con)))
+	{
+	    ZzLOG(ERROR, "daem5003_file_del_process: mysql_store_result error...\n");
+		ZzLOG(ERROR, "[%d](%s)",mysql_errno(con), mysql_error(con));
+		return -1;
+	}
+	if (mysql_num_rows(res)==0)
+	{
+		mysql_free_result(res);
+	    ZzLOG(ALWAY, "daem5003_file_del_process: 날짜 얻기 실패.\n");
+		return 0;
+	}
+
+	row = mysql_fetch_row(res);
+	strcpy(szproc_date, getstr(row, 0));
+
+	memset(szQuery, 0x00, sizeof(szQuery));
+	//con = NULL;
+	res = NULL;
+	row = NULL;
+
+	sprintf(szQuery, "  select a.id, a.sfile_path, a.sfile_name"
+					 "	from zangsi.T_CONTENTS_TEMP a "
+					 "	where a.server_id = '%s' "
+                     "  and a.reg_date  >= '00000000' 								"
+                     "  and a.reg_date  <= '%s' 									"
+                     " and a.id > %ld "
+                     "  LIMIT 100 	; /* daem5003 */ "
+					 , gserver_id, gdel_date_ago_14day,gid);
+	ZzLOG(ALWAY,szQuery);
+	if (mysql_query(con, szQuery))
+	{
+	   ZzLOG(ERROR, "daem5003_file_del_process: mysql_query error...\n");
+		ZzLOG(ERROR, "[%d](%s)",mysql_errno(con), mysql_error(con));
+		return -1;
+	}
+	if (!(res = mysql_store_result(con)))
+	{
+	    ZzLOG(ERROR, "daem5003_file_del_process: mysql_store_result error...\n");
+		ZzLOG(ERROR, "[%d](%s)",mysql_errno(con), mysql_error(con));
+		return -1;
+	}
+	if (mysql_num_rows(res)==0)
+	{
+		mysql_free_result(res);
+	    ZzLOG(ALWAY, "daem5003_file_del_process: 처리할 자료가 없습니다.\n");
+		return 0;
+	}
+
+	ZzLOG(ALWAY, "daem5003_file_del_process: select_cnt(%d)\n", mysql_num_rows(res));
+
+	while((row = mysql_fetch_row(res))!= NULL)
+	{
+		gid = 0;
+		memset(gfile_path, 0x00, sizeof(gfile_path));
+		memset(gfile_name, 0x00, sizeof(gfile_name));
+		memset(gfolder_yn, 0x00, sizeof(gfolder_yn));
+
+		gid = getint(row, 0);
+		strcpy(gfile_path, getstr(row, 1));
+		strcpy(gfile_name, getstr(row, 2));
+		//strcpy(gfolder_yn, getstr(row, 3));
+
+	//만약 filepath가 남아 있다면 서버의 해당 데이터를 삭제처리하고,
+	//T_CONTENT_TEMP의 해당 레코드를 삭제
+
+		if(daem5003_process_deletefile() < 0)
+		{
+			ZzLOG(ALWAY,"%d번 %s/%s 처리 실패", gid, gfile_path, gfile_name);
+		}
+	}
+	mysql_free_result(res);
+
+	return 0;
+
+}
+int daem5003_process_deletefile()
+{
+	char szQuery[1000];
+	memset(szQuery, 0x00, sizeof(szQuery));
+
+	char szSysQuery[612];
+	memset(szSysQuery, 0x00, sizeof(szSysQuery));
+
+	char szfullfile[612];
+	memset(szfullfile, 0x00, sizeof(szfullfile));
+
+	int  ret = 0;
+	struct stat64 statbuf;
+
+	if((strcmp(gfile_path, "")!=0) && (strcmp(gfile_name, "")!=0))
+	{
+/////////////////////////////////////////////
+/*				db 처리				   */
+/////////////////////////////////////////////
+		memset(szQuery, 0x00, sizeof(szQuery));
+		sprintf(szQuery, " DELETE FROM zangsi.T_CONTENTS_TEMP "
+						 " WHERE id = %d ; /* daem5003 */ ",gid);
+
+		ZzLOG(ALWAY, "%s\n\n",szQuery);
+
+		if (mysql_query(con, szQuery))
+		{
+		    ZzLOG(ERROR, "process_db: UPDATE zangsi.T_CONTENTS_TEMP error...\n");
+		    goto daem5003_process_deletefile_err;
+	    }
+
+
+/////////////////////////////////////////////
+/*				파일 삭제				   */
+/////////////////////////////////////////////
+
+		strcpy(szfullfile, gfile_path);
+		strcat(szfullfile, "/");
+		strcat(szfullfile, gfile_name);
+
+		strcpy(szSysQuery, "rm -rf ");
+		strcat(szSysQuery, szfullfile);
+
+		if (strcmp(szfullfile, "/")==0 || strlen(szfullfile) <= strlen("/raid/fdata/wedisk/2005/00/00/00/") )
+		{
+			ZzLOG(ERROR, "process_db: %s err\n",szfullfile);
+			goto daem5003_process_deletefile_err;
+		}
+		//파일이 있는지 검사한다.
+		ret = lstat64(szfullfile, &statbuf);
+		if( errno != 2 )
+		{
+			if(RunSystem(szSysQuery) != 0)
+			{
+				ZzLOG(ERROR,"daem5003_process_deletefile: %s 처리 실패\n", szfullfile);
+				goto daem5003_process_deletefile_err;
+			}
+
+			UpdateDiskSize();
+
+			ret = 0;
+			ret = lstat64(szfullfile, &statbuf);
+
+			if(ret == 0)
+			{
+				ZzLOG(ALWAY,"%s 삭제 실패", szfullfile);
+				goto daem5003_process_deletefile_err;
+			}
+		}
+
+	}
+	return 0;
+
+daem5003_process_deletefile_err:
+	ZzLOG(ERROR, "daem5003_process_deletefile: [%d](%s)",mysql_errno(con), mysql_error(con));
+	return -1;
+
+}
+
+int daem5003_process()
+{
+	char szQuery[1000];  // query string
+	int i, j, count;
+	int st_min, ed_min;
+	int nRowcnt=0;
+
+    ZzLOG(ALWAY, "---------------------------------------------------------\n");
+    ZzLOG(ALWAY, "gproc_date : [%s]\n", gproc_date);
+    ZzLOG(ALWAY, "gserver_id : [%s]\n", gserver_id);
+    ZzLOG(ALWAY, "---------------------------------------------------------\n");
+
+	/*------------------------------------------------------------------------*/
+	/* Main loop                                                              */
+	/*------------------------------------------------------------------------*/
+	count = 0;
+	while(1) {
+
+
+		memset (szQuery, 0x00, sizeof(szQuery));
+
+		sprintf(szQuery,"SELECT a.file_path, a.file_name1, a.id, a.file_size, a.del_date, a.cont_gu , a.folder_yn"
+                        "   FROM zangsi.T_CONTENTS_DEL a 		"
+                        "  WHERE a.server_id  = '%s' 									"
+                        "    AND a.del_date  >= '00000000' 								"
+                        "    AND a.del_date  <= '%s' 									"
+                        "  LIMIT 100 ; /* daem5003 */  "
+                        , gserver_id
+                        , gproc_date
+                        );
+
+		ZzLOG(ALWAY, "%s\n\n",szQuery);
+
+		#ifdef __DEBUG
+		printf("%s\n\n",szQuery);
+		#endif
+
+
+
+		if (mysql_query(con, szQuery)){
+		    ZzLOG(ERROR, "daem5003_process: mysql_query error...\n");
+			ZzLOG(ERROR, "[%d](%s)",mysql_errno(con), mysql_error(con));
+			return -1;
+		}
+
+		if (!(res = mysql_store_result(con))) {
+		    ZzLOG(ERROR, "daem5003_process: mysql_store_result error...\n");
+			ZzLOG(ERROR, "[%d](%s)",mysql_errno(con), mysql_error(con));
+			return -1;
+		}
+
+		if (mysql_num_rows(res)==0)	{
+			mysql_free_result(res);
+		    ZzLOG(ALWAY, "daem5003_process: select_cnt = 0 처리할 자료가 없습니다.\n");
+			return -1;
+		}
+
+	   	ZzLOG(ALWAY, "daem5003_process: select_cnt(%d)\n", mysql_num_rows(res));
+
+		nRowcnt = 0;
+		while((row = mysql_fetch_row(res)) != NULL)
+		{
+			memset(&gfile_path, 0x00, sizeof(gfile_path));
+			memset(&gfile_name, 0x00, sizeof(gfile_name));
+			memset(&gfile_size, 0x00, sizeof(gfile_size));
+			memset(&gdel_date , 0x00, sizeof(gdel_date ));
+			memset(&gcont_gu  , 0x00, sizeof(gcont_gu ));
+			memset(&gfolder_yn  , 0x00, sizeof(gfolder_yn ));
+
+			strcpy(gfile_path, getstr(row, 0));
+			strcpy(gfile_name, getstr(row, 1));
+			gid        = getint(row,2);
+			gfile_size = getnum(row,3);
+			strcpy(gdel_date, getstr(row, 4));
+			strcpy(gcont_gu , getstr(row, 5));
+			strcpy(gfolder_yn , getstr(row, 6));
+
+			ZzLOG(ERROR, " gfile_path  =%s gile_name = %s \n"
+						 " gfile_date = %s gcont_gu = %s \n"
+						 " gid = %ld\n\n",gfile_path,gfile_name,gdel_date,gcont_gu,gid);
+
+			#ifdef __DEBUG
+			printf(" gfile_path  =%s gile_name = %s \n"
+				   " gfile_date = %s gcont_gu = %s \n"
+				   " gid = %ld\n\n",gfile_path,gfile_name,gdel_date,gcont_gu,gid);
+
+			#endif
+
+			if (daem5003_process_db() != 0)
+			{
+				ZzLOG(ERROR, "end daem5003_process_db \n");
+				mysql_free_result(res);
+				return -1;
+			}
+
+		}
+		mysql_free_result(res);
+
+	}
+	return 0;
+}
+
+//******************************************************************************
+//* daem5003 db 처리로직
+//******************************************************************************
+int daem5003_process_db()
+{
+	char szQuery[1000];		// query string
+	char szSysQuery [612];	// system commend
+	char szfullfile [612];	// file full name
+	int  nRowcnt;			// select row count
+	int  ret;
+	struct stat64 statbuf;
+
+
+	memset (szQuery, 0x00, sizeof(szQuery));
+	if (strcmp(gcont_gu, "WE") == 0)
+	{
+		sprintf(szQuery, " select a.id from zangsi.T_CONTENTS_INFO a "
+	                 " WHERE a.disp_end_date >= '%s' and a.id  = %d  ; /* daem5003 */  "
+	                 ,gcont_gu	 ,gproc_date   ,gid    );
+	}
+	else
+	{
+		sprintf(szQuery, " select a.id from zangsi.T_CONTFLOG_INFO a "
+	                 " WHERE a.disp_end_date >= '%s' and a.id  = %d  ; /* daem5003 */  "
+	                 ,gcont_gu	 ,gproc_date   ,gid    );
+	}
+
+	if (mysql_query(con, szQuery)){
+		ZzLOG(ERROR, "daem5003_process: mysql_query error...\n");
+		ZzLOG(ERROR, "[%d](%s)",mysql_errno(con), mysql_error(con));
+		return -1;
+	}
+
+	if (!(res = mysql_store_result(con))) {
+		ZzLOG(ERROR, "daem5003_process: mysql_store_result error...\n");
+		ZzLOG(ERROR, "[%d](%s)",mysql_errno(con), mysql_error(con));
+		return -1;
+	}
+
+	if (mysql_num_rows(res) > 0)	{
+		mysql_free_result(res);
+		ZzLOG(ALWAY, "daem5003_process return : szQuery = %s \n",szQuery);
+
+		//--------------------------------------------------------------------------
+		// T_CONTENTS_DEL delete
+		//--------------------------------------------------------------------------
+		memset (szQuery, 0x00, sizeof(szQuery));
+		sprintf(szQuery, " DELETE FROM zangsi.T_CONTENTS_DEL "
+						 " WHERE cont_gu = '%s' and id  = %d  ; /* daem5003 */  "
+						 ,gcont_gu
+						 ,gid
+						 );
+
+		ZzLOG(ALWAY, "%s\n\n",szQuery);
+
+		if (mysql_query(con, szQuery)){
+			ZzLOG(ERROR, "process_db: DELETE FROM zangsi.T_CONTENTS_DEL error...\n");
+			goto daem5003_process_db_err;
+		}
+
+		return 0;
+	}
+
+
+
+	//--------------------------------------------------------------------------
+	// T_CONTENTS_DEL delete
+	//--------------------------------------------------------------------------
+	memset (szQuery, 0x00, sizeof(szQuery));
+	sprintf(szQuery, " DELETE FROM zangsi.T_CONTENTS_DEL "
+	                 " WHERE cont_gu = '%s' and id  = %d  ; /* daem5003 */  "
+	                 ,gcont_gu
+	                 ,gid
+	                 );
+
+
+	ZzLOG(ALWAY, "%s\n\n",szQuery);
+
+
+	#ifdef __DEBUG
+	printf("%s\n\n",szQuery);
+	#endif
+
+	if (mysql_query(con, szQuery)){
+	    ZzLOG(ERROR, "process_db: UPDATE zangsi.T_SERVER_INFO error...\n");
+	    goto daem5003_process_db_err;
+    }
+
+	if (strcmp(gcont_gu, "WE") == 0)
+	{
+
+		memset (szQuery, 0x00, sizeof(szQuery));
+		sprintf(szQuery, "UPDATE zangsi.T_CONTENTS_INFO"
+		                 "   SET file_del_yn = 'Y' "
+		                 " WHERE id          = %d   ; /* daem5003 */  "
+		                 ,gid
+		                 );
+
+
+		ZzLOG(ALWAY, "%s\n\n",szQuery);
+
+
+		#ifdef __DEBUG
+		printf("%s\n\n",szQuery);
+		#endif
+
+		mysql_query(con, szQuery);
+
+		memset (szQuery, 0x00, sizeof(szQuery));
+		sprintf(szQuery, "UPDATE zangsi.T_CONTENTS_INFO_DEL"
+		                 "   SET file_del_yn = 'Y' "
+		                 " WHERE id          = %d   ; /* daem5003 */  "
+		                 ,gid
+		                  );
+
+		mysql_query(con, szQuery);
+				
+	}
+	else if (strcmp(gcont_gu, "FD") == 0)
+	{
+		//--------------------------------------------------------------------------
+		// 자동처리된 자료
+		//--------------------------------------------------------------------------
+		memset (szQuery, 0x00, sizeof(szQuery));
+		sprintf(szQuery, "UPDATE zangsi.T_CONTFLOG_INFO"
+		                 "   SET file_del_yn = 'Y' "
+		                 " WHERE id          = %d   ; /* daem5003 */  "
+		                 ,gid
+		                 );
+
+
+		ZzLOG(ALWAY, "%s\n\n",szQuery);
+
+
+		#ifdef __DEBUG
+		printf("%s\n\n",szQuery);
+		#endif
+
+		mysql_query(con, szQuery);
+
+		memset (szQuery, 0x00, sizeof(szQuery));
+		sprintf(szQuery, "UPDATE zangsi.T_CONTFLOG_INFO_DEL"
+		                 "   SET file_del_yn = 'Y' "
+		                 " WHERE id          = %d   ; /* daem5003 */  "
+		                 ,gid
+		                 );
+		mysql_query(con, szQuery);
+	}
+
+
+	// file 삭제처리
+	if ((strcmp(gfile_path, "")!=0) && (strcmp(gfile_name, "")!=0))
+	{
+		memset(szSysQuery, 0x00, sizeof(szSysQuery));
+		memset(szfullfile, 0x00, sizeof(szfullfile));
+
+		strcpy(szfullfile, gfile_path);
+		strcat(szfullfile, "/");
+		strcat(szfullfile, gfile_name);
+
+//		sprintf(szSysQuery,"mv %s /raid/fdata/backup/.",szfullfile);
+
+		strcpy(szSysQuery, "rm -r -f ");
+		strcat(szSysQuery, szfullfile);
+
+
+
+		if (strcmp(szfullfile, "/")==0 || strlen(szfullfile) <= strlen("/raid/fdata/wedisk/2005/00/00/00/") )
+		{
+			ZzLOG(ERROR, "process_db: %s err\n",szfullfile);
+			return 0;
+		}
+		//파일이 있는지 검사한다.
+		ret = lstat64(szfullfile, &statbuf);
+
+		if(access(szfullfile, 0 ) != -1 )
+		{
+			if( errno != 2 )
+			{
+				ret = system(szSysQuery);
+				ZzLOG(ALWAY, "%s\n",szSysQuery);
+
+				//--------------------------------------------------------------------------
+				// Update Disk 사용량 Update
+				//--------------------------------------------------------------------------
+
+				UpdateDiskSize();
+			}
+		}
+		else
+		{
+			ZzLOG(ERROR, "no file: %s\n", szfullfile);
+		}
+
+
+
+	}
+
+	return 0;
+
+daem5003_process_db_err:
+	ZzLOG(ERROR, "process_db: [%d](%s)",mysql_errno(con), mysql_error(con));
+	return -1;
+}
+
+/*****************************************************************************
+* DB에서 system Date를 얻는다.
+* (I) void
+* (R) int : 정상(0)/오류(-1)
+*****************************************************************************/
+int daem5003_get_sysdate()
+{
+	char szQuery[1000];		// query string
+	char sztemp [100];      // query temp
+
+	//if (strcmp(gproc_date, "00000000") != 0)
+//		return 0;
+
+	memset(szQuery, 0x00, sizeof(szQuery));
+	//strcpy(szQuery, "SELECT date_format(now(),'%Y%m%d')");
+	if (strcmp(gproc_date, "00000000") == 0)
+	{
+		memset(szQuery, 0x00, sizeof(szQuery));
+		strcpy(szQuery, "SELECT date_format(now(),'%Y%m%d')");
+		strcat(szQuery, "     , date_format(date_add(now(), INTERVAL -4 DAY),'%Y%m%d')");
+		strcat(szQuery, "     , date_format(date_add(now(), INTERVAL -14 DAY),'%Y%m%d')  ; /* daem5003 */  ");
+	}
+	else
+	{
+		memset(szQuery, 0x00, sizeof(szQuery));
+		strcpy(szQuery, "SELECT date_format('");
+		strcat(szQuery, gproc_date);
+		strcat(szQuery, "','%Y%m%d')");
+		strcat(szQuery, "     , date_format(date_add('");
+		strcat(szQuery, gproc_date);
+		strcat(szQuery, "', INTERVAL -3 DAY),'%Y%m%d')");
+		strcat(szQuery, "     , date_format(date_add('");
+		strcat(szQuery, gproc_date);
+		strcat(szQuery, "', INTERVAL -14 DAY),'%Y%m%d')  ; /* daem5003 */  ");
+	}
+
+
+	if (mysql_query(con, szQuery)){
+	    ZzLOG(ERROR, "sysdate: mysql_query error...\n");
+		ZzLOG(ERROR, "[%d](%s)",mysql_errno(con), mysql_error(con));
+		return -1;
+	}
+
+	if (!(res = mysql_store_result(con)))
+	{
+	    ZzLOG(ERROR, "sysdate: mysql_store_result error...\n");
+		ZzLOG(ERROR, "[%d](%s)",mysql_errno(con), mysql_error(con));
+		return -1;
+	}
+ 	if (mysql_num_rows(res)==0)
+ 	{
+	    ZzLOG(ERROR, "sysdate: mysql_num_rows error...\n");
+		ZzLOG(ERROR, "[%d](%s)",mysql_errno(con), mysql_error(con));
+		mysql_free_result(res);
+		return -1;
+	}
+	row = mysql_fetch_row(res);
+	memset(gproc_date, 0x00, sizeof(gproc_date));
+	memset(gdel_date_ago_3day, 0x00, sizeof(gdel_date_ago_3day));
+	memset(gdel_date_ago_14day, 0x00, sizeof(gdel_date_ago_14day));
+
+	strcpy(gproc_date,   getstr(row, 0));
+	strcpy(gdel_date_ago_3day,   getstr(row, 1));
+	strcpy(gdel_date_ago_14day,   getstr(row, 2));
+
+	mysql_free_result(res);
+
+	return 0;
+}
+
+
+/*****************************************************************************
+* 프로그램 시작루틴
+* 전역변수 초기화 및 데이타베이스 연결
+* (I) void
+* (R) int : 정상(0)/오류(-1)
+*****************************************************************************/
+int daem5003_process_init(int argc, char **argv)
+{
+	char stemp[128];
+	int ret=0;
+    /*
+    ** 전역변수 초기화
+    */
+    ZzInitGlobalVariable2("daem5003", "/logs/daemon");
+
+    ZzLOG(ALWAY, "***************프로그램 시작***************\n");
+
+    // 파라미터 값 설정 및 초기화
+    if (argc != 3){
+
+    	goto arg_error;
+    }
+
+    // 서버이름 얻기
+	memset(gserver_id, 0x00, sizeof(gserver_id));
+	strcpy(gserver_id, argv[2]);
+	if (strcmp(gserver_id, "00000")==0)
+	{
+		memset (gserver_id, 0x00, sizeof(gserver_id));
+		sprintf(gserver_id, "%s", getenv("SERVER_ID"));
+		if (strcmp(gserver_id, "(null)")==0) {
+			goto arg_error;
+		}
+	}
+	if (strcmp(gserver_id, "")==0)
+		goto arg_error;
+
+	ZzPRT(ALWAY, "gserver_id : (%s)\n", gserver_id);
+
+	//--------------------------------------------------------------------------
+	// DB 연결
+	//--------------------------------------------------------------------------
+	if (!(con=db_connect2("zangsi")))
+	{
+		ZzLOG(ERROR, "DB에 접속하지 못 하였습니다...\n");
+	   	return(-1);
+	}
+
+	/* 처리일자 */
+	memset(gproc_date, 0x00, sizeof(gproc_date));
+	strcpy(gproc_date, argv[1]);
+	ret=daem5003_get_sysdate();
+	if (ret < 0){
+		db_disconnect(con);
+		return -1;
+	}
+
+    return (0);
+
+
+arg_error:
+    ZzLOG(ERROR, "usage : %s YYYYMMDD XXXXX\n", argv[0]);
+    ZzLOG(ERROR, "        YYYYMMDD(처리일자)-> '00000000'인경우 system일자로처리\n");
+    ZzLOG(ERROR, "        XXXXX   (서버ID  )-> '00000'   인경우 getenv(SERVER_ID)참조\n");
+
+    ZzPRT(ERROR, "usage : %s YYYYMMDD XXXXX\n", argv[0]);
+    ZzPRT(ERROR, "        YYYYMMDD(처리일자)-> '00000000'인경우 system일자로처리\n");
+    ZzPRT(ERROR, "        XXXXX   (서버ID  )-> '00000'   인경우 getenv(SERVER_ID)참조\n");
+    return -1;
+}
+
+/***************************************************************************
+* 프로그램 종료루틴
+* 데이터베이스 종료 및 처리결과를 로그파일에 정의
+* (I) void
+* (R) int : 정상(0)/오류(-1)
+****************************************************************************/
+int daem5003_process_term()
+{
+    // DB close
+	db_disconnect(con);
+    ZzLOG(ALWAY, "***************프로그램 종료***************\n\n");
+
+    return (0);
+}
+
+/*****************************************************************************
+* 프로그램 시그널 처리
+* (I) void
+* (R) void
+*****************************************************************************/
+void  daem5003_signal(int nSignal)
+{
+    daem5003_process_term();
+}
+
+/*****************************************************************************
+*  프로그램 메인
+*****************************************************************************/
+int main(int argc, char **argv)
+{
+	char    szTemp[1024];
+	int     rc;
+
+	/*
+	** SIGNAL 정의
+	*/
+	signal(SIGTERM, daem5003_signal);
+	signal(SIGINT,  daem5003_signal);
+	signal(SIGQUIT, daem5003_signal);
+	signal(SIGKILL, daem5003_signal);
+	signal(SIGPIPE, SIG_IGN);
+	signal(SIGTTIN, SIG_IGN);
+	signal(SIGTTOU, SIG_IGN);
+	signal(SIGCHLD, SIG_IGN);
+	signal(SIGHUP,  SIG_IGN);
+    if( argc >= 2 )
+	{
+		if(strcmp(argv[1], "-v") == 0 || strcmp(argv[1], "-V") == 0)
+		{
+			printf("version : 2013,6,28  \n");
+	    	exit(1);
+	    }
+	}
+
+	if ( daem5003_process_init(argc, argv) == 0 )
+	{
+		UpdateDiskSize();
+
+		/* 프로그램 메인루틴 */
+		rc = daem5003_process();
+
+		daem5003_file_del_process();
+
+		/* 프로그램 종료루틴 */
+		daem5003_process_term();
+	}
+	return(0);
+}
+/*****************************************************************************
+*  End of file...
+*****************************************************************************/

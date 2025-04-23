@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<wc-entries
+   xmlns="svn:">
+<entry
+   committed-rev="566"
+   name=""
+   committed-date="2013-06-18T06:12:44.954931Z"
+   url="svn://172.16.9.207/ezwon/server/zangsi_with_dcmd/bin"
+   last-author="jindogg"
+   kind="dir"
+   uuid="ae599a11-4fef-40d6-8bf3-4dd85d011f42"
+   revision="674"/>
+<entry
+   committed-rev="566"
+   name="fupserver.cfg"
+   text-time="2013-06-18T07:14:51.000000Z"
+   committed-date="2013-06-18T06:12:44.954931Z"
+   checksum="5e48ff1c657104142a22c2be35d45191"
+   last-author="jindogg"
+   kind="file"
+   prop-time="2013-06-18T07:14:51.000000Z"/>
+<entry
+   committed-rev="566"
+   name="dnmserver.cfg"
+   text-time="2013-06-18T07:14:51.000000Z"
+   committed-date="2013-06-18T06:12:44.954931Z"
+   checksum="f623ccbd1c6fc3f768673ac8cb7cd7e6"
+   last-author="jindogg"
+   kind="file"
+   prop-time="2013-06-18T07:14:51.000000Z"/>
+<entry
+   committed-rev="566"
+   name="cmdserver.cfg"
+   text-time="2013-06-18T07:14:51.000000Z"
+   committed-date="2013-06-18T06:12:44.954931Z"
+   checksum="fc7d5a3f947c405bbb4f13f5bd2657d2"
+   last-author="jindogg"
+   kind="file"
+   prop-time="2013-06-18T07:14:51.000000Z"/>
+<entry
+   committed-rev="566"
+   name="installserver.cfg"
+   text-time="2013-06-18T07:14:51.000000Z"
+   committed-date="2013-06-18T06:12:44.954931Z"
+   checksum="e6dcaeddf1b2ca40e7eab4efdcc95b59"
+   last-author="jindogg"
+   kind="file"
+   prop-time="2013-06-18T07:14:51.000000Z"/>
+<entry
+   committed-rev="566"
+   name="dcmdserver.cfg"
+   text-time="2013-06-18T07:14:51.000000Z"
+   committed-date="2013-06-18T06:12:44.954931Z"
+   checksum="35d5f351b8618c2ebb1c37b5842727e4"
+   last-author="jindogg"
+   kind="file"
+   prop-time="2013-06-18T07:14:51.000000Z"/>
+<entry
+   committed-rev="566"
+   name="fdnserver.cfg"
+   text-time="2013-06-18T07:14:51.000000Z"
+   committed-date="2013-06-18T06:12:44.954931Z"
+   checksum="bae19645f60e063ea0bcba5dd14f3325"
+   last-author="jindogg"
+   kind="file"
+   prop-time="2013-06-18T07:14:51.000000Z"/>
+<entry
+   committed-rev="566"
+   name="mydserver.cfg"
+   text-time="2013-06-18T07:14:51.000000Z"
+   committed-date="2013-06-18T06:12:44.954931Z"
+   checksum="dd3879c53e875070772829e299b95e6e"
+   last-author="jindogg"
+   kind="file"
+   prop-time="2013-06-18T07:14:51.000000Z"/>
+</wc-entries>

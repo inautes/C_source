@@ -1,0 +1,322 @@
+/**
+ **	Query.h
+ **
+ **	Published / author: 2001-01-04 / grymse@telia.com
+ **/
+
+/*
+Copyright (C) 2001  Anders Hedstrom
+
+This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+*/
+
+#ifndef _QUERY_H
+#define _QUERY_H
+
+
+#include <syslog.h>
+#include <Database.h>
+
+
+//! Worker class
+
+class Query {
+public:
+	/** Void constructor. */
+	Query(void) {
+		db = NULL;
+		odb = NULL;
+		res = NULL;
+		row = NULL;
+		_debug = _syslog = 0;
+	}
+	/**
+	 * Initializes the Query object, but nothing more.
+	 * @param dbin Ptr to a session object
+	*/
+	Query(Database *dbin) {
+		db = dbin;
+		odb = db -> grabdb();
+		res = NULL;
+		row = NULL;
+		_debug = _syslog = 0;
+
+		_debug = db -> debug();
+	}
+	/**
+	 * Execute a SQL query.
+	 * @param sql The SQL query
+	 * @return 0 - failed, 1 - success
+	*/
+	short execute(char *sql) {		// query, no result
+		if (db && odb && res)
+			fprintf(stderr,"query busy\n");
+		if (db && odb && !res)
+			if (mysql_query(&odb -> mysql,sql))
+				fprintf(stderr,"query failed: '%s'\n",sql);
+			else
+				return 1;
+		return 0;
+	}
+	/**
+	 * Initialize the Query object, and immediately execute a SQL query.
+	 * @param dbin Ptr to a session object
+	 * @param sql The SQL query
+	*/
+	Query(Database *dbin,char *sql) {
+		db = dbin;
+		odb = db -> grabdb();
+		res = NULL;
+		row = NULL;
+		_debug = _syslog = 0;
+
+		_debug = db -> debug();
+		if (!execute(sql))
+			fprintf(stderr,"query failed: '%s'\n",sql);
+	}
+
+// destructor
+
+	~Query(void) {
+//printf("~Query()\n");
+		if (res)
+			mysql_free_result(res);
+		if (odb)
+			db -> freedb(odb);
+	}
+
+// methods using db specific api calls
+
+	/**
+	 * Execute a SQL query and store the result.
+	 * @param sql The SQL query
+	 * @return NULL - failed, !NULL - success
+	*/
+	MYSQL_RES *get_result(char *sql) {	// query, result
+		if (db && odb && res)
+			fprintf(stderr,"query busy\n");
+		if (db && odb && !res)
+		{
+			if (execute(sql))
+				res = mysql_store_result(&odb -> mysql);
+			else
+			{
+				fprintf(stderr,"query failed: '%s'\n",sql);
+				if (_debug)
+					printf("\nquery failed: '%s'<br>\n",sql);
+			}
+		}
+		return res;
+	}
+	/**
+	 * Free stored results from a get_result() call
+	 * @see get_result()
+	*/
+	void free_result(void) {
+		if (db && odb && res)
+		{
+			mysql_free_result(res);
+			res = NULL;
+			row = NULL;
+		}
+	}
+	/**
+	 * Get the next row of the result.
+	 * @return A MYSQL row
+	*/
+	MYSQL_ROW fetch_row(void) {
+		rowcount = 0;
+		return db && odb && res ? row = mysql_fetch_row(res) : NULL;
+	}
+	/**
+	 * Get the auto_increment'ed value from the last INSERT statement.
+	 * @return The value
+	*/
+	long insert_id(void) {
+		if (db && odb)
+			return mysql_insert_id(&odb -> mysql);
+		else
+			return -1;
+	}
+	/**
+	 * Get the number of rows returned by last SELECT statement.
+	 * @return Number of rows
+	*/
+	long num_rows(void) {
+		return db && odb && res ? mysql_num_rows(res) : 0;
+	}
+
+// data retreival methods
+
+	/**
+	 * Get a string from the result.
+	 * @param x 0-based field index
+	 * @return String ptr
+	*/
+	char *getstr(int x) {
+		if (db && odb && res && row)
+			return row[x] ? row[x] : (char *)"";
+		else
+			return NULL;
+	}
+	/**
+	 * Get next string from the result.
+	 * @return String ptr
+	*/
+	char *getstr(void) {
+		return getstr(rowcount++);
+	}
+	/**
+	 * Get a floating point number from the result.
+	 * @param x 0-based field index
+	 * @return The floating point value
+	*/
+	double getnum(int x) {
+		return db && odb && res && row && row[x] ? atof(row[x]) : 0;
+	}
+	/**
+	 * Get an integer value from the result.
+	 * @param x 0-based field index
+	 * @return The integer value
+	*/
+	long getval(int x) {
+		return db && odb && res && row && row[x] ? atol(row[x]) : 0;
+	}
+	/**
+	 * Get next floating point number from the result.
+	 * @return The floating point value
+	*/
+	double getnum(void) {
+		return getnum(rowcount++);
+	}
+	/**
+	 * Get next integer value from the result.
+	 * @return The integer value
+	*/
+	long getval(void) {
+		return getval(rowcount++);
+	}
+	/**
+	 * Get a floating point value returned by a SQL query.
+	 * @param sql The SQL query
+	 * @return The floating point value
+	*/
+	double get_num(char *sql) {
+		double l = 0;
+		if (get_result(sql))
+		{
+			if (fetch_row())
+				l = getnum();
+			free_result();
+		}
+		return l;
+	}
+	/**
+	 * Get an integer value returned by a SQL query.
+	 * @param sql The SQL query
+	 * @return The integer value
+	*/
+	long get_count(char *sql) {
+		long l = 0;
+		if (get_result(sql))
+		{
+			if (fetch_row())
+				l = getval();
+			free_result();
+		}
+		return l;
+	}
+	/**
+	 * Get the string returned by a SQL query.
+	 * @param sql The SQL query
+	 * @return String ptr
+	*/
+	char *get_string(char *sql) {
+	static 	char slask[32000];
+		*slask = 0;
+		if (get_result(sql))
+		{
+			if (fetch_row())
+				strcpy(slask,getstr());
+			free_result();
+		}
+		return slask;
+	}
+	void debug(short val) { _debug = val; }
+	void syslog(short val) { _syslog = val; }
+
+//MYSQL_FIELD *	STDCALL mysql_fetch_field(MYSQL_RES *result);
+
+	/**
+	 * Get the MYSQL_FIELD ptr for the next field of a result.
+	 * @return MYSQL_FIELD ptr
+	*/
+	MYSQL_FIELD *fetch_field(void) {
+		return db && odb && res ? mysql_fetch_field(res) : NULL;
+  	}
+  	/**
+  	 * Get the next field name of a result.
+  	 * @return String ptr
+  	*/
+	char *fetch_fieldname(void) {
+		MYSQL_FIELD *field = db && odb && res ? mysql_fetch_field(res) : NULL;
+		return field ? field -> name : (char*)"";
+  	}
+
+	/**
+	 * Make a string SQL safe by escaping certain characters.
+	 * @param s String to be SQL-safed
+	*/
+	void safestr(char *s) {
+		char *s2 = new char[strlen(s) * 2 + 2];
+		int i,j = 0;
+		*s2 = 0;
+		for (i = 0; i < (int)strlen(s); i++)
+			switch (s[i])
+			{
+			case '\'':
+			case '\\':
+			case 34:
+				s2[j++] = '\\';
+			default:
+				s2[j++] = s[i];
+			}
+		s2[j] = 0;
+		strcpy(s,s2);
+		delete s2;
+	}
+	/**
+	 * Remove escape characters from a string.
+	 * @param s String to be unescaped
+	*/
+	void unsafestr(char *s) {
+		int i;
+		for (i = 0; i < (int)strlen(s); i++)
+			if (s[i] == '\\')
+				memmove(s + i,s + i + 1,strlen(s + i) + 1);
+	}
+
+private:
+	Database *db;
+	OPENDB *odb;
+	MYSQL_RES *res;
+	MYSQL_ROW row;
+	short rowcount;
+	short _debug;
+	short _syslog;
+};
+
+
+#endif // _QUERY_H

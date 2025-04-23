@@ -1,0 +1,151 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_PROGRAM_AUTHOR	Darren Hiebert	/dhiebert@users.sourceforge.net/
+!_TAG_PROGRAM_NAME	Exuberant Ctags	//
+!_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
+!_TAG_PROGRAM_VERSION	5.4	//
+AcceptTCPConnection	./dcmdsock.cc	/^int AcceptTCPConnection(int servSock)$/;"	f
+AddDBPool	./mysql_pool.cc	/^void CMysqlPool::AddDBPool()$/;"	f	class:CMysqlPool
+AppendSpecialChar	./dcmdcomlib.cc	/^char* AppendSpecialChar(char* strSrcString, char cReplace,char* pResult)$/;"	f
+CDBQueue	./CDBQueue.cc	/^CDBQueue::CDBQueue()$/;"	f	class:CDBQueue
+CMysqlCon	./mysql_pool.cc	/^CMysqlCon::CMysqlCon()$/;"	f	class:CMysqlCon
+CMysqlCon	./mysql_pool.cc	/^CMysqlCon::CMysqlCon(CMysqlPool* pParent , unsigned long pid)$/;"	f	class:CMysqlCon
+CMysqlPool	./mysql_pool.cc	/^CMysqlPool::CMysqlPool()$/;"	f	class:CMysqlPool
+CMysqlPool	./mysql_pool.cc	/^CMysqlPool::CMysqlPool(int nPoolSize , int nMaxPoolSize , bool bUseMutexSchedule = false)$/;"	f	class:CMysqlPool
+CSchQueue	./CSchQueue.cc	/^CSchQueue::CSchQueue()$/;"	f	class:CSchQueue
+CheckNewContents	./dcmdfups4001.cc	/^int CheckNewContents(MYSQL* pCon, CMysqlCon pMysqlCon, char* pUserId, unsigned long nId, char* pSectCode)$/;"	f
+CloseDB	./mysql_pool.cc	/^void CMysqlPool::CloseDB(MYSQL* pMysqlCon)$/;"	f	class:CMysqlPool
+CloseDBPool	./mysql_pool.cc	/^int CMysqlPool::CloseDBPool(long thread_id)$/;"	f	class:CMysqlPool
+CloseMysqlPool	./mysql_pool.cc	/^void CMysqlPool::CloseMysqlPool()$/;"	f	class:CMysqlPool
+CloseSchedule	./mysql_pool.cc	/^int CMysqlPool::CloseSchedule(long thread_id) \/\/ queue 에 해당 스레드 제거$/;"	f	class:CMysqlPool
+ConnectDB	./mysql_pool.cc	/^MYSQL* CMysqlPool::ConnectDB(MYSQL* pMysqlCon)$/;"	f	class:CMysqlPool
+ConnectPool	./mysql_pool.cc	/^int	CMysqlCon::ConnectPool( CMysqlPool * pParent , unsigned long pid )$/;"	f	class:CMysqlCon
+CprDBPoolQueManager	./dcmdmain.cc	/^void* CprDBPoolQueManager( void *threadArgs )$/;"	f
+CprQueManager	./dcmdmain.cc	/^void* CprQueManager(void *threadArgs)$/;"	f
+CreaeMysqlPool	./mysql_pool.cc	/^int CMysqlPool::CreaeMysqlPool(int nPoolSize,int nMaxPoolSize )$/;"	f	class:CMysqlPool
+CreateDBPoolMngThread	./mysql_pool.cc	/^void CMysqlPool::CreateDBPoolMngThread()$/;"	f	class:CMysqlPool
+CreateQueMngThread	./mysql_pool.cc	/^void CMysqlPool::CreateQueMngThread()$/;"	f	class:CMysqlPool
+CreateSchedule	./mysql_pool.cc	/^void CMysqlPool::CreateSchedule(long thread_id , pthread_mutex_t* pthread_mutex , pthread_cond_t* pthread_cond ,char* pCheck) \/\/ queue 에 해당 스레드 넣기$/;"	f	class:CMysqlPool
+CreateTCPServerSocket	./dcmdsock.cc	/^int CreateTCPServerSocket(unsigned short port)$/;"	f
+DBPoolQueManager	./dcmdmain.cc	/^void* DBPoolQueManager( void *threadArgs )$/;"	f
+DB_Lock	./mysql_pool.cc	/^void CMysqlPool::DB_Lock()$/;"	f	class:CMysqlPool
+DB_UnLock	./mysql_pool.cc	/^void CMysqlPool::DB_UnLock()$/;"	f	class:CMysqlPool
+ERASE_MAPKEY	./mysql_pool.cc	5;"	d	file:
+EraseDBPool	./mysql_pool.cc	/^void CMysqlPool::EraseDBPool()$/;"	f	class:CMysqlPool
+Find	./CDBQueue.cc	/^DB_INFO* CDBQueue::Find(int nKey )$/;"	f	class:CDBQueue
+Find	./CDBQueue.cc	/^bool CDBQueue::Find(int nKey ,DB_INFO & data , bool bDeleteNode =  true)$/;"	f	class:CDBQueue
+Find	./CSchQueue.cc	/^DB_SCHEDULE* CSchQueue::Find(int nKey )$/;"	f	class:CSchQueue
+Find	./CSchQueue.cc	/^bool CSchQueue::Find(int nKey ,DB_SCHEDULE & data , bool bDeleteNode =  true)$/;"	f	class:CSchQueue
+Front	./CSchQueue.cc	/^DB_SCHEDULE *  CSchQueue::Front()$/;"	f	class:CSchQueue
+GetErrMsg	./dcmdproc.cc	/^void GetErrMsg(int nErrno,char* szErrMsg)	$/;"	f
+GetFistCharIndex	./dcmdcomlib.cc	/^int GetFistCharIndex(char* srcString,char nChar)$/;"	f
+GetKey	./CSchQueue.cc	/^bool CSchQueue::GetKey(int & nDestKey)$/;"	f	class:CSchQueue
+GetLastIpNum	./dcmdcomlib.cc	/^int GetLastIpNum(char* pSrcIP,char* pResult)$/;"	f
+GetLeftString	./dcmdcomlib.cc	/^bool GetLeftString(char* srcString,int nCount,char* resultString)$/;"	f
+GetLogMark	./mysql_pool.cc	/^char* CMysqlPool::GetLogMark()$/;"	f	class:CMysqlPool
+GetMysqlCon	./mysql_pool.cc	/^MYSQL* CMysqlCon::GetMysqlCon()$/;"	f	class:CMysqlCon
+GetMysqlCon	./mysql_pool.cc	/^MYSQL* CMysqlPool::GetMysqlCon(long thread_id)$/;"	f	class:CMysqlPool
+GetPrimaryKey	./mysql_pool.cc	/^unsigned long CMysqlPool::GetPrimaryKey()$/;"	f	class:CMysqlPool
+GetReverseIndex	./dcmdcomlib.cc	/^int GetReverseIndex(char* srcString,char nChar)$/;"	f
+GetRightString	./dcmdcomlib.cc	/^bool GetRightString(char* srcString,int nCount,char* resultString)$/;"	f
+GetToalScheduleSize	./mysql_pool.cc	/^int CMysqlPool::GetToalScheduleSize()$/;"	f	class:CMysqlPool
+GetTotalNodeCount	./CDBQueue.cc	/^int CDBQueue::GetTotalNodeCount()$/;"	f	class:CDBQueue
+GetTotalNodeCount	./CSchQueue.cc	/^int CSchQueue::GetTotalNodeCount()$/;"	f	class:CSchQueue
+HandleTCPClient	./dcmdproc.cc	/^void HandleTCPClient(int clntSocket)$/;"	f
+InitQue	./CDBQueue.cc	/^void CDBQueue::InitQue()$/;"	f	class:CDBQueue
+InitQue	./CSchQueue.cc	/^void CSchQueue::InitQue()$/;"	f	class:CSchQueue
+IsConnectDB	./mysql_pool.cc	/^bool CMysqlPool::IsConnectDB(MYSQL* pMysqlCon)$/;"	f	class:CMysqlPool
+IsEmpty	./CDBQueue.cc	/^bool CDBQueue::IsEmpty()$/;"	f	class:CDBQueue
+IsEmpty	./CSchQueue.cc	/^bool CSchQueue::IsEmpty()$/;"	f	class:CSchQueue
+IsSleepMngThread	./mysql_pool.cc	/^bool CMysqlPool::IsSleepMngThread()$/;"	f	class:CMysqlPool
+IsThreadSafe	./CDBQueue.cc	/^bool CDBQueue::IsThreadSafe()$/;"	f	class:CDBQueue
+IsThreadSafe	./CSchQueue.cc	/^bool CSchQueue::IsThreadSafe()$/;"	f	class:CSchQueue
+Key_Lock	./mysql_pool.cc	/^void CMysqlPool::Key_Lock()$/;"	f	class:CMysqlPool
+Key_UnLock	./mysql_pool.cc	/^void CMysqlPool::Key_UnLock()$/;"	f	class:CMysqlPool
+Lock	./mysql_pool.cc	/^void CMysqlPool::Lock()$/;"	f	class:CMysqlPool
+LockThreadSafe	./CDBQueue.cc	/^void CDBQueue::LockThreadSafe()$/;"	f	class:CDBQueue
+LockThreadSafe	./CSchQueue.cc	/^void CSchQueue::LockThreadSafe()$/;"	f	class:CSchQueue
+MAKE_MAPKEY	./mysql_pool.cc	3;"	d	file:
+MAX_ROWS	./dcmdfdns3004.cc	24;"	d	file:
+MakeFolder	./dcmdcomlib.cc	/^int MakeFolder(char* szPath)$/;"	f
+MutexLock	./CDBQueue.cc	/^int CDBQueue::MutexLock()$/;"	f	class:CDBQueue
+MutexLock	./CSchQueue.cc	/^int CSchQueue::MutexLock()$/;"	f	class:CSchQueue
+MutexUnLock	./CDBQueue.cc	/^int CDBQueue::MutexUnLock()$/;"	f	class:CDBQueue
+MutexUnLock	./CSchQueue.cc	/^int CSchQueue::MutexUnLock()$/;"	f	class:CSchQueue
+MysqlLargeQuery	./mysql_pool.cc	/^int CMysqlCon::MysqlLargeQuery(MYSQL* pMysqlCon , char* pErrorMsg , char* pQuery , ... )$/;"	f	class:CMysqlCon
+MysqlQuery	./mysql_pool.cc	/^int CMysqlCon::MysqlQuery(MYSQL* pMysqlCon , char* pErrorMsg , const char* pQuery , ... )$/;"	f	class:CMysqlCon
+Pop	./CDBQueue.cc	/^bool CDBQueue::Pop(DB_INFO & pDestBuffer)$/;"	f	class:CDBQueue
+Pop	./CSchQueue.cc	/^bool CSchQueue::Pop(DB_SCHEDULE & pDestBuffer)$/;"	f	class:CSchQueue
+Push	./CDBQueue.cc	/^void CDBQueue::Push(int nKey , DB_INFO* pData)$/;"	f	class:CDBQueue
+Push	./CSchQueue.cc	/^DB_SCHEDULE* CSchQueue::Push(int nKey , DB_SCHEDULE* pData)$/;"	f	class:CSchQueue
+QueManager	./dcmdmain.cc	/^void* QueManager(void *threadArgs)$/;"	f
+QueMngThread	./mysql_pool.cc	/^void * CMysqlPool::QueMngThread(void* pThreadArgs)$/;"	f	class:CMysqlPool
+READY_MAPKEY	./mysql_pool.cc	6;"	d	file:
+RecvData	./dcmdsock.cc	/^int RecvData(int nSockID,char* RecvBuffer,int nRecvLen)$/;"	f
+Remove	./CDBQueue.cc	/^bool CDBQueue::Remove(NODE* pNode)$/;"	f	class:CDBQueue
+Remove	./CSchQueue.cc	/^bool CSchQueue::Remove(NODE* pNode)$/;"	f	class:CSchQueue
+RemoveAll	./CDBQueue.cc	/^bool CDBQueue::RemoveAll()$/;"	f	class:CDBQueue
+RemoveAll	./CSchQueue.cc	/^bool CSchQueue::RemoveAll()$/;"	f	class:CSchQueue
+ReplaceKey	./CDBQueue.cc	/^DB_INFO* CDBQueue::ReplaceKey(int uiSrcKey , int uiDestKey )$/;"	f	class:CDBQueue
+ReplaceKey	./CSchQueue.cc	/^DB_SCHEDULE* CSchQueue::ReplaceKey(int uiSrcKey , int uiDestKey )$/;"	f	class:CSchQueue
+ReplaceSingleToDouble	./dcmdcomlib.cc	/^void ReplaceSingleToDouble(char* pString)$/;"	f
+SCH_Lock	./mysql_pool.cc	/^void CMysqlPool::SCH_Lock()$/;"	f	class:CMysqlPool
+SCH_UnLock	./mysql_pool.cc	/^void CMysqlPool::SCH_UnLock()$/;"	f	class:CMysqlPool
+SLEEP_MAPKEY	./mysql_pool.cc	4;"	d	file:
+SendData	./dcmdsock.cc	/^int SendData(int nSockID,char* SendBuffer,int nSendLen)$/;"	f
+SetDB	./mysql_pool.cc	/^void CMysqlPool::SetDB(char* pDBName, char* pDBIP , char* pUserID, char* pUserPass )$/;"	f	class:CMysqlPool
+SetLogMark	./mysql_pool.cc	/^void CMysqlPool::SetLogMark(char* pMark)$/;"	f	class:CMysqlPool
+StrReplace	./dcmdcomlib.cc	/^void StrReplace(char *source, char *search, char *change)$/;"	f
+ThreadMain	./dcmdproc.cc	/^void *ThreadMain(void *threadArgs)$/;"	f
+UnLock	./mysql_pool.cc	/^void CMysqlPool::UnLock()$/;"	f	class:CMysqlPool
+UnLockThreadSafe	./CDBQueue.cc	/^void CDBQueue::UnLockThreadSafe()$/;"	f	class:CDBQueue
+UnLockThreadSafe	./CSchQueue.cc	/^void CSchQueue::UnLockThreadSafe()$/;"	f	class:CSchQueue
+UseMutex	./CDBQueue.cc	/^void CDBQueue::UseMutex(bool bUse)$/;"	f	class:CDBQueue
+UseMutex	./CSchQueue.cc	/^void CSchQueue::UseMutex(bool bUse)$/;"	f	class:CSchQueue
+UseMutexSchedule	./mysql_pool.cc	/^void CMysqlPool::UseMutexSchedule(bool bUse)$/;"	f	class:CMysqlPool
+ViewKeyList	./CDBQueue.cc	/^void CDBQueue::ViewKeyList()$/;"	f	class:CDBQueue
+ViewKeyList	./CSchQueue.cc	/^void CSchQueue::ViewKeyList()$/;"	f	class:CSchQueue
+WaitForRequest	./dcmdproc.cc	/^int WaitForRequest(int& Socket)$/;"	f
+async_cond	./dcmdmain.cc	/^pthread_cond_t async_cond = PTHREAD_COND_INITIALIZER;$/;"	v
+async_mutex	./dcmdmain.cc	/^pthread_mutex_t async_mutex = PTHREAD_MUTEX_INITIALIZER;$/;"	v
+dcmd9001	./dcmd9001.cc	/^long dcmd9001(int sock , LPHEADER pHeader , char* pRecvData , char* &pSendData)\/\/CCOM9001_R pcom9001_r)$/;"	f
+dcmd9002	./dcmd9002.cc	/^long dcmd9002(int sock , LPHEADER pHeader , char* pRecvData , char* &pSendData,int nFlag)\/\/Cdcmd9002_R pcom9002_r,int nFlag)$/;"	f
+dcmd9004	./dcmd9004.cc	/^long dcmd9004(int sock , LPHEADER pHeader , char* pRecvData , char* &pSendData)\/\/unsigned long temp_id)$/;"	f
+dcmd9005	./dcmd9005.cc	/^long dcmd9005(int sock , LPHEADER pHeader , char* pRecvData , char* &pSendData)\/\/char* pUserID , char* pData ,char* pErrMsg)$/;"	f
+dcmd9006	./dcmd9006.cc	/^long dcmd9006(int sock , LPHEADER pHeader , char* pRecvData , char* &pSendData)$/;"	f
+dcmd9101	./dcmd9101.cc	/^long dcmd9101(int sock , LPHEADER pHeader , char* pRecvData , char* &pSendData)\/\/CCOM9101_R pcom9101_r)$/;"	f
+dcmd9102	./dcmd9102.cc	/^long dcmd9102(int sock , LPHEADER pHeader , char* pRecvData , char* &pSendData)\/\/CCOM9102_R pcom9102_r)$/;"	f
+dcmd9103	./dcmd9103.cc	/^long dcmd9103(int sock , LPHEADER pHeader , char* pRecvData , char* &pSendData)\/\/CCOM9103_R pcom9103_r,char* pErrMsg)$/;"	f
+dcmd9104	./dcmd9104.cc	/^long dcmd9104(int sock , LPHEADER pHeader , char* pRecvData , char* &pSendData)\/\/CCOM9104_R pcom9104_r)$/;"	f
+dcmd9105	./dcmd9105.cc	/^long dcmd9105(int sock , LPHEADER pHeader , char* pRecvData , char* &pSendData)\/\/CCOM9105_R pcom9105_r)$/;"	f
+dcmd9201	./dcmd9201.cc	/^long dcmd9201(int sock , LPHEADER pHeader , char* pRecvData , char* &pSendData)\/\/CCOM9201_R pCom9201_r)$/;"	f
+dcmd9202	./dcmd9202.cc	/^long dcmd9202(int sock , LPHEADER pHeader , char* pRecvData , char* &pSendData)\/\/CCOM9202_R pCom9202_r)$/;"	f
+dcmd9203	./dcmd9203.cc	/^long dcmd9203(int sock , LPHEADER pHeader , char* pRecvData , char* &pSendData)\/\/CCOM9203_R pCom9203_r)$/;"	f
+dcmd9204	./dcmd9204.cc	/^long dcmd9204(int sock , LPHEADER pHeader , char* pRecvData , char* &pSendData)\/\/CCOM9204_R pCom9204_r)$/;"	f
+dcmd9205	./dcmd9205.cc	/^long dcmd9205(int sock , LPHEADER pHeader , char* pRecvData , char* &pSendData)\/\/CCOM9205_R pCom9205_r)$/;"	f
+dcmd9301	./dcmd9301.cc	/^long dcmd9301(int sock , LPHEADER pHeader , char* pRecvData , char* &pSendData)\/\/CCOM9301_R pCom9301_r)$/;"	f
+dcmdfdns3004	./dcmdfdns3004.cc	/^int dcmdfdns3004(int sock , LPHEADER pHeader , char* pRecvData , char* &pSendData)\/\/unsigned long ul_id, CFDNS3004_R *fdns3004s, char* pErrMsg)$/;"	f
+dcmdfups4001	./dcmdfups4001.cc	/^long dcmdfups4001(int sock , LPHEADER pHeader , char* pRecvData , char* &pSendData )\/\/CFUPS4001 pfups4001)$/;"	f
+dcmdfups40010	./dcmdfups40010.cc	/^long dcmdfups40010(int sock , LPHEADER pHeader , char* pRecvData , char* &pSendData)\/\/CFUPS4001 pfups4001)$/;"	f
+dcmdfups4002	./dcmdfups4002.cc	/^long dcmdfups4002(int sock , LPHEADER pHeader , char* pRecvData , char* &pSendData)\/\/CFUPS4002 pfups4002,char* pErrMsg)$/;"	f
+dcmdfups4003	./dcmdfups4003.cc	/^long dcmdfups4003(int sock , LPHEADER pHeader , char* pRecvData , char* &pSendData)\/\/CFUPS4003 pfups4003)$/;"	f
+dcmdfups4004	./dcmdfups4004.cc	/^long dcmdfups4004(int sock , LPHEADER pHeader , char* pRecvData , char* &pSendData)\/\/CFUPS4004 pfups4004)$/;"	f
+dcmdfups4005	./dcmdfups4005.cc	/^long dcmdfups4005(int sock , LPHEADER pHeader , char* pRecvData , char* &pSendData)\/\/CFUPS4005 pfups4005)$/;"	f
+dcmdfups4006	./dcmdfups4006.cc	/^long dcmdfups4006(int sock , LPHEADER pHeader , char* pRecvData , char* &pSendData)\/\/CFUPS4006 pfups4006)$/;"	f
+errMsg	./dcmdmain.cc	/^char	errMsg[256];$/;"	v
+gstUserParm	./dcmdmain.cc	/^SUserParm_T gstUserParm;$/;"	v
+infInitProcess	./dcmdmain.cc	/^int     infInitProcess(int argc, char** argv) $/;"	f
+infMainRoutine	./dcmdmain.cc	/^int infMainRoutine(int argc,char** argv)$/;"	f
+infReleaseSocket	./dcmdmain.cc	/^int     infReleaseSocket()$/;"	f
+infSigHandler	./dcmdmain.cc	/^void infSigHandler(int nSigNo, siginfo_t *siginfo, void* p) $/;"	f
+infTermProcess	./dcmdmain.cc	/^void    infTermProcess()$/;"	f
+m_g_clMysqlPool	./dcmdmain.cc	/^CMysqlPool* m_g_clMysqlPool;$/;"	v
+m_g_clMysqlPoolCopyRight	./dcmdmain.cc	/^CMysqlPool* m_g_clMysqlPoolCopyRight;$/;"	v
+main	./dcmdmain.cc	/^int main(int argc, char** argv)$/;"	f
+mutex_lock	./dcmdmain.cc	/^pthread_mutex_t mutex_lock = PTHREAD_MUTEX_INITIALIZER;$/;"	v
+processed	./dcmdproc.cc	/^long processed(int& Socket,char *pRecvHead, char *pRecvData, char* &pSendData)$/;"	f
+setLogFups4001	./dcmdfups4001.cc	/^void setLogFups4001(char* pData)$/;"	f
+~CDBQueue	./CDBQueue.cc	/^CDBQueue::~CDBQueue()$/;"	f	class:CDBQueue
+~CMysqlCon	./mysql_pool.cc	/^CMysqlCon::~CMysqlCon()$/;"	f	class:CMysqlCon
+~CMysqlPool	./mysql_pool.cc	/^CMysqlPool::~CMysqlPool()$/;"	f	class:CMysqlPool
+~CSchQueue	./CSchQueue.cc	/^CSchQueue::~CSchQueue()$/;"	f	class:CSchQueue

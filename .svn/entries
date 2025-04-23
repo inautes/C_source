@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="utf-8"?>
+<wc-entries
+   xmlns="svn:">
+<entry
+   committed-rev="672"
+   name=""
+   committed-date="2013-10-28T00:04:36.132661Z"
+   url="svn://172.16.9.207/ezwon/server/zangsi_with_dcmd"
+   last-author="jindogg"
+   kind="dir"
+   uuid="ae599a11-4fef-40d6-8bf3-4dd85d011f42"
+   revision="674"/>
+<entry
+   name="log"
+   kind="dir"/>
+<entry
+   name="fupsvr"
+   kind="dir"/>
+<entry
+   committed-rev="501"
+   name="copy_to_dcmd_spawn_sample.sh"
+   text-time="2013-05-09T06:42:51.000000Z"
+   committed-date="2013-05-08T22:22:38.765816Z"
+   checksum="dd5efb45254b36754ed744cf41d4a5ae"
+   last-author="jindogg"
+   kind="file"
+   prop-time="2013-05-09T06:42:50.000000Z"/>
+<entry
+   name="mysql4.0"
+   kind="dir"/>
+<entry
+   committed-rev="502"
+   name="update_hist.txt"
+   text-time="2013-05-09T06:42:51.000000Z"
+   committed-date="2013-05-08T22:23:44.949569Z"
+   checksum="c81c1da50e975536bccfa883501560a1"
+   last-author="jindogg"
+   kind="file"
+   prop-time="2013-05-09T06:42:50.000000Z"/>
+<entry
+   name="common"
+   kind="dir"/>
+<entry
+   committed-rev="531"
+   name="real.mk"
+   text-time="2013-05-30T09:39:48.000000Z"
+   committed-date="2013-05-29T01:33:25.168862Z"
+   checksum="ecd01587aeca6dabcac4e1160dbe5887"
+   last-author="jindogg"
+   kind="file"
+   prop-time="2013-05-30T09:39:48.000000Z"/>
+<entry
+   name="rbin"
+   kind="dir"/>
+<entry
+   name="installserver"
+   kind="dir"/>
+<entry
+   name="cmdsvr"
+   kind="dir"/>
+<entry
+   name="cmdsvr_c"
+   kind="dir"/>
+<entry
+   name="fdnsvr"
+   kind="dir"/>
+<entry
+   name="dcmdsvr"
+   kind="dir"/>
+<entry
+   name="daemon"
+   kind="dir"/>
+<entry
+   committed-rev="632"
+   name="copy_to_dcmd_all.sh"
+   text-time="2013-08-01T00:20:21.000000Z"
+   committed-date="2013-08-01T00:13:39.510093Z"
+   checksum="e25ff77ee0c41f921408fae5bc6962ae"
+   last-author="jindogg"
+   kind="file"
+   prop-time="2013-05-09T06:42:50.000000Z"/>
+<entry
+   name="mysql"
+   kind="dir"/>
+<entry
+   name="lib"
+   kind="dir"/>
+<entry
+   name="cpr_daemon"
+   kind="dir"/>
+<entry
+   name="bin"
+   kind="dir"/>
+<entry
+   name="dnmsvr"
+   kind="dir"/>
+<entry
+   committed-rev="685"
+   name="Makefile"
+   text-time="2013-11-08T02:07:46.000000Z"
+   committed-date="2013-11-25T07:34:03.390608Z"
+   checksum="04824d6c6f364ee9dc48db9544f278f1"
+   last-author="jindogg"
+   kind="file"
+   prop-time="2013-07-12T01:52:54.000000Z"
+   revision="685"/>
+<entry
+   name="mysql5.0_lib"
+   kind="dir"/>
+</wc-entries>

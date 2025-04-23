@@ -1,0 +1,66 @@
+/******************************************************************************
+ *   서브시스템 : DB 스트레스 테스트
+ *   프로그램명 : DBStressTest.h
+ *         기능 : DB에 페이지 가져오는 부분과 컨텐츠 클릭시의 쿼리를 주기적으로
+ 			 	  날려 부하여부를 테스트
+ *         설명 : DBStressTest.cc의 헤더
+ *       작성자 : HCS
+ *       작성일 : 2008/02/22
+ *     수정이력 :
+********************************************************************************
+1         2         3         4         5         6         7         8
+12345678901234567890123456789012345678901234567890123456789012345678901234567890
+*******************************************************************************/
+#include <mysql.h>
+
+
+
+extern pthread_cond_t async_cond ;
+extern pthread_mutex_t mutex_lock ;
+extern pthread_mutex_t async_mutex ;
+
+
+#ifdef NEXT_LINE
+#undef NEXT_LINE
+#define NEXT_LINE "\r\n"
+#else
+#define NEXT_LINE "\r\n"
+#endif
+
+
+typedef struct _sys_info
+{
+	int nTotalCount;
+	int nPlayingTime;
+	int nCount;
+}SYSINFO,*LPSYSINFO;
+
+int InitProcess(int argc, char **argv); 
+
+int GetSystemDate(); 
+
+int get_system_info(LPSYSINFO system_info);
+
+void Signal(int nSignal); 
+
+void *ListQuery(void *arg);  /* Main program of a thread */
+
+void *ContentsQuery(void *arg);  /* Main program of a thread */
+
+int WriteResult(int nCount, char* pName,char* pBuffer, char* pType);
+
+int Waiting();
+
+int ListQueryExc(MYSQL *connect, int nCount);
+
+int ContentsQueryExc(MYSQL *connect, int nCount);
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+
+
+
+

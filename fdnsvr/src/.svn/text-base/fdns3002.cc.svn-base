@@ -1,0 +1,327 @@
+/******************************************************************************
+ *   서브시스템 : FDN서버
+ *   프로그램명 : fdns3002.cc
+ *         기능 : 파일다운로드시작
+ *         설명 : 내디스크의 공유폴더의 파일을 다운로드 시작시 사이버머니에 
+ *                대하여 예치금으로 전환한다.
+ *       작성자 : 전봉구
+ *       작성일 : 2004/02/16
+ *     수정이력 :
+********************************************************************************
+1         2         3         4         5         6         7         8
+12345678901234567890123456789012345678901234567890123456789012345678901234567890
+*******************************************************************************/
+#include <mysql.h>
+#include <stdarg.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#include "comcomm.h"
+#include "commydb.h"
+#include "apdefine.h"
+#include "fdns3002.h"
+
+#define  MAX_ROWS	1
+//#define  _DEBUG_
+
+//******************************************************************************
+//* fdns3002 main
+//* error 발생시 pSendData를 사용하고 정상인경우 seq_no를 return한다.
+//******************************************************************************
+int fdns3002(char *pRecvData, char* &pSendData, char* pDnDate)
+{
+	MYSQL       *con;
+	MYSQL_RES   *res;
+	MYSQL_ROW    row;
+
+	CFDNS3002_R	*p_fdns3002r;
+
+	char szQuery[1000];  // query string
+	char sztemp [1000];  // query string
+	char ErrMsg[256];    // error message
+	int  ErrNum;         // error no
+	int  nRowcnt;        // select row count
+
+	// input variables
+	char    dn_user     [ 12+1];  // 다운로드 사용자
+	char    sh_user     [ 12+1];  // 공유자
+	int     won_mega           ;  // 원당메가
+	char    file_path   [511+1];  // 파일경로(서버)
+	char    file_name   [255+1];  // 서버파일이름
+	double  file_size          ;  // 파일크기
+	int     file_cnt           ;  // 파일갯수
+	long    price_amt          ;  // 다운로드 예상금액
+	long    hold_amt           ;  // 사이버머니 보유금액
+	long    seq_no             ;  // 다운로드이력 Key
+	long    down_mega          ;  // Byte to MByte
+	char    st_date     [  8+1];  // start 일자
+	char    st_time     [  6+1];  // start 시간
+	
+
+	/*--------------------------------------------------------------------*/
+	/* start!!!                                                           */
+	/*--------------------------------------------------------------------*/
+	#ifdef _DEBUG_
+	printf("fdns3002-> start...\n");
+	#endif
+	p_fdns3002r = (LPCFDNS3002_R) pRecvData;
+
+	// local 변수 Clear
+	memset(&ErrMsg   , 0x00, sizeof(ErrMsg   )); // 오류메시지
+	memset(&dn_user  , 0x00, sizeof(dn_user  )); // 다운로드 사용자
+	memset(&sh_user  , 0x00, sizeof(sh_user  )); // 공유자
+	memset(&won_mega , 0x00, sizeof(won_mega )); // 원당메가
+	memset(&file_path, 0x00, sizeof(file_path)); // 파일경로(서버)
+	memset(&file_name, 0x00, sizeof(file_name)); // 서버파일이름
+	memset(&file_size, 0x00, sizeof(file_size)); // 파일크기
+	memset(&file_cnt , 0x00, sizeof(file_cnt )); // 파일갯수
+	memset(&st_date  , 0x00, sizeof(st_date  )); // start 일자
+	memset(&st_time  , 0x00, sizeof(st_time  )); // start 시간
+
+	
+	/*
+	strcpyA(dn_user  , p_fdns3002r->dn_user  );
+	strcpyA(sh_user  , p_fdns3002r->sh_user  );
+	*/
+	memcpy(dn_user, p_fdns3002r->dn_user, sizeof(p_fdns3002r->dn_user));
+	memcpy(sh_user, p_fdns3002r->sh_user, sizeof(p_fdns3002r->sh_user));
+	
+	strcpyA(file_path, p_fdns3002r->file_path);
+	strcpyA(file_name, p_fdns3002r->file_name);
+	won_mega = p_fdns3002r->won_mega ;
+	file_size= p_fdns3002r->file_size;
+	file_cnt = p_fdns3002r->file_cnt;
+
+	#ifdef _DEBUG_
+	printf("fups3002->fups3002 start\n");
+	printf("fdns3002->dn_user  =(%s)\n", dn_user);
+	printf("fdns3002->sh_user  =(%s)\n", sh_user);
+	printf("fdns3002->won_mega =(%d)\n", won_mega);
+	printf("fdns3002->file_path=(%s)\n", file_path);
+	printf("fdns3002->file_name=(%s)\n", file_name);
+	printf("fdns3002->file_size=(%15.0f)\n", file_size);
+	printf("fdns3002->file_cnt =(%d)\n", file_cnt);
+	#endif
+
+	if(file_size <= 0 || file_cnt <= 0 ||  won_mega < 0)
+	{
+		ErrNum = -300201;
+		sprintf(ErrMsg, "잘못된 정보 전송입니다.\n");
+		goto fdns3002_err;
+	}
+	
+	if( won_mega == 0)
+	{
+		goto fdns3002_end;
+	}
+	// DB 연결
+	if (!(con=db_connect("nori")))
+	{
+		ErrNum = 0;
+		sprintf(ErrMsg, "DB에 접속하지 못 하였습니다...\n");
+		goto fdns3002_err;
+	}
+
+	//--------------------------------------------------------------------------
+	// 사이버머니UPDATE(예치금 전환)
+	// - 1MB = 1024KB = 1048576Byte
+	// - (파일크기 / 1MB) / (원당MB) -> 원단위 반올림
+	//--------------------------------------------------------------------------
+	down_mega = (long)((file_size / 1048576.0) + 0.9999999);			// MB환산
+	price_amt = (long)(((double)down_mega / (double)won_mega) + 0.9);	// 금액환산
+	#ifdef _DEBUG_
+	printf("fdns3002-> price_amt(%d)=(%15.0f/1048576)/%d\n", price_amt, file_size, won_mega);
+	#endif
+		
+	// 사이버머니 잔액조회
+	memset (szQuery, 0x00, sizeof(szQuery ));
+	strcpyA (szQuery, "SELECT a.hold_amt                          "
+	                 "     , date_format(now(),'%Y%m%d') st_date "
+	                 "     , date_format(now(),'%H%i%s') st_time "
+	                 "  FROM nori.T_CYBER_MONEY a              ");
+	memset (sztemp , 0x00, sizeof(sztemp ));
+	sprintf(sztemp , " WHERE a.user_id = '%s'  "
+	                 ,dn_user
+	                 );
+	strcat(szQuery, sztemp);
+	if (mysql_query(con, szQuery)){
+		ErrNum = -300201;
+		sprintf(ErrMsg, "검색시 오류가 발생하였습니다.\n");
+		goto fdns3002_err;
+	}
+
+	res = mysql_store_result(con);
+	if (row = mysql_fetch_row(res))
+	{
+		hold_amt  = getint(row, 0);
+		strcpyA(st_date, getstr(row, 1));
+		strcpyA(st_time, getstr(row, 2));
+	}
+	mysql_free_result(res);
+
+	if (hold_amt < price_amt)
+	{
+		ErrNum = -300202;
+		sprintf(ErrMsg, "잔액이 부족합니다.\n");
+		goto fdns3002_err;
+	}
+	//--------------------------------------------------------------------------
+	// 파일다운로드 seq_no 얻기
+	//--------------------------------------------------------------------------
+	memset (szQuery, 0x00, sizeof(szQuery ));
+	sprintf(szQuery, "SELECT ifnull(max(a.seq_no),0)+1"
+	                 "  FROM nori.T_DOWN_FILE a     "
+	                 " WHERE a.dn_user = '%s'         "
+	                 "   AND a.dn_date = '%s'         "
+	                 ,dn_user
+	                 ,st_date
+	                 );
+	if (mysql_query(con, szQuery)){
+		ErrNum = -300203;
+		sprintf(ErrMsg, "seq_no을 생성하지 못했습니다.\n");
+		goto fdns3002_err;
+	}
+
+	res = mysql_store_result(con);
+	if (row = mysql_fetch_row(res))
+	{
+		seq_no = getint(row, 0);
+	}
+	mysql_free_result(res);
+
+	if (seq_no < 1)
+	{
+		ErrNum = -300204;
+		sprintf(ErrMsg, "seq_no을 생성하지 못했습니다.\n");
+		goto fdns3002_err;
+	}
+
+	//--------------------------------------------------------------------------
+	// Autocommit=0
+	//--------------------------------------------------------------------------
+	if (tran_begin(con)!=0)
+	{
+		ErrNum = -300292;
+		sprintf(ErrMsg, "테이베이스 오류입니다.\n");
+		goto fdns3002_tran_err;
+	}
+
+	//--------------------------------------------------------------------------
+	// 사이버머니UPDATE(예치금 전환)
+	//--------------------------------------------------------------------------
+	memset (szQuery, 0x00, sizeof(szQuery ));
+	sprintf(szQuery, "UPDATE nori.T_CYBER_MONEY     "
+	                 "   SET hold_amt = hold_amt - %d "
+	                 "     , keep_amt = keep_amt + %d "
+	                 " WHERE user_id  = '%s'          "
+	                 ,price_amt
+	                 ,price_amt
+	                 ,dn_user
+	                 );
+	if (mysql_query(con, szQuery)){
+		ErrNum = -300205;
+		sprintf(ErrMsg, "사임버머니 UPDATE하지 못했습니다.\n");
+		goto fdns3002_tran_err;
+    }
+
+	//--------------------------------------------------------------------------
+	// 다운로드 이력생성
+	//--------------------------------------------------------------------------
+	memset (szQuery , 0x00, sizeof(szQuery ));
+	sprintf(szQuery, "INSERT INTO nori.T_DOWN_FILE"
+	                 "       ( dn_user    , dn_date   "
+	                 "       , seq_no     , sh_user   "
+	                 "       , file_path  , file_name "
+	                 "       , file_size  , won_mega  "
+	                 "       , keep_amt   , st_date   "
+	                 "       , st_time    , file_cnt) "
+	                 "VALUES ( '%s'       , '%s'      "
+	                 "       ,  %d        , '%s'      "
+	                 "       , '%s'       , '%s'      "
+	                 "       ,  %15.0f    ,  %d       "
+	                 "       ,  %d        , '%s'      "
+	                 "       , '%s'       ,  %d)      "
+	                 ,dn_user
+	                 ,st_date
+	                 ,seq_no
+	                 ,sh_user
+	                 ,file_path
+	                 ,file_name
+	                 ,file_size
+	                 ,won_mega
+	                 ,price_amt
+	                 ,st_date
+	                 ,st_time
+	                 ,file_cnt
+	                 );
+
+	// 컨텐츠정보 등록(T_CONTENTS_INFO)
+	if (mysql_query(con, szQuery)){
+		ErrNum = -300206;
+		sprintf(ErrMsg, "다운로드 정보을 생성하지 못했습니다.\n");
+		goto fdns3002_tran_err;
+    }
+	
+	if (tran_commit(con)!=0)
+	{
+		ErrNum = -300293;
+		sprintf(ErrMsg, "테이베이스 오류입니다.\n");
+		goto fdns3002_tran_err;
+	}
+
+	db_disconnect(con);
+	strcpyA(pDnDate, st_date);
+	#ifdef _DEBUG_
+	printf("fdns3002->seq_no =(%d)\n", seq_no);
+	#endif
+	return (seq_no);
+
+
+fdns3002_err:
+    infLOG(ERROR, "fdns3002-> [%d](%s)\n",ErrNum, ErrMsg);
+	infLOG(ERROR, "fdns3002-> [%d](%s)\n",mysql_errno(con), mysql_error(con));
+	#ifdef _DEBUG_
+    printf("fdns3002-> [%d](%s)\n",ErrNum, ErrMsg);
+	printf("fdns3002-> [%d](%s)\n",mysql_errno(con), mysql_error(con));
+	#endif
+
+	if(ErrNum != -300201)
+		db_disconnect(con);
+	E_dump(ErrNum, ErrMsg, pSendData);
+   	return(ErrNum); 
+
+fdns3002_tran_err:
+    infLOG(ERROR, "fdns3002-> [%d](%s)\n",ErrNum, ErrMsg);
+	infLOG(ERROR, "fdns3002-> [%d](%s)\n",mysql_errno(con), mysql_error(con));
+	#ifdef _DEBUG_
+    printf("fdns3002-> [%d](%s)\n",ErrNum, ErrMsg);
+	printf("fdns3002-> [%d](%s)\n",mysql_errno(con), mysql_error(con));
+	#endif
+
+	tran_rollback(con);
+	db_disconnect(con);
+	E_dump(ErrNum, ErrMsg, pSendData);
+   	return(ErrNum); 
+
+fdns3002_end :
+	return 0;
+}
+
+/*
+if (mysql_error(&mysql)[0] == 0 &&
+    mysql_num_fields(result) == 0 &&
+    mysql_insert_id(&mysql) != 0)
+{
+    used_id = mysql_insert_id(&mysql);
+}
+
+
+
+select server_id, server_ip, server_port        
+  from T_SERVER_INFO                            
+ where server_gu = '01'                         
+   and round((disk_use / disk_size) * 100) < 90 
+ order by use_cnt asc limit 1                   
+
+*/

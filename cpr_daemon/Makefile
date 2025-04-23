@@ -1,0 +1,191 @@
+# ---------------------------------------------------------------------------
+#	Directory Information
+# ---------------------------------------------------------------------------
+# common directory
+COMMSRC = $(HOME)/project1/server/zangsi_with_dcmd/cpr_daemon/src
+COMMOBJ = $(HOME)/project1/server/zangsi_with_dcmd/cpr_daemon/obj
+COMMINC = $(HOME)/project1/server/zangsi_with_dcmd/cpr_daemon/inc
+
+# daemon directory
+DAEMBIN = $(HOME)/project1/server/zangsi_with_dcmd/cpr_daemon/bin
+DAEMSRC = $(HOME)/project1/server/zangsi_with_dcmd/cpr_daemon/src
+DAEMOBJ = $(HOME)/project1/server/zangsi_with_dcmd/cpr_daemon/obj
+DAEMINC = $(HOME)/project1/server/zangsi_with_dcmd/cpr_daemon/inc
+
+# MySQL directory
+MYDBINC = $(HOME)/project1/server/zangsi_with_dcmd/mysql/include
+MYDBLIB = $(HOME)/project1/server/zangsi_with_dcmd/mysql/lib
+
+# MySQL 5.0 directory
+#MYDBINC = $(HOME)/project1/server/zangsi_with_dcmd/mysql5.0_lib
+#MYDBLIB = $(HOME)/project1/server/zangsi_with_dcmd/mysql5.0_lib
+
+# ---------------------------------------------------------------------------
+#	Compiler Information & Copy Remove Options
+# ---------------------------------------------------------------------------
+CC      = g++
+RM      = rm -f
+SYSINC  = /usr/include
+COMMINCS= -I. -I$(COMMINC) -I$(MYDBINC)
+DAEMINCS= -I. -I$(COMMINC) -I$(DAEMINC) -I$(MYDBINC)
+DEBUGS	= -D_THREAD_MODULE_ -D_THREAD_SAFE -D_REENTRANT -D__DEBUG -D_DEBUG_
+CFLAGS  = $(DEBUGS)
+
+# ---------------------------------------------------------------------------
+#	Source List Information 
+# ---------------------------------------------------------------------------
+# common source
+CC_COMMYDB  = commydb.cc
+CC_DAEMCOM  = daemcom.cc
+
+# cmdserver source
+CC_DAEM1001 = cprdaem1001.cc	#유료컨텐츠 구매정보 집계.
+CC_DAEM1001_b = cprdaem1001_b.cc	#유료컨텐츠 구매정보 집계.
+CC_DAEM1002 = cprdaem1002.cc	#유료컨텐츠 구매정보 집계.
+CC_DAEM1003 = cprdaem1003.cc	#영화 코드별 구매정보를 엔트랜드 DB로 전송.
+CC_DAEM1004 = cprdaem1004.cc	#유료컨텐츠 구매취소 집계
+CC_DAEM2001 = cprdaem2001.cc	#예약 데이터 처리.
+CC_DAEM3001 = cprdaem3001.cc	#서비스 취소 처리(특정 권리사)
+
+#######################################################################
+COM_OBJFILES = \
+	$(COMMOBJ)/$(CC_COMMYDB:.cc=.o) \
+	$(COMMOBJ)/$(CC_DAEMCOM:.cc=.o) 
+
+DAEM1001 = $(DAEMOBJ)/$(CC_DAEM1001:.cc=.o)
+DAEM1001_b = $(DAEMOBJ)/$(CC_DAEM1001_b:.cc=.o)
+DAEM1002 = $(DAEMOBJ)/$(CC_DAEM1002:.cc=.o)
+DAEM1003 = $(DAEMOBJ)/$(CC_DAEM1003:.cc=.o)
+DAEM1004 = $(DAEMOBJ)/$(CC_DAEM1004:.cc=.o)
+DAEM2001 = $(DAEMOBJ)/$(CC_DAEM2001:.cc=.o)
+DAEM3001 = $(DAEMOBJ)/$(CC_DAEM3001:.cc=.o)
+
+# ---------------------------------------------------------------------------
+#	Generate Main Target Module
+# ---------------------------------------------------------------------------
+T1001    = $(DAEMBIN)/cprdaem1001
+T1001_b    = $(DAEMBIN)/cprdaem1001_b
+T1002    = $(DAEMBIN)/cprdaem1002
+T1003    = $(DAEMBIN)/cprdaem1003
+T1004    = $(DAEMBIN)/cprdaem1004
+T2001    = $(DAEMBIN)/cprdaem2001
+T3001    = $(DAEMBIN)/cprdaem3001
+
+
+
+all: cprdaem1001  cprdaem1002 cprdaem1003 cprdaem1004 cprdaem2001 cprdaem3001
+
+# ---------------------------------------------------------------------------
+#	Generate Each Target Module
+# ---------------------------------------------------------------------------
+
+cprdaem1001:	$(T1001)
+cprdaem1001_b:	$(T1001_b)
+cprdaem1002:	$(T1002)
+cprdaem1003:	$(T1003)
+cprdaem1004:	$(T1004)
+cprdaem2001:	$(T2001)
+cprdaem3001:	$(T3001)
+
+$(T1001)	: $(COM_OBJFILES) $(DAEM1001)
+	@echo '=================================================================='
+	@echo 'Create server... :' $@
+	@echo '=================================================================='
+	@$(CC) -o $@ $(DAEM1001) $(COM_OBJFILES) $(DEBUGS) $(CMDSINCS) -L$(MYDBLIB) -lmysqlclient -lz -lm -lcrypt -static -lpthread							
+$(T1001_b)	: $(COM_OBJFILES) $(DAEM1001_b)
+	@echo '=================================================================='
+	@echo 'Create server... :' $@
+	@echo '=================================================================='
+	@$(CC) -o $@ $(DAEM1001_b) $(COM_OBJFILES) $(DEBUGS) $(CMDSINCS) -L$(MYDBLIB) -lmysqlclient -lz -lm -lcrypt -static -lpthread							
+$(T1002)	: $(COM_OBJFILES) $(DAEM1002)
+	@echo '=================================================================='
+	@echo 'Create server... :' $@
+	@echo '=================================================================='
+	@$(CC) -o $@ $(DAEM1002) $(COM_OBJFILES) $(DEBUGS) $(CMDSINCS) -L$(MYDBLIB) -lmysqlclient -lz -lm -lcrypt -static -lpthread							
+$(T1003)	: $(COM_OBJFILES) $(DAEM1003)
+	@echo '=================================================================='
+	@echo 'Create server... :' $@
+	@echo '=================================================================='
+	@$(CC) -o $@ $(DAEM1003) $(COM_OBJFILES) $(DEBUGS) $(CMDSINCS) -L$(MYDBLIB) -lmysqlclient -lz -lm -lcrypt -static -lpthread							
+$(T1004)	: $(COM_OBJFILES) $(DAEM1004)
+	@echo '=================================================================='
+	@echo 'Create server... :' $@
+	@echo '=================================================================='
+	@$(CC) -o $@ $(DAEM1004) $(COM_OBJFILES) $(DEBUGS) $(CMDSINCS) -L$(MYDBLIB) -lmysqlclient -lz -lm -lcrypt -static -lpthread							
+$(T2001)	: $(COM_OBJFILES) $(DAEM2001)
+	@echo '=================================================================='
+	@echo 'Create server... :' $@
+	@echo '=================================================================='
+	@$(CC) -o $@ $(DAEM2001) $(COM_OBJFILES) $(DEBUGS) $(CMDSINCS) -L$(MYDBLIB) -lmysqlclient -lz -lm -lcrypt -static -lpthread							
+$(T3001)	: $(COM_OBJFILES) $(DAEM3001)
+	@echo '=================================================================='
+	@echo 'Create server... :' $@
+	@echo '=================================================================='
+	@$(CC) -o $@ $(DAEM3001) $(COM_OBJFILES) $(DEBUGS) $(CMDSINCS) -L$(MYDBLIB) -lmysqlclient -lz -lm -lcrypt -static -lpthread							
+
+# ---------------------------------------------------------------------------
+#	Generate Object Module
+# ---------------------------------------------------------------------------
+
+$(DAEM1001): $(DAEMSRC)/$(@F:.o=.cc)
+	@echo 'Compile Source :' $(DAEMSRC)/$(@F:.o=.cc)
+	@$(CC) -c $(DAEMSRC)/$(@F:.o=.cc) -o $@ $(DEBUGS) $(DAEMINCS) -L$(MYDBLIB) -static								
+$(DAEM1001_b): $(DAEMSRC)/$(@F:.o=.cc)
+	@echo 'Compile Source :' $(DAEMSRC)/$(@F:.o=.cc)
+	@$(CC) -c $(DAEMSRC)/$(@F:.o=.cc) -o $@ $(DEBUGS) $(DAEMINCS) -L$(MYDBLIB) -static								
+$(DAEM1002): $(DAEMSRC)/$(@F:.o=.cc)
+	@echo 'Compile Source :' $(DAEMSRC)/$(@F:.o=.cc)
+	@$(CC) -c $(DAEMSRC)/$(@F:.o=.cc) -o $@ $(DEBUGS) $(DAEMINCS) -L$(MYDBLIB) -static								
+$(DAEM1003): $(DAEMSRC)/$(@F:.o=.cc)
+	@echo 'Compile Source :' $(DAEMSRC)/$(@F:.o=.cc)
+	@$(CC) -c $(DAEMSRC)/$(@F:.o=.cc) -o $@ $(DEBUGS) $(DAEMINCS) -L$(MYDBLIB) -static								
+$(DAEM1004): $(DAEMSRC)/$(@F:.o=.cc)
+	@echo 'Compile Source :' $(DAEMSRC)/$(@F:.o=.cc)
+	@$(CC) -c $(DAEMSRC)/$(@F:.o=.cc) -o $@ $(DEBUGS) $(DAEMINCS) -L$(MYDBLIB) -static								
+$(DAEM2001): $(DAEMSRC)/$(@F:.o=.cc)
+	@echo 'Compile Source :' $(DAEMSRC)/$(@F:.o=.cc)
+	@$(CC) -c $(DAEMSRC)/$(@F:.o=.cc) -o $@ $(DEBUGS) $(DAEMINCS) -L$(MYDBLIB) -static								
+$(DAEM3001): $(DAEMSRC)/$(@F:.o=.cc)
+	@echo 'Compile Source :' $(DAEMSRC)/$(@F:.o=.cc)
+	@$(CC) -c $(DAEMSRC)/$(@F:.o=.cc) -o $@ $(DEBUGS) $(DAEMINCS) -L$(MYDBLIB) -static								
+
+
+# ---------------------------------------------------------------------------
+#	Common Object Module
+# ---------------------------------------------------------------------------
+$(COM_OBJFILES): $(COMMSRC)/$(@F:.o=.cc)
+	@echo 'Compile Source :' $(COMMSRC)/$(@F:.o=.cc)
+	@$(CC) -c $(COMMSRC)/$(@F:.o=.cc) -o $@ $(CFLAGS) $(COMMINCS) -L$(MYDBLIB) -static
+
+# ---------------------------------------------------------------------------
+#	Clean Objects Module
+# ---------------------------------------------------------------------------
+cleanall:
+	@echo 'Remove All Object Files'
+	@make cleancprdaem1001 cleancprdaem1001_b cleancprdaem1002 cleancprdaem1003 cleancprdaem1004 cleancprdaem2001 cleancprdaem3001
+
+cleancprdaem1001:
+	@echo 'Remove Object Files(cleancprdaem1001)'
+	@$(RM) $(T1001) $(DAEM1001) $(COM_OBJFILES)								
+cleancprdaem1001_b:
+	@echo 'Remove Object Files(cleancprdaem1001_b)'
+	@$(RM) $(T1001_b) $(DAEM1001_b) $(COM_OBJFILES)								
+cleancprdaem1002:
+	@echo 'Remove Object Files(cleancprdaem1002)'
+	@$(RM) $(T1002) $(DAEM1002) $(COM_OBJFILES)								
+cleancprdaem1003:
+	@echo 'Remove Object Files(cleancprdaem1003)'
+	@$(RM) $(T1003) $(DAEM1003) $(COM_OBJFILES)								
+cleancprdaem1004:
+	@echo 'Remove Object Files(cleancprdaem1002)'
+	@$(RM) $(T1004) $(DAEM1004) $(COM_OBJFILES)								
+cleancprdaem2001:
+	@echo 'Remove Object Files(cleancprdaem2001)'
+	@$(RM) $(T2001) $(DAEM2001) $(COM_OBJFILES)								
+cleancprdaem3001:
+	@echo 'Remove Object Files(cleancprdaem3001)'
+	@$(RM) $(T3001) $(DAEM3001) $(COM_OBJFILES)								
+
+# ===========================================================================
+#	End of Makefile
+# ===========================================================================

@@ -1,0 +1,359 @@
+/******************************************************************************
+ *   서브시스템 : CMD서버
+ *   프로그램명 : cmds1004.cc (로그인인증)
+ *         기능 : Disk서비스를 사용하기 위해 인증 절차를 한다.
+ *         설명 :
+ *       작성자 : JDP
+ *       작성일 : 2004/02/16
+ *     수정이력 :
+********************************************************************************
+1         2         3         4         5         6         7         8
+12345678901234567890123456789012345678901234567890123456789012345678901234567890
+*******************************************************************************/
+#include <mysql.h>
+#include <stdarg.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#include "apdefine.h"
+#include "comcomm.h"
+#include "commydb.h"
+#include "cmds1004.h"
+
+#define  MAX_ROWS	1
+//#define  _DEBUG_
+/******************************************************************************
+** cmds1004 main
+*******************************************************************************/
+int cmds1004(char *pRecvHead, char *pRecvData, char* &pSendData)
+{
+	MYSQL     *con;
+	MYSQL_RES *res;
+	MYSQL_ROW  row;
+
+	LPHEADER     p_headerr;
+	CCMDS1004_R	*p_cmds1004r;
+
+	int nDataSize     ;
+	char szQuery[1000];  // query string
+	char ErrMsg  [256];  // error message
+	int  ErrNum;         // error no
+	int  nRowcnt;        // select row count
+
+	// input variables
+	char    user_id           [12+1];  // 사용자ID
+	char    sess_id           [50+1];  // 세션ID
+
+	int conn_cnt;
+	/*--------------------------------------------------------------------*/
+	/* start!!!                                                           */
+	/*--------------------------------------------------------------------*/
+	#ifdef __DEBUG
+	printf("cmds1004-> start...\n");
+	#endif
+	p_headerr   = (LPHEADER) pRecvHead;
+	p_cmds1004r = (LPCCMDS1004_R) pRecvData;
+
+	// local 변수 Clear
+	memset(&ErrMsg   , 0x00, sizeof(ErrMsg   )); // 오류메시지
+	memset(&user_id  , 0x00, sizeof(user_id  )); // 사용자ID
+	memset(&sess_id  , 0x00, sizeof(sess_id  )); // 세션ID
+
+	//strcpy(user_id, p_cmds1004r->user_id);
+	memcpy(user_id, p_cmds1004r->user_id,sizeof(p_cmds1004r->user_id));
+	strcpy(sess_id, p_cmds1004r->sess_id);
+
+	#ifdef _DEBUG_
+	printf("cmds1004->in user_id  =(%s)\n", user_id  );
+	printf("cmds1004->in sess_id  =(%s)\n", sess_id  );
+	#endif
+
+	memset (szQuery, 0x00, sizeof(szQuery ));
+	sprintf(szQuery, "select count(user_id) as conn_yn "
+	                 "  from T_USER_STAT a      "
+	                 " where a.user_id = '%s'          "
+	                 ,user_id
+	                 );
+/*
+	sprintf(szQuery, "select count(user_id) as conn_yn "
+	                 "  from T_USER_STAT a      "
+	                 " where a.user_id = '%s'          "
+	                 "   and a.sess_id = '%s'          "
+	                 ,user_id
+	                 ,sess_id
+	                 );
+*/
+	// DB 연결
+
+	if (!(con=db_connect(OSP_DB_NAME		,OSP_DB_IP_PUB		,OSP_DB_DCMD_USER	,OSP_DB_DCMD_PASS )))
+	{
+		ErrNum = -100401;
+		sprintf(ErrMsg, "DB에 접속하지 못 하였습니다...\n");
+		#ifdef _DEBUG_
+		printf("cmds1004->ERRMSG: [%d](%s)",ErrNum, ErrMsg);
+		//printf("cmds1004->DB ERR: [%d](%s)",mysql_errno(con), mysql_error(con));
+		#endif
+
+		//db_disconnect(con);
+		E_dump(ErrNum, ErrMsg, pSendData);
+	   	return(ErrNum);
+	}
+
+	if (mysql_query(con, szQuery)){
+		ErrNum = -100402;
+		sprintf(ErrMsg, "검색시 오류가 발생하였습니다.\n");
+		#ifdef _DEBUG_
+		printf("cmds1004->ERRMSG: [%d](%s)",ErrNum, ErrMsg);
+		printf("cmds1004->DB ERR: [%d](%s)",mysql_errno(con), mysql_error(con));
+		#endif
+
+		db_disconnect(con);
+		E_dump(ErrNum, ErrMsg, pSendData);
+	   	return(ErrNum);
+	}
+
+	if (!(res = mysql_store_result(con)))
+	{
+		ErrNum = -999999;
+		sprintf(ErrMsg, "자료가 없습니다.\n");
+		#ifdef _DEBUG_
+		printf("cmds1004->ERRMSG: [%d](%s)",ErrNum, ErrMsg);
+		printf("cmds1004->DB ERR: [%d](%s)",mysql_errno(con), mysql_error(con));
+		#endif
+
+		db_disconnect(con);
+		E_dump(ErrNum, ErrMsg, pSendData);
+	   	return(ErrNum);
+	}
+ 	if (mysql_num_rows(res)==0)
+ 	{
+		ErrNum = -100403;
+		sprintf(ErrMsg, "검색시 오류가 발생하였습니다.\n");
+
+		#ifdef _DEBUG_
+		printf("cmds1004->ERRMSG: [%d](%s)",ErrNum, ErrMsg);
+		printf("cmds1004->DB ERR: [%d](%s)",mysql_errno(con), mysql_error(con));
+		#endif
+
+		db_disconnect(con);
+		E_dump(ErrNum, ErrMsg, pSendData);
+	   	return(ErrNum);
+	}
+	if (row = mysql_fetch_row(res))
+	{
+		conn_cnt = getint(row, 0);
+	}
+	#ifdef _DEBUG_
+	printf("cmds1004s.conn_yn(%d)\n", getint(row, 0));
+	#endif
+
+	mysql_free_result(res);
+
+	//임시버퍼생성
+	LPCCMDS1004_S t_cmds1004s = new CCMDS1004_S[MAX_ROWS];//struct _FILEINFO;
+	memset(t_cmds1004s, 0x00, (sizeof(CCMDS1004_S)*MAX_ROWS));
+
+	if (conn_cnt > 0)
+	{
+		memset (szQuery, 0x00, sizeof(szQuery ));
+		sprintf(szQuery, "select a.server_id,   b.server_ip,  "
+		                 "       b.server_port, b.upsvr_port, "
+		                 "       b.dnsvr_port,  a.free_yn,    "
+		                 "       a.recv_cd,     a.share_cd,   "
+		                 "       a.root_path,   a.end_date    "
+		                 "  from T_MYDISK_INFO a       "
+		                 "     , T_SERVER_INFO b       "
+		                 " where a.user_id   = '%s'           "
+		                 "   and a.server_id = b.server_id    "
+		                 ,user_id
+		                 );
+
+		if (mysql_query(con, szQuery)){
+			delete[] t_cmds1004s;
+
+			ErrNum = -100404;
+			sprintf(ErrMsg, "검색시 오류가 발생하였습니다.\n");
+			goto cmds1004_err;
+		}
+
+		//질의 결과를 얻는다
+		if (!(res = mysql_store_result(con))) {
+			delete[] t_cmds1004s;
+
+			ErrNum = -100405;
+			sprintf(ErrMsg, "검색시 오류가 발생하였습니다.\n");
+			goto cmds1004_err;
+		}
+		nRowcnt = 0;
+	 	if (mysql_num_rows(res)!=0)
+	 	{
+			while((row = mysql_fetch_row(res))) {
+				#ifdef _DEBUG_
+				printf("cmds1004s[%d].server_id (%s)\n", nRowcnt, getstr(row, 0));
+				printf("cmds1004s[%d].server_ip (%s)\n", nRowcnt, getstr(row, 1));
+				printf("cmds1004s[%d].mys_port  (%d)\n", nRowcnt, getint(row, 2));
+				printf("cmds1004s[%d].ups_port  (%d)\n", nRowcnt, getint(row, 3));
+				printf("cmds1004s[%d].dns_port  (%d)\n", nRowcnt, getint(row, 4));
+				printf("cmds1004s[%d].free_yn   (%d)\n", nRowcnt, getint(row, 5));
+				printf("cmds1004s[%d].recv_cd   (%d)\n", nRowcnt, getint(row, 6));
+				printf("cmds1004s[%d].share_cd  (%d)\n", nRowcnt, getint(row, 7));
+				printf("cmds1004s[%d].root_path (%s)\n", nRowcnt, getstr(row, 8));
+				printf("cmds1004s[%d].ed_date   (%s)\n", nRowcnt, getstr(row, 9));
+				#endif
+
+				strcpy(t_cmds1004s[nRowcnt].server_id, getstr(row, 0));
+				strcpy(t_cmds1004s[nRowcnt].server_ip, getstr(row, 1));
+				       t_cmds1004s[nRowcnt].mys_port = getint(row, 2);
+				       t_cmds1004s[nRowcnt].ups_port = getint(row, 3);
+				       t_cmds1004s[nRowcnt].dns_port = getint(row, 4);
+				       t_cmds1004s[nRowcnt].free_yn  = getint(row, 5);
+				       t_cmds1004s[nRowcnt].recv_cd  = getint(row, 6);
+				       t_cmds1004s[nRowcnt].share_cd = getint(row, 7);
+				strcpy(t_cmds1004s[nRowcnt].root_path, getstr(row, 8));
+				strcpy(t_cmds1004s[nRowcnt].ed_date,   getstr(row, 9));
+
+				nRowcnt++;
+
+				// buffer크기 보다 큰경우
+				if (nRowcnt >= MAX_ROWS)
+					break;
+			}
+		}
+
+		mysql_free_result(res);
+
+		// 1: 인증실패, 2:인증성공, 3:인증성공 & MYDISK OK
+		if (nRowcnt > 0)
+			t_cmds1004s[0].my_stat = 3;
+		else
+		{
+			t_cmds1004s[0].my_stat = 2;
+
+			// [2]MY디스크 서버
+			// 디스크 사용량중 50이하 이면서 사용자가 가장 적은 서버
+			memset (szQuery, 0x00, sizeof(szQuery ));
+			sprintf(szQuery, "select a.server_id ,  a.server_ip,                         "
+			                 "       a.server_port, a.upsvr_port,     a.dnsvr_port,      "
+			                 "       concat(a.root_path, '/',                            "
+			                 "       if(mod(a.user_cnt,100)=0,                           "
+			                 "          TRUNCATE(a.user_cnt/100,0) + 1000,               "
+			                 "          TRUNCATE(a.user_cnt/100,0) + 1001)) as root_path "
+			                 "  from T_SERVER_INFO a                              "
+			                 " where a.server_gu = '02'                                  "
+			                 "   and round((a.disk_use / a.disk_size) * 100) < 90        "
+			                 " order by a.user_cnt asc limit 1                           ");
+
+			if (mysql_query(con, szQuery)){
+				delete[] t_cmds1004s;
+
+				ErrNum = -100406;
+				sprintf(ErrMsg, "검색시 오류가 발생하였습니다.\n");
+				goto cmds1004_err;
+			}
+
+			//질의 결과를 얻는다
+			if (!(res = mysql_store_result(con))) {
+				delete[] t_cmds1004s;
+
+				ErrNum = -100407;
+				sprintf(ErrMsg, "검색시 오류가 발생하였습니다.\n");
+				goto cmds1004_err;
+			}
+			nRowcnt = 0;
+		 	if (mysql_num_rows(res)!=0)
+		 	{
+				while((row = mysql_fetch_row(res))) {
+					#ifdef _DEBUG_
+					printf("cmds1004s[%d].server_id (%s)\n", nRowcnt, getstr(row, 0));
+					printf("cmds1004s[%d].server_ip (%s)\n", nRowcnt, getstr(row, 1));
+					printf("cmds1004s[%d].mys_port  (%d)\n", nRowcnt, getint(row, 2));
+					printf("cmds1004s[%d].ups_port  (%d)\n", nRowcnt, getint(row, 3));
+					printf("cmds1004s[%d].dns_port  (%d)\n", nRowcnt, getint(row, 4));
+					printf("cmds1004s[%d].root_path (%s)\n", nRowcnt, getstr(row, 5));
+					#endif
+
+					strcpy(t_cmds1004s[nRowcnt].server_id, getstr(row, 0));
+					strcpy(t_cmds1004s[nRowcnt].server_ip, getstr(row, 1));
+					       t_cmds1004s[nRowcnt].mys_port = getint(row, 2);
+					       t_cmds1004s[nRowcnt].ups_port = getint(row, 3);
+					       t_cmds1004s[nRowcnt].dns_port = getint(row, 4);
+					strcpy(t_cmds1004s[nRowcnt].root_path, getstr(row, 5));
+
+					nRowcnt++;
+
+					// buffer크기 보다 큰경우
+					if (nRowcnt >= MAX_ROWS)
+						break;
+				}
+			}
+
+			mysql_free_result(res);
+		}
+	}
+	else
+	{
+		t_cmds1004s[0].my_stat = 1;
+	}
+
+	db_disconnect(con);
+
+	#ifdef _DEBUG_
+	printf("cmds1004s.my_stat (%d) ip(%s)\n", t_cmds1004s[0].my_stat, t_cmds1004s[0].server_ip);
+	#endif
+
+	//전송할 버퍼생성
+	nDataSize = HEADER_SIZE + sizeof(CCMDS1004_S) * 1;
+
+	HEADER headers;
+	memcpy(&headers, p_headerr, HEADER_SIZE); //header
+	headers.nDataCnt  = 1;
+	headers.nDataSize = sizeof(CCMDS1004_S);
+
+	pSendData = new char[nDataSize];
+	memset(pSendData, 0x00, nDataSize);
+
+	memcpy(pSendData, &headers, sizeof(HEADER)); //header
+	memcpy(pSendData+HEADER_SIZE, t_cmds1004s, nDataSize - HEADER_SIZE); //body
+	delete[] t_cmds1004s;
+	#ifdef _DEBUG_
+	printf("cmds1004-> end sucess sendsize(%d)\n", nDataSize);
+	#endif
+
+	return (1);
+
+//------------------------------------------------------------------------------
+//  error 처리
+//------------------------------------------------------------------------------
+cmds1004_err:
+	printf("cmds1004->ERRMSG: [%d](%s)",ErrNum, ErrMsg);
+	printf("cmds1004->DB ERR: [%d](%s)",mysql_errno(con), mysql_error(con));
+
+	db_disconnect(con);
+	E_dump(ErrNum, ErrMsg, pSendData);
+   	return(ErrNum);
+
+cmds1004_tran_err:
+	printf("cmds1004->ERRMSG: [%d](%s)",ErrNum, ErrMsg);
+	printf("cmds1004->DB ERR: [%d](%s)",mysql_errno(con), mysql_error(con));
+
+	tran_rollback(con);
+	db_disconnect(con);
+	E_dump(ErrNum, ErrMsg, pSendData);
+   	return(ErrNum);
+}
+
+/*------------------------------------------------------------------------------
+select if(a.sess_id='1234567890',1,0) conn_yn
+  from T_USER_STAT a
+ where a.user_id = 'jbk'
+
+select a.server_id,   b.server_ip,
+       b.server_port, b.dnsvr_port,
+       b.upsvr_port,  a.free_yn,
+       a.recv_cd,     a.share_cd
+  from T_MYDISK_INFO a
+     , T_SERVER_INFO b
+ where a.user_id   = 'jindogg'
+   and a.server_id = b.server_id
+------------------------------------------------------------------------------*/

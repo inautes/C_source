@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="utf-8"?>
+<wc-entries
+   xmlns="svn:">
+<entry
+   committed-rev="470"
+   name=""
+   committed-date="2013-05-08T06:05:37.532532Z"
+   url="svn://172.16.9.207/ezwon/server/zangsi_with_dcmd/cmdsvr_c/inc"
+   last-author="jindogg"
+   kind="dir"
+   uuid="ae599a11-4fef-40d6-8bf3-4dd85d011f42"
+   revision="674"/>
+<entry
+   committed-rev="470"
+   name="cmds1002.h"
+   text-time="2013-05-09T06:42:50.000000Z"
+   committed-date="2013-05-08T06:05:37.532532Z"
+   checksum="0d161af2a58ac2c1f77638be1c0c960a"
+   last-author="jindogg"
+   kind="file"
+   prop-time="2013-05-09T06:42:50.000000Z"/>
+<entry
+   committed-rev="470"
+   name="cmds1011.h"
+   text-time="2013-05-09T06:42:50.000000Z"
+   committed-date="2013-05-08T06:05:37.532532Z"
+   checksum="b844edf544f32f2784e4b3c5c2ad753c"
+   last-author="jindogg"
+   kind="file"
+   prop-time="2013-05-09T06:42:50.000000Z"/>
+<entry
+   committed-rev="470"
+   name="cmds1101.h"
+   text-time="2013-05-09T06:42:50.000000Z"
+   committed-date="2013-05-08T06:05:37.532532Z"
+   checksum="a5a3569ba4124009eb7a6f620eae3ebc"
+   last-author="jindogg"
+   kind="file"
+   prop-time="2013-05-09T06:42:50.000000Z"/>
+<entry
+   committed-rev="470"
+   name="cmds1001b.h"
+   text-time="2013-05-09T06:42:50.000000Z"
+   committed-date="2013-05-08T06:05:37.532532Z"
+   checksum="baa31471e7a5f45465f65872f9f40d15"
+   last-author="jindogg"
+   kind="file"
+   prop-time="2013-05-09T06:42:50.000000Z"/>
+<entry
+   committed-rev="470"
+   name="cmds1003.h"
+   text-time="2013-05-09T06:42:50.000000Z"
+   committed-date="2013-05-08T06:05:37.532532Z"
+   checksum="10534df3c3be8aff35ccc70c8ae93168"
+   last-author="jindogg"
+   kind="file"
+   prop-time="2013-05-09T06:42:50.000000Z"/>
+<entry
+   committed-rev="470"
+   name="cmds1012.h"
+   text-time="2013-05-09T06:42:50.000000Z"
+   committed-date="2013-05-08T06:05:37.532532Z"
+   checksum="c3c09fffb1aee4b52699048436d2653d"
+   last-author="jindogg"
+   kind="file"
+   prop-time="2013-05-09T06:42:50.000000Z"/>
+<entry
+   committed-rev="470"
+   name="cmds1004.h"
+   text-time="2013-05-09T06:42:50.000000Z"
+   committed-date="2013-05-08T06:05:37.532532Z"
+   checksum="a2fc2cdcba4ffaa305f22e52b7901061"
+   last-author="jindogg"
+   kind="file"
+   prop-time="2013-05-09T06:42:50.000000Z"/>
+<entry
+   committed-rev="470"
+   name="cmds10041.h"
+   text-time="2013-05-09T06:42:50.000000Z"
+   committed-date="2013-05-08T06:05:37.532532Z"
+   checksum="0dd0e4aebbf2a1a0c433a52ba6ce3adc"
+   last-author="jindogg"
+   kind="file"
+   prop-time="2013-05-09T06:42:50.000000Z"/>
+<entry
+   committed-rev="470"
+   name="cmds1005.h"
+   text-time="2013-05-09T06:42:50.000000Z"
+   committed-date="2013-05-08T06:05:37.532532Z"
+   checksum="44c70260eb6ed49d487003a4313dc500"
+   last-author="jindogg"
+   kind="file"
+   prop-time="2013-05-09T06:42:50.000000Z"/>
+<entry
+   committed-rev="470"
+   name="cmdmain.h"
+   text-time="2013-05-09T06:42:50.000000Z"
+   committed-date="2013-05-08T06:05:37.532532Z"
+   checksum="c257ce9a61b4cb10bde1d4ec8d936f56"
+   last-author="jindogg"
+   kind="file"
+   prop-time="2013-05-09T06:42:50.000000Z"/>
+<entry
+   committed-rev="470"
+   name="cmds1001.h"
+   text-time="2013-05-09T06:42:50.000000Z"
+   committed-date="2013-05-08T06:05:37.532532Z"
+   checksum="d8f753ecfc1a53b70ae4737bb7dbe596"
+   last-author="jindogg"
+   kind="file"
+   prop-time="2013-05-09T06:42:50.000000Z"/>
+</wc-entries>

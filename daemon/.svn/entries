@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8"?>
+<wc-entries
+   xmlns="svn:">
+<entry
+   committed-rev="671"
+   name=""
+   committed-date="2013-10-19T08:46:16.636643Z"
+   url="svn://172.16.9.207/ezwon/server/zangsi_with_dcmd/daemon"
+   last-author="jindogg"
+   kind="dir"
+   uuid="ae599a11-4fef-40d6-8bf3-4dd85d011f42"
+   revision="674"/>
+<entry
+   name="log"
+   kind="dir"/>
+<entry
+   name="src"
+   kind="dir"/>
+<entry
+   committed-rev="627"
+   name="copy_to_bkdb.sh"
+   text-time="2013-11-07T00:36:51.000000Z"
+   committed-date="2013-07-18T06:38:34.670803Z"
+   checksum="649d9eb87904cb967298c79652e05ed6"
+   last-author="jindogg"
+   kind="file"
+   prop-time="2013-11-07T00:36:51.000000Z"/>
+<entry
+   committed-rev="514"
+   name="real_nocron.mk"
+   text-time="2013-11-07T00:36:51.000000Z"
+   committed-date="2013-05-09T05:54:37.239990Z"
+   checksum="3b76b1b98d16616f6ae0a2c06b646861"
+   last-author="jindogg"
+   kind="file"
+   prop-time="2013-11-07T00:36:51.000000Z"/>
+<entry
+   name="bin"
+   kind="dir"/>
+<entry
+   name="inc"
+   kind="dir"/>
+<entry
+   name="obj"
+   kind="dir"/>
+<entry
+   name="rbin"
+   kind="dir"/>
+<entry
+   committed-rev="470"
+   name="check_dcmd.mk"
+   text-time="2013-11-07T00:36:51.000000Z"
+   committed-date="2013-05-08T06:05:37.532532Z"
+   checksum="85c30a0799ca2e855ce1e9f3875898aa"
+   last-author="jindogg"
+   kind="file"
+   prop-time="2013-11-07T00:36:51.000000Z"/>
+<entry
+   committed-rev="514"
+   name="real_cron.mk"
+   text-time="2013-11-07T00:36:51.000000Z"
+   committed-date="2013-05-09T05:54:37.239990Z"
+   checksum="d3d11c216abe958765ff16a2f97e0e45"
+   last-author="jindogg"
+   kind="file"
+   prop-time="2013-11-07T00:36:51.000000Z"/>
+<entry
+   committed-rev="470"
+   name="DBtest.mk"
+   text-time="2013-11-07T00:36:51.000000Z"
+   committed-date="2013-05-08T06:05:37.532532Z"
+   checksum="c568f0f1dd403597533b677c6f19743f"
+   last-author="jindogg"
+   kind="file"
+   prop-time="2013-11-07T00:36:51.000000Z"/>
+<entry
+   committed-rev="470"
+   name="chk.mk"
+   text-time="2013-11-07T00:36:51.000000Z"
+   committed-date="2013-05-08T06:05:37.532532Z"
+   checksum="1e6021f2305d6a59a53199f4d2e0d6cf"
+   last-author="jindogg"
+   kind="file"
+   prop-time="2013-11-07T00:36:51.000000Z"/>
+<entry
+   name="cdaem_script"
+   kind="dir"/>
+<entry
+   committed-rev="514"
+   name="Makefile"
+   text-time="2013-11-07T00:36:51.000000Z"
+   committed-date="2013-05-09T05:54:37.239990Z"
+   checksum="a64d474cf4866bfc3dd245d16a9ad64f"
+   last-author="jindogg"
+   kind="file"
+   prop-time="2013-11-07T00:36:51.000000Z"/>
+</wc-entries>

@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<wc-entries
+   xmlns="svn:">
+<entry
+   committed-rev="470"
+   name=""
+   committed-date="2013-05-08T06:05:37.532532Z"
+   url="svn://172.16.9.207/ezwon/server/zangsi_with_dcmd/installserver/src"
+   last-author="jindogg"
+   kind="dir"
+   uuid="ae599a11-4fef-40d6-8bf3-4dd85d011f42"
+   revision="674"/>
+<entry
+   committed-rev="470"
+   name="installmain.cc"
+   text-time="2013-05-09T06:42:50.000000Z"
+   committed-date="2013-05-08T06:05:37.532532Z"
+   checksum="5e5903f4aab13ea55f2690f021cd96e9"
+   last-author="jindogg"
+   kind="file"
+   prop-time="2013-05-09T06:42:50.000000Z"/>
+<entry
+   committed-rev="470"
+   name="installcomlib.cc"
+   text-time="2013-05-09T06:42:50.000000Z"
+   committed-date="2013-05-08T06:05:37.532532Z"
+   checksum="6d938d94670dbe3e39ce218da7345044"
+   last-author="jindogg"
+   kind="file"
+   prop-time="2013-05-09T06:42:50.000000Z"/>
+<entry
+   committed-rev="470"
+   name="installsendproc.cc"
+   text-time="2013-05-09T06:42:50.000000Z"
+   committed-date="2013-05-08T06:05:37.532532Z"
+   checksum="02a9a57822051d5b63a860c19bb18598"
+   last-author="jindogg"
+   kind="file"
+   prop-time="2013-05-09T06:42:50.000000Z"/>
+<entry
+   committed-rev="470"
+   name="installsock.cc"
+   text-time="2013-05-09T06:42:50.000000Z"
+   committed-date="2013-05-08T06:05:37.532532Z"
+   checksum="bbcbf89333778d5e014350eb55229739"
+   last-author="jindogg"
+   kind="file"
+   prop-time="2013-05-09T06:42:50.000000Z"/>
+<entry
+   committed-rev="470"
+   name="installproc.cc"
+   text-time="2013-05-09T06:42:50.000000Z"
+   committed-date="2013-05-08T06:05:37.532532Z"
+   checksum="3fd0ba34acf8451b5d08264b8cc835f1"
+   last-author="jindogg"
+   kind="file"
+   prop-time="2013-05-09T06:42:50.000000Z"/>
+</wc-entries>

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<wc-entries
+   xmlns="svn:">
+<entry
+   committed-rev="624"
+   name=""
+   committed-date="2013-07-15T04:30:52.717969Z"
+   url="svn://172.16.9.207/ezwon/server/zangsi_with_dcmd/common"
+   last-author="jindogg"
+   kind="dir"
+   uuid="ae599a11-4fef-40d6-8bf3-4dd85d011f42"
+   revision="674"/>
+<entry
+   name="src"
+   kind="dir"/>
+<entry
+   name="inc"
+   kind="dir"/>
+<entry
+   name="obj"
+   kind="dir"/>
+</wc-entries>

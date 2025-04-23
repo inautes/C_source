@@ -1,0 +1,2 @@
+echo "start copy to all dcmd server"
+sshpass -p "xhdgkqzjsdlfdldudvkf)(*" scp -r -P 51004 -oStrictHostKeyChecking=no /root/project1/server/zangsi_with_dcmd/rbin_tong/* root@222.239.92.193:/root/daemon_we/.

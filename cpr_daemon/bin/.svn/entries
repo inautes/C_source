@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<wc-entries
+   xmlns="svn:">
+<entry
+   committed-rev="530"
+   name=""
+   committed-date="2013-05-28T03:02:17.254292Z"
+   url="svn://172.16.9.207/ezwon/server/zangsi_with_dcmd/cpr_daemon/bin"
+   last-author="jindogg"
+   kind="dir"
+   uuid="ae599a11-4fef-40d6-8bf3-4dd85d011f42"
+   revision="674"/>
+<entry
+   committed-rev="470"
+   name="nohup.out"
+   text-time="2013-05-09T06:42:51.000000Z"
+   committed-date="2013-05-08T06:05:37.532532Z"
+   checksum="d41d8cd98f00b204e9800998ecf8427e"
+   last-author="jindogg"
+   kind="file"
+   prop-time="2013-05-09T06:42:51.000000Z"/>
+<entry
+   committed-rev="470"
+   name="cprdaem1001"
+   text-time="2013-05-09T06:42:51.000000Z"
+   committed-date="2013-05-08T06:05:37.532532Z"
+   checksum="1f1ade32147a68b480802538f9d56f2f"
+   last-author="jindogg"
+   kind="file"
+   prop-time="2013-05-09T06:42:51.000000Z"/>
+<entry
+   committed-rev="530"
+   name="cprdaem2001"
+   text-time="2013-05-28T23:52:42.000000Z"
+   committed-date="2013-05-28T03:02:17.254292Z"
+   checksum="fd9349e89e329de0611b5d1982ac53ae"
+   last-author="jindogg"
+   kind="file"
+   prop-time="2013-05-28T23:52:42.000000Z"/>
+</wc-entries>

@@ -1,0 +1,211 @@
+<?xml version="1.0" encoding="utf-8"?>
+<wc-entries
+   xmlns="svn:">
+<entry
+   committed-rev="499"
+   name=""
+   committed-date="2013-05-08T22:17:46.638086Z"
+   url="svn://172.16.9.207/ezwon/server/zangsi_with_dcmd/mysql/lib"
+   last-author="jindogg"
+   kind="dir"
+   uuid="ae599a11-4fef-40d6-8bf3-4dd85d011f42"
+   revision="674"/>
+<entry
+   committed-rev="499"
+   name="libz.a"
+   text-time="2013-05-09T06:42:51.000000Z"
+   committed-date="2013-05-08T22:17:46.638086Z"
+   checksum="b593f6c6c02feb035afe9e5b6041375c"
+   last-author="jindogg"
+   kind="file"
+   prop-time="2013-05-09T06:42:50.000000Z"/>
+<entry
+   committed-rev="499"
+   name="libz.so.1"
+   text-time="2013-05-09T06:42:51.000000Z"
+   committed-date="2013-05-08T22:17:46.638086Z"
+   checksum="fac0ead1037a0eae6f7b701965a59844"
+   last-author="jindogg"
+   kind="file"
+   prop-time="2013-05-09T06:42:50.000000Z"/>
+<entry
+   committed-rev="499"
+   name="libmysqlclient_r.so.15"
+   text-time="2013-05-09T06:42:51.000000Z"
+   committed-date="2013-05-08T22:17:46.638086Z"
+   checksum="dd6f7cac4b8823b4ab1c7f93295b9ee4"
+   last-author="jindogg"
+   kind="file"
+   prop-time="2013-05-09T06:42:50.000000Z"/>
+<entry
+   committed-rev="499"
+   name="libz.so"
+   text-time="2013-05-09T06:42:51.000000Z"
+   committed-date="2013-05-08T22:17:46.638086Z"
+   checksum="fac0ead1037a0eae6f7b701965a59844"
+   last-author="jindogg"
+   kind="file"
+   prop-time="2013-05-09T06:42:50.000000Z"/>
+<entry
+   committed-rev="499"
+   name="libz.so.1.2.3"
+   text-time="2013-05-09T06:42:51.000000Z"
+   committed-date="2013-05-08T22:17:46.638086Z"
+   checksum="fac0ead1037a0eae6f7b701965a59844"
+   last-author="jindogg"
+   kind="file"
+   prop-time="2013-05-09T06:42:50.000000Z"/>
+<entry
+   committed-rev="499"
+   name="libheap.a"
+   text-time="2013-05-09T06:42:51.000000Z"
+   committed-date="2013-05-08T22:17:46.638086Z"
+   checksum="1d8bbd94f2d7280e4ebea4c9c607f1f8"
+   last-author="jindogg"
+   kind="file"
+   prop-time="2013-05-09T06:42:50.000000Z"/>
+<entry
+   committed-rev="499"
+   name="libmysqlclient.la"
+   text-time="2013-05-09T06:42:51.000000Z"
+   committed-date="2013-05-08T22:17:46.638086Z"
+   checksum="1197623d815959e8b555935ee4331f1f"
+   last-author="jindogg"
+   kind="file"
+   prop-time="2013-05-09T06:42:50.000000Z"/>
+<entry
+   committed-rev="499"
+   name="libdbug.a"
+   text-time="2013-05-09T06:42:51.000000Z"
+   committed-date="2013-05-08T22:17:46.638086Z"
+   checksum="6e68d5781fc832388c342be461d1700a"
+   last-author="jindogg"
+   kind="file"
+   prop-time="2013-05-09T06:42:50.000000Z"/>
+<entry
+   committed-rev="499"
+   name="libmysys.a"
+   text-time="2013-05-09T06:42:51.000000Z"
+   committed-date="2013-05-08T22:17:46.638086Z"
+   checksum="12a6ef18dea5952871e85083a0a88767"
+   last-author="jindogg"
+   kind="file"
+   prop-time="2013-05-09T06:42:50.000000Z"/>
+<entry
+   committed-rev="499"
+   name="libmysqlclient_r.a"
+   text-time="2013-05-09T06:42:51.000000Z"
+   committed-date="2013-05-08T22:17:46.638086Z"
+   checksum="3b3b9ee12a3cc0ac1c75242fa062106e"
+   last-author="jindogg"
+   kind="file"
+   prop-time="2013-05-09T06:42:51.000000Z"/>
+<entry
+   committed-rev="499"
+   name="libmysqlclient.so.15.0.0"
+   text-time="2013-05-09T06:42:51.000000Z"
+   committed-date="2013-05-08T22:17:46.638086Z"
+   checksum="66823119ff801894d372f87f9cb358c2"
+   last-author="jindogg"
+   kind="file"
+   prop-time="2013-05-09T06:42:50.000000Z"/>
+<entry
+   committed-rev="499"
+   name="libz.la"
+   text-time="2013-05-09T06:42:51.000000Z"
+   committed-date="2013-05-08T22:17:46.638086Z"
+   checksum="14d4ba00810f7461508bcb59ab827adc"
+   last-author="jindogg"
+   kind="file"
+   prop-time="2013-05-09T06:42:50.000000Z"/>
+<entry
+   committed-rev="499"
+   name="libmysqlclient_r.so"
+   text-time="2013-05-09T06:42:51.000000Z"
+   committed-date="2013-05-08T22:17:46.638086Z"
+   checksum="dd6f7cac4b8823b4ab1c7f93295b9ee4"
+   last-author="jindogg"
+   kind="file"
+   prop-time="2013-05-09T06:42:51.000000Z"/>
+<entry
+   committed-rev="499"
+   name="libmysqlclient.so.15"
+   text-time="2013-05-09T06:42:51.000000Z"
+   committed-date="2013-05-08T22:17:46.638086Z"
+   checksum="66823119ff801894d372f87f9cb358c2"
+   last-author="jindogg"
+   kind="file"
+   prop-time="2013-05-09T06:42:51.000000Z"/>
+<entry
+   committed-rev="499"
+   name="libvio.a"
+   text-time="2013-05-09T06:42:51.000000Z"
+   committed-date="2013-05-08T22:17:46.638086Z"
+   checksum="0efc0a87307e0b36c5146fbb2275d4fe"
+   last-author="jindogg"
+   kind="file"
+   prop-time="2013-05-09T06:42:51.000000Z"/>
+<entry
+   committed-rev="499"
+   name="libmystrings.a"
+   text-time="2013-05-09T06:42:51.000000Z"
+   committed-date="2013-05-08T22:17:46.638086Z"
+   checksum="136eacec27b7c1e543898e321605cf87"
+   last-author="jindogg"
+   kind="file"
+   prop-time="2013-05-09T06:42:51.000000Z"/>
+<entry
+   committed-rev="499"
+   name="libmyisam.a"
+   text-time="2013-05-09T06:42:51.000000Z"
+   committed-date="2013-05-08T22:17:46.638086Z"
+   checksum="5b88cabd2b3071db4f8210dacdd040be"
+   last-author="jindogg"
+   kind="file"
+   prop-time="2013-05-09T06:42:51.000000Z"/>
+<entry
+   committed-rev="499"
+   name="libmysqlclient_r.la"
+   text-time="2013-05-09T06:42:51.000000Z"
+   committed-date="2013-05-08T22:17:46.638086Z"
+   checksum="712f2a3c278cddcdefeb9495ae958a55"
+   last-author="jindogg"
+   kind="file"
+   prop-time="2013-05-09T06:42:51.000000Z"/>
+<entry
+   committed-rev="499"
+   name="libmysqlclient.a"
+   text-time="2013-05-09T06:42:51.000000Z"
+   committed-date="2013-05-08T22:17:46.638086Z"
+   checksum="9f3a89d23be7f7c88f9011414657ca34"
+   last-author="jindogg"
+   kind="file"
+   prop-time="2013-05-09T06:42:51.000000Z"/>
+<entry
+   committed-rev="499"
+   name="libmysqlclient.so"
+   text-time="2013-05-09T06:42:51.000000Z"
+   committed-date="2013-05-08T22:17:46.638086Z"
+   checksum="66823119ff801894d372f87f9cb358c2"
+   last-author="jindogg"
+   kind="file"
+   prop-time="2013-05-09T06:42:51.000000Z"/>
+<entry
+   committed-rev="499"
+   name="libmyisammrg.a"
+   text-time="2013-05-09T06:42:51.000000Z"
+   committed-date="2013-05-08T22:17:46.638086Z"
+   checksum="714574cbea80a9bbc070edc36924f851"
+   last-author="jindogg"
+   kind="file"
+   prop-time="2013-05-09T06:42:51.000000Z"/>
+<entry
+   committed-rev="499"
+   name="libmysqlclient_r.so.15.0.0"
+   text-time="2013-05-09T06:42:51.000000Z"
+   committed-date="2013-05-08T22:17:46.638086Z"
+   checksum="dd6f7cac4b8823b4ab1c7f93295b9ee4"
+   last-author="jindogg"
+   kind="file"
+   prop-time="2013-05-09T06:42:51.000000Z"/>
+</wc-entries>

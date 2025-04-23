@@ -1,0 +1,13 @@
+#ifndef _FDN_GURU_PROC
+#define _FDN_GURU_PROC
+
+
+#ifndef _FILE_OFFSET_BITS 
+#define _FILE_OFFSET_BITS 64
+#endif
+
+int GuruFileRequestList(int& Socket,char *pRecvHead, char *pRecvData, char* &pSendData);
+int GuruFileRequestFile(int& Socket,char *pRecvHead, char *pRecvData, char* &pSendData);
+int GetGuruFileList(char* path,int nCount,GURUFILEINFO* &pResult,char* localname , CFDNS3004_R* pfdn3004);
+
+#endif

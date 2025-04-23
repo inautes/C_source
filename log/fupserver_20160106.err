@@ -1,0 +1,12 @@
+16:57:54.613`fupserver`21635`ERROR`CreateTCPServerSocket : bind() error - errno [ 98 ] error msg [ Address already in use ]
+16:57:54.613`fupserver`21635`ERROR`infMainRoutine       ] accept failed  9 Bad file descriptor
+17:08:20.879`fupserver`22018`ERROR`CreateTCPServerSocket : bind() error - errno [ 98 ] error msg [ Address already in use ]
+17:08:20.879`fupserver`22018`ERROR`infMainRoutine       ] accept failed  9 Bad file descriptor
+17:08:49.520`fupserver`22086`ERROR`CreateTCPServerSocket : bind() error - errno [ 98 ] error msg [ Address already in use ]
+17:08:49.520`fupserver`22086`ERROR`infMainRoutine       ] accept failed  9 Bad file descriptor
+20:18:58.485`fupserver`24700`ERROR`CreateTCPServerSocket : bind() error - errno [ 98 ] error msg [ Address already in use ]
+20:18:58.485`fupserver`24700`ERROR`infMainRoutine       ] accept failed  9 Bad file descriptor
+20:23:30.682`fupserver`24907`ERROR`CreateTCPServerSocket : bind() error - errno [ 98 ] error msg [ Address already in use ]
+20:23:30.682`fupserver`24907`ERROR`infMainRoutine       ] accept failed  9 Bad file descriptor
+20:25:11.396`fupserver`25016`ERROR`CreateTCPServerSocket : bind() error - errno [ 98 ] error msg [ Address already in use ]
+20:25:11.396`fupserver`25016`ERROR`infMainRoutine       ] accept failed  9 Bad file descriptor

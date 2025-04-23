@@ -1,0 +1,197 @@
+/******************************************************************************
+ *   서브시스템 : CMD서버
+ *   프로그램명 : cmds1012.cc (다운로드자료삭제)
+ *         기능 : We디스크의 다운로드자료를 삭제 한다.
+ *         설명 : 
+ *       작성자 : 전봉구
+ *       작성일 : 2004/02/16
+ *     수정이력 :
+********************************************************************************
+1         2         3         4         5         6         7         8
+12345678901234567890123456789012345678901234567890123456789012345678901234567890
+*******************************************************************************/
+#include <mysql.h>
+#include <stdarg.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#include "apdefine.h"
+#include "comcomm.h"
+#include "commydb.h"
+#include "cmds1012.h"
+
+#define  MAX_ROWS	1
+//#define  _DEBUG_
+/******************************************************************************
+**  cmds1012 main
+*******************************************************************************/
+int cmds1012(char *pRecvHead, char *pRecvData, char* &pSendData)
+{
+	MYSQL     *con;
+	MYSQL_RES *res;
+	MYSQL_ROW  row;
+
+	LPHEADER     p_headerr;
+	CCMDS1012_R	*p_cmds1012r;
+	int nDataSize;
+	
+	char szQuery[1000];  // query string
+	char ErrMsg  [256];  // error message
+	int  ErrNum;         // error no
+	int  nRowcnt;        // select row count
+
+	// input variables
+	char     buy_user          [12+1];  // 구매자ID
+	char     user_id           [12+1];  // 사용자ID
+	unsigned long deal_no            ;  // 거래번호
+	char     down_yn           [ 1+1];  // 삭제여부
+	
+	
+	int conn_cnt;
+	/*------------------------------------------------------------------------*/
+	/* start!!!                                                               */
+	/*------------------------------------------------------------------------*/
+	printf("cmds1012-> start...\n");
+	p_headerr   = (LPHEADER) pRecvHead;
+	p_cmds1012r = (LPCCMDS1012_R) pRecvData;
+
+	// local 변수 Clear
+	memset(&ErrMsg   , 0x00, sizeof(ErrMsg   )); // 오류메시지
+	memset(&deal_no  , 0x00, sizeof(deal_no  )); // 등록자료ID
+	memset(&user_id  , 0x00, sizeof(user_id  )); // 등록자ID
+	memset(&buy_user , 0x00, sizeof(buy_user )); // 구매자ID
+	memset(&down_yn  , 0x00, sizeof(down_yn  )); // 삭제여부
+
+	//strcpy(user_id, p_cmds1012r->user_id);
+	memcpy(user_id,p_cmds1012r->user_id, sizeof(p_cmds1012r->user_id));
+	deal_no = p_cmds1012r->deal_no;
+	
+	#ifdef _DEBUG_
+	printf("cmds1012->in deal_no  =(%d)\n", deal_no  );
+	printf("cmds1012->in user_id  =(%s)\n", user_id  );
+	#endif
+
+	//컨텐츠 등록자료 조회
+	memset (szQuery, 0x00, sizeof(szQuery ));
+	sprintf(szQuery, "select a.down_yn, a.buy_user "
+	                 "  from T_DEAL_INFO a  "
+	                 " where a.deal_no = %d        "
+	                 ,deal_no
+	                 );
+	// DB 연결
+	
+	if (!(con=db_connect("zangsi")))
+	{
+		ErrNum = -101291;
+		sprintf(ErrMsg, "DB에 접속하지 못 하였습니다.\n");
+		goto cmds1012_err;
+	}
+	
+	
+	if (mysql_query(con, szQuery)){
+		ErrNum = -101202;
+		sprintf(ErrMsg, "검색시 오류가 발생하였습니다.\n");
+		goto cmds1012_err;
+	}
+
+	if (!(res = mysql_store_result(con)))
+	{
+		ErrNum = -999999;
+		sprintf(ErrMsg, "자료가 없습니다.\n");
+		goto cmds1012_err;
+	}
+
+	row = mysql_fetch_row(res);
+	strcpy(down_yn,   getstr(row, 0));
+	strcpy(buy_user,  getstr(row, 1));
+
+	mysql_free_result(res);
+
+	// 삭제조건에 맞는지 확인한다.
+	if (strcmp(down_yn, "N")!=0)
+	{
+		ErrNum = -101203;
+		sprintf(ErrMsg, "다운로드 먼저 하세요.\n");
+		goto cmds1012_err;
+	}
+	if (strcmp(buy_user, user_id)!=0) {
+		ErrNum = -101204;
+		sprintf(ErrMsg, "다운로드 사용자가 아닙니다.\n");
+		goto cmds1012_err;
+	}
+	//--------------------------------------------------------------------------
+	// 트렌젝션시작
+	//--------------------------------------------------------------------------
+	if (tran_begin(con)!=0)	{
+		ErrNum = -101292;
+		sprintf(ErrMsg, "테이베이스 오류입니다.\n");
+		goto cmds1012_tran_err;
+	}
+
+	//--------------------------------------------------------------------------
+	// 1. 삭제처리
+	//--------------------------------------------------------------------------
+	memset (szQuery, 0x00, sizeof(szQuery ));
+	sprintf(szQuery, "UPDATE T_DEAL_INFO"
+	                 "   SET del_yn  = 'Y'     "
+	                 " WHERE deal_no = %d      "
+	                 ,deal_no
+	                 );
+	if (mysql_query(con, szQuery)){
+		ErrNum = -101205;
+		sprintf(ErrMsg, "삭제 처리시 오류가 발생했습니다.\n");
+		goto cmds1012_tran_err;
+    }
+
+	if (tran_commit(con)!=0)
+	{
+		ErrNum = -300393;
+		sprintf(ErrMsg, "테이베이스 오류입니다.\n");
+		goto cmds1012_tran_err;
+	}
+	db_disconnect(con);
+
+	//전송할 버퍼생성
+	nDataSize = HEADER_SIZE;
+	
+	HEADER headers;
+	memcpy(&headers, p_headerr, HEADER_SIZE); //header	
+	headers.nDataCnt  = 0;
+	headers.nDataSize = 0;
+
+	pSendData = new char[nDataSize];
+	memset(pSendData, 0x00, nDataSize);
+	
+	memcpy(pSendData, &headers, sizeof(HEADER)); //header	
+	#ifdef _DEBUG_
+	printf("cmds1012-> end sucess sendsize(%d)\n", nDataSize);
+	#endif
+
+	return (1);
+	
+//------------------------------------------------------------------------------
+cmds1012_err:
+	
+	#ifdef _DEBUG_
+	printf("cmds1012->ERRMSG: [%d](%s)\n",ErrNum, ErrMsg);
+	printf("cmds1012->DB ERR: [%d](%s)\n",mysql_errno(con), mysql_error(con));
+	#endif
+
+	db_disconnect(con);
+	E_dump(ErrNum, ErrMsg, pSendData);
+   	return(ErrNum); 
+
+cmds1012_tran_err:
+	#ifdef _DEBUG_
+	printf("cmds1012->ERRMSG: [%d](%s)\n",ErrNum, ErrMsg);
+	printf("cmds1012->DB ERR: [%d](%s)\n",mysql_errno(con), mysql_error(con));
+	#endif
+
+	tran_rollback(con);
+	db_disconnect(con);
+	E_dump(ErrNum, ErrMsg, pSendData);
+   	return(ErrNum); 
+	
+}
+

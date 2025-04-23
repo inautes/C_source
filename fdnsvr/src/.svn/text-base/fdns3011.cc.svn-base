@@ -1,0 +1,120 @@
+/******************************************************************************
+ *   서브시스템 : FDN서버
+ *   프로그램명 : fdns3011.cc
+ *         기능 : 특정사용자의 공유폴더 가격을 조회
+ *       작성자 : 전봉구
+ *       작성일 : 2004/02/16
+ *     수정이력 :
+********************************************************************************
+1         2         3         4         5         6         7         8
+12345678901234567890123456789012345678901234567890123456789012345678901234567890
+*******************************************************************************/
+#include <mysql.h>
+#include <stdarg.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#include "comcomm.h"
+#include "commydb.h"
+#include "apdefine.h"
+#include "fdns3011.h"
+
+#define  MAX_ROWS	1
+//#define  _DEBUG_
+
+//******************************************************************************
+//* fdns3011 main
+//* error 발생시 pSendData를 사용하고 정상인경우 seq_no를 return한다.
+//******************************************************************************
+int fdns3011(char *user_id)
+{
+	MYSQL       *con;
+	MYSQL_RES   *res;
+	MYSQL_ROW    row;
+
+	char szQuery[1000];  // query string
+	char sztemp [1000];  // query string
+	char ErrMsg[256];    // error message
+	int  ErrNum;         // error no
+	int  nRowcnt;        // select row count
+
+	// temp variables
+	int     won_mega  = 0      ;  // 원당메가
+	/*--------------------------------------------------------------------*/
+	/* start!!!                                                           */
+	/*--------------------------------------------------------------------*/
+	//printf("fdns3011-> start...\n");
+	// local 변수 Clear
+	memset(&ErrMsg, 0x00, sizeof(ErrMsg)); // 오류메시지
+	ErrNum = 0;                            // error no
+
+	#ifdef _DEBUG_
+	printf("fdns3011-> start\n");
+	printf("fdns3011-> user_id =(%s)\n", user_id);
+	#endif
+
+	// DB 연결
+	if (!(con=db_connect("nori")))
+	{
+		ErrNum = -301191;
+		sprintf(ErrMsg, "DB에 접속하지 못 하였습니다.\n");
+		goto fdns3011_err;
+	}
+	
+	//--------------------------------------------------------------------------
+	// 1. 다운로드 이력에서 예치금 가지고 온다.
+	//--------------------------------------------------------------------------
+	memset (szQuery, 0x00, sizeof(szQuery ));
+	sprintf(szQuery, "SELECT won_mega             "
+	                 "  FROM nori.T_MYDISK_INFO "
+	                 " WHERE user_id = '%s'       "
+	                 ,user_id
+	                 );
+	if (mysql_query(con, szQuery)){
+		ErrNum = -301102;
+		sprintf(ErrMsg, "검색시 오류가 발생하였습니다.\n");
+		goto fdns3011_err;
+	}
+	if (!(res = mysql_store_result(con)))
+	{
+		ErrNum = -301103;
+		sprintf(ErrMsg, "테이베이스 오류입니다.\n");
+		goto fdns3011_err;
+	}
+	//--------------------------------------------------------------------------
+	//자료가 없다면....
+	//--------------------------------------------------------------------------
+ 	if (mysql_num_rows(res)==0)
+ 	{
+		ErrNum = -999999;
+		sprintf(ErrMsg, "검색된 자료가 없습니다.\n");
+		goto fdns3011_err;
+	}
+	won_mega = 0;
+	if (row = mysql_fetch_row(res))
+	{
+		won_mega = getint(row, 0);
+	}
+	mysql_free_result(res);
+
+	#ifdef _DEBUG_
+	printf("fdns3011->won_mega = [%d]\n", won_mega);
+	#endif
+
+	db_disconnect(con);
+	
+	return (won_mega);
+//------------------------------------------------------------------------------
+fdns3011_err:
+	infLOG(ERROR, "fdns3011->ERRMSG: [%d](%s)\n",ErrNum, ErrMsg);
+	infLOG(ERROR, "fdns3011->DB ERR: [%d](%s)\n",mysql_errno(con), mysql_error(con));
+	#ifdef _DEBUG_
+    printf("fdns3002-> [%d](%s)\n",ErrNum, ErrMsg);
+	printf("fdns3002-> [%d](%s)\n",mysql_errno(con), mysql_error(con));
+	#endif
+
+	db_disconnect(con);
+   	return(ErrNum); 
+
+}

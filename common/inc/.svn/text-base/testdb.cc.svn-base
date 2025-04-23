@@ -1,0 +1,56 @@
+/******************************************************************************
+ *   서브시스템 : CMD서버
+ *   프로그램명 : cmds1001.cc
+ *         기능 : 각서버군에서 적정서버를 찾아 IP와 Port를 전송한다.
+ *         설명 :
+ *       작성자 : 이형철
+ *       작성일 : 2004/02/16
+ *     수정이력 :
+********************************************************************************
+1         2         3         4         5         6         7         8
+12345678901234567890123456789012345678901234567890123456789012345678901234567890
+*******************************************************************************/
+#include <mysql.h>
+#include <stdarg.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#include "Database.h"
+#include "Query.h"
+
+int main()
+{
+	char szQuery[1024];
+	MYSQL *one;
+	MYSQL_RES   *res;
+	MYSQL_ROW    row;
+
+	Database db("192.168.0.5","root","qaz741","zangsi");
+	
+	Query con(&db);
+	
+	memset(szQuery, 0x00, sizeof(szQuery));
+	strcpy(szQuery, "select server_id, server_ip, server_port        ");
+	strcat(szQuery, "  from T_SERVER_INFO                            ");
+	strcat(szQuery, " where server_gu = '01'                         ");
+	strcat(szQuery, "   and round((disk_use / disk_size) * 100) < 90 ");
+	strcat(szQuery, " order by use_cnt asc                           ");
+
+
+//		printf("count===> %d\n", con.get_count(szQuery));
+
+	res = con.get_result(szQuery);
+//	row =con.fetch_row();
+	
+//	int count = con.get_count(szQuery);
+//	for(int i=0;i<count;i++)
+	while ((row =con.fetch_row()))
+	{
+		printf("===> %s\n", con.getstr(0));
+		printf("===> %s\n", con.getstr(1));
+		printf("===> %d\n", con.getval(2));
+	}
+
+}
+

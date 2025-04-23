@@ -1,0 +1,331 @@
+/******************************************************************************
+ *   서브시스템 : File Download 서버
+ *   프로그램명 : fdnmain.cc
+ *         기능 : FDN서버의 Main
+ *         설명 :
+ *       작성자 : 이형철
+ *       작성일 : 2004/02/16
+ *     수정이력 :
+********************************************************************************
+1         2         3         4         5         6         7         8
+12345678901234567890123456789012345678901234567890123456789012345678901234567890
+*******************************************************************************/
+
+#include <map>
+#include <stdio.h>      /* for printf() and fprintf() */ 
+#include <sys/socket.h> /* for socket(), bind(), and connect() */ 
+#include <arpa/inet.h> /* for sockaddr_in and inet_ntoa() */ 
+#include <stdlib.h>     /* for atoi() and exit() */ 
+#include <string.h>     /* for memset() */ 
+#include <unistd.h>     /* for close() */ 
+#include <errno.h> 
+#include <sys/stat.h> 
+#include <time.h> //randomize() 
+#include <pthread.h>        /* for POSIX threads */
+#include <sys/ioctl.h>
+
+
+#include <signal.h>
+
+
+#include "fdndefine.h"
+#include "fdnsock.h"
+#include "fdnproc.h"
+#include "fdncomlib.h"
+
+#include "apstruct.h"
+#include "apdefine.h"
+#include "fdnmain.h"
+#include "comcomm.h"
+#include "comconf.h"
+using namespace std;
+//#define __DEBUG
+
+
+/*===========================================================================*/
+/* 전역변수 선언															 */
+/*===========================================================================*/
+#define STACK_SIZE ( 4 * 1024 )
+static int is_altstack_defined =0 ;
+static char tmp_stack[STACK_SIZE];
+
+
+SUserParm_T gstUserParm;
+char	errMsg[256];
+
+
+multimap<int,USERINFO>m_UserList;
+
+
+pthread_cond_t async_cond = PTHREAD_COND_INITIALIZER;
+pthread_mutex_t mutex_lock = PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t async_mutex = PTHREAD_MUTEX_INITIALIZER;
+
+
+/*============================================================================*/
+/* 함수 프로토타입                                                            */
+/*============================================================================*/
+int     infInitProcess(int, char**);
+int     infMainRoutine(int, char**);
+void    infTermProcess();
+
+
+/*****************************************************************************
+* SIGNAL HANDLING
+* (I) int nSigNo : Signal Number
+* (R) void
+*****************************************************************************/
+//void    infSigHandler(int nSigNo)
+void infSigHandler(int nSigNo, siginfo_t *siginfo,void* p) 
+{
+	
+	infLOG(ERROR,"signal | 신호 번호 [%d]\n", nSigNo);	
+	sigset_t sigset, oldset;
+  sigfillset(&sigset);
+  // 새로들어오는 모든 시그널에 대해서 block 한다. 
+  /*
+  if (sigprocmask(SIG_BLOCK, &sigset, &oldset) < 0)
+  {
+  
+  	printf( " ] 신호 mask 처리 오류 : 신호 번호 [%d]\n", nSigNo);	
+  	
+  }
+  */
+	
+	
+	//sigaction( SIGINT, &act_old, NULL);
+
+
+	exit(-1);
+	
+
+}
+/*
+void infSigSegHandler(int nSigNo, siginfo_t *siginfo,void* p) 
+{
+	
+	printf("infSigSegHandler : 신호 번호 [%d]\n", nSigNo);	
+	sigset_t sigset, oldset;
+    //sigfillset(&sigset);
+    // 새로들어오는 모든 시그널에 대해서 block 한다. 
+    //if (sigprocmask(SIG_BLOCK, &sigset, &oldset) < 0)
+    //   	printf( " ] 신호 mask 처리 오류 : 신호 번호 [%d]\n", nSigNo);	
+  
+	
+	
+	printf( "infSigSegHandler  종료 : 신호 번호 [%d] [ %s ]\n", __LINE__ , strerror(errno));
+	
+	
+	
+	
+	//sigaction( SIGINT, &act_old, NULL);
+
+
+	exit(-1);
+	
+
+}
+*/
+
+static void register_sigaltstack()
+{
+    stack_t newSS, oldSS;
+
+    if(is_altstack_defined)
+    {
+        return;
+    }
+
+    newSS.ss_sp = tmp_stack;
+
+    newSS.ss_size = STACK_SIZE;
+    newSS.ss_flags = 0;
+
+    if(sigaltstack(&newSS, &oldSS) < 0)
+    {
+        printf ("error altstack");
+    }
+
+    is_altstack_defined = 1;
+ }
+
+/*****************************************************************************
+* CMD서버 Main
+* (I) 1. int argc    : Argument Count 수
+*     2. char **argv : Argunment Data Point
+*****************************************************************************/
+
+int main(int argc, char** argv)
+{
+    infMainRoutine(argc, argv);
+    infTermProcess();
+}
+/*****************************************************************************
+* 프로그램 시작
+* (I) 1. int argc    : Argument Count 수
+*     2. char **argv : Argunment Data Point
+* (R) 1. 정상 : '0'
+*     2. 오류 : 음수 
+*****************************************************************************/
+int     infInitProcess(int argc, char** argv) 
+{
+    infLOG(ALWAY, "================= 프로그램 시작 ====================\n"); 
+    return RETOK;
+}
+
+/*****************************************************************************
+* 프로그램 종료
+* (I) void
+* (R) void
+*****************************************************************************/
+void    infTermProcess()
+{
+    infLOG(ALWAY, "================= 프로그램 종료 ====================\n"); 
+    exit(0);
+}
+
+/*******************************************************************************
+* SOCKET CLOSE
+* (I) SUserParm_T *pUser : 사용자 정의 변수 구조체
+* (R) int iSockId : Socket Connect ID
+*******************************************************************************/
+int     infReleaseSocket()
+{
+	
+    return 0;
+}
+
+
+int infMainRoutine(int argc,char** argv)
+{
+    int servSock;                    /* Socket descriptor for server */
+    int clntSock;                    /* Socket descriptor for client */
+    unsigned short ServPort;     /* Server port */
+    pthread_t threadID;              /* Thread ID from pthread_create() */
+    
+    struct ThreadArgs *threadArgs;   /* Pointer to argument structure for thread */
+
+    if (argc != 2)     /* Test for correct number of arguments */
+    {
+        fprintf(stderr," 사용방법 : /서버경로/fdnserver SERVER_PORT >\n");
+        exit(1);
+    }
+
+/*	
+	struct sigaction intsig; 
+	
+	intsig.sa_sigaction = infSigHandler; 
+// 	signal(SIGPIPE, infSigHandler); // 닫힌 소켓에 쓰려는 시도..
+
+	sigemptyset(&intsig.sa_mask); 
+	intsig.sa_flags = SA_SIGINFO; 
+	
+	//SIGPIPE 에 대한 예외 처리 , callback 함수 처리
+	if (sigaction(SIGPIPE  , &intsig, 0) == -1) 
+	{
+		#ifdef __DEBUG
+		printf("sigaction error\n");
+		#endif
+		infLOG(ERROR, "sigaction error\n"); 
+	}
+	if (sigaction(SIGSEGV  , &intsig, 0) == -1) 
+	{
+		#ifdef __DEBUG
+		printf("sigaction error\n");
+		#endif
+		
+	}	
+	
+	if (sigaction( SIGFPE  , &intsig, 0) == -1) 
+	{
+		#ifdef __DEBUG
+		printf("sigaction error\n");
+		#endif
+		
+	}
+	*/
+  
+ 
+	signal(SIGPIPE, SIG_IGN);
+    signal(SIGTERM, SIG_IGN);
+    signal(SIGINT,  SIG_IGN);
+//    signal(SIGQUIT, SIG_IGN);
+    signal(SIGKILL, SIG_IGN);
+    signal(SIGHUP,  SIG_IGN);
+    signal(SIGTTIN, SIG_IGN);
+    signal(SIGTTOU, SIG_IGN);
+    
+    
+ 
+ 	
+	infSetUserParm(&gstUserParm, argc, argv);
+	
+	infLOG(ALWAY, "================= 프로그램 시작 ====================\n"); 	
+	
+	
+	
+	/*
+	실제 소켓 연결전에 T_SERVER_INFO 의 up_user와 up_size를 0으로 초기화
+	*/
+
+
+
+    ServPort = atoi(argv[1]);  /* First arg:  local port */
+    
+    
+    #ifdef __DEBUG
+	/* 로그 내역이 과도하게 쌓여 일단 중지합니다.
+	pthread_create(&threadID,NULL,mon_thread,(void**)NULL);
+	*/	
+	#endif
+	
+
+    servSock = CreateTCPServerSocket(ServPort);
+    if(servSock < 0)
+    	return -1;
+		
+
+    for (;;) /* run forever */
+    {
+			/*
+			1시간마다 한번씩 접속자수 확인
+			*/
+	
+	
+			//////////////////////////////// accept //////////////////////////////
+		
+		    struct sockaddr_in ClntAddr; /* Client address */
+		    unsigned int clntLen;            /* Length of client address data structure */
+		
+		    /* Set the size of the in-out parameter */
+		    clntLen = sizeof(ClntAddr);
+		    
+		    /* Wait for a client to connect */
+		    if ((clntSock = accept(servSock, (struct sockaddr *) &ClntAddr, &clntLen)) < 0)
+		    { 
+		        DieWithError("accept() failed");
+		    }
+		    /* clntSock is connected to a client! */
+	
+	 		///////////////////////////////accept end /////////////////////////////////
+	
+			LPUSERINFO pUserInfo = new USERINFO;
+			sprintf(pUserInfo->thread.userIP ,"%s", inet_ntoa(ClntAddr.sin_addr));
+			pUserInfo->thread.clntSock = clntSock;
+	
+	    /* Create client thread */
+	    if (pthread_create(&threadID, NULL, ThreadMain, (void *) pUserInfo) != 0)
+	    {
+	  		infLOG(ERROR, " ] pthread_create() failed %s socket num == %d	\n", inet_ntoa(ClntAddr.sin_addr),clntSock);
+	    }
+			else
+			{
+				#ifdef __DEBUG
+				printf("Create with thread %ld\n", (long int) threadID);
+				#endif
+	
+			}
+    }
+    return 1;
+
+}

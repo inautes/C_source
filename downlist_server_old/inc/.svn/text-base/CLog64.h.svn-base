@@ -1,0 +1,46 @@
+//##########################################################//
+//##    로그 작성 파일                                    ##//
+//##    이형철		                                      ##//
+//##    2009. 1. 10                                        ##//
+//##########################################################//
+
+
+
+#ifndef _CLOG64
+#define _CLOG64
+
+#ifndef FALSE
+#define FALSE   0
+#endif
+
+#ifndef TRUE
+#define TRUE    1
+#endif 
+
+#include <unistd.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <pthread.h>
+#include <errno.h>
+#include <sys/time.h>
+#include <string.h>
+#include <stdarg.h>
+
+class CLog64
+{
+	protected:
+	   char m_szLogPath[2048];
+	   char m_szLogName[2048];
+	   char m_szFullLogPath[4096];
+	public:
+		CLog64();
+		CLog64(char* pLogPath,char* pLogName);
+		virtual ~CLog64();
+	
+		int initLog(char* pLogPath,char* pLogName);
+		int	setLog( char *pformat, ...);
+		
+};
+
+#endif
+

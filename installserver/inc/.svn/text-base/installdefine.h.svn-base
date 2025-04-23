@@ -1,0 +1,71 @@
+#ifndef _FILE_OFFSET_BITS
+#define _FILE_OFFSET_BITS 64
+#endif
+
+#include <map>
+
+using namespace std;
+
+#define RS_EOL 	5
+#define RS_OK 	6
+#define RS_ERR 	7
+#define END 	-2
+
+#define ON	1
+#define OFF	0
+
+#define RS_INSTALL_FILE_DN 1000
+#define RS_INSTALL_FILE_DN_LIST 10001
+#define RS_SET_INSTALLSERVER_IP	10002
+
+
+#define RECVBUF 1024*32//32
+#define SENDBUF 1024*32//32
+
+#define SOCKBUF 1024*4
+
+typedef struct _INSTALLFILEHEAD
+{
+	double dCurrentSize;
+	char szFullFileName[768]; //server측 패스와 이름
+}INSTALLFILEHEAD,*LPINSTALLFILEHEAD;
+
+
+typedef struct _CFDNLIST_R
+{
+	int nCount;
+	char szFileName[256];
+}CFDNLIST_R,*LPCFDNLIST_R;
+
+typedef struct _INSTALLFILEINFO
+{
+	int nFlag;
+	char	local_file_path	   	  [511+1];  // 파일경로
+	char    local_file_name       [255+1];  // 로컬파일이름
+	char    server_file_path      [255+1];  // 서버파일경로
+	char    server_file_name      [255+1];  // 서버파일경로
+	double file_size;
+}INSTALLFILEINFO,*LPINSTALLFILEINFO;
+
+typedef struct _User_List  //10051 struct
+{
+	int nNumber;
+	char szUserIP[16];
+	char szUserID[12+4];
+	char szStartTime[30+2];	
+}USERLIST,*LPUSERLIST;
+
+/* Structure of arguments to pass to client thread */
+typedef struct ThreadArgs
+{//52
+    int clntSock;                      /* Socket descriptor for client */
+    char userIP[16];
+    char startTime[32];
+}THREADINFO,*LPTHREADINFO;
+
+typedef struct _UserInfo
+{//270
+	char szUserID[52];
+	pthread_t threadID; //
+	THREADINFO thread; //52
+}USERINFO,*LPUSERINFO;

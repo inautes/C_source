@@ -1,0 +1,651 @@
+/******************************************************************************
+ *   서브시스템 : FDN서버
+ *   프로그램명 : fdns3003.cc
+ *         기능 : 파일다운로드종료
+ *         설명 : 내디스크의 공유폴더의 파일을 다운로드 종료시 예치금을 다운로드
+ *                크기만큼 정산하여 계산한다.
+ *       작성자 : 전봉구
+ *       작성일 : 2004/02/16
+ *     수정이력 :
+********************************************************************************
+1         2         3         4         5         6         7         8
+12345678901234567890123456789012345678901234567890123456789012345678901234567890
+*******************************************************************************/
+#include <mysql.h>
+#include <stdarg.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#include "comcomm.h"
+#include "commydb.h"
+#include "apdefine.h"
+#include "fdns3003.h"
+
+#define  MAX_ROWS	1
+//#define  _DEBUG_
+
+//******************************************************************************
+//* fdns3003 main
+//* error 발생시 pSendData를 사용하고 정상인경우 seq_no를 return한다.
+//******************************************************************************
+int fdns3003(char *pRecvData, char* &pSendData)
+{
+	MYSQL       *con;
+	MYSQL_RES   *res;
+	MYSQL_ROW    row;
+
+	CFDNS3003_R	*p_fdns3003r;
+
+	char szQuery[1000];  // query string
+	char sztemp [1000];  // query string
+	char ErrMsg[256];    // error message
+	int  ErrNum;         // error no
+	int  nRowcnt;        // select row count
+
+	// input variables
+	long    seq_no             ;  // 다운로드이력 Key
+	double  file_size          ;  // 파일크기
+	double  down_size          ;  // 다운로드크기(BYTE)
+	// temp variables
+	int     down_mega = 0      ;  // 다운로드크기(MB)
+	int     won_mega  = 0      ;  // 원당메가
+	int     price_amt = 0      ;  // 다운로드 금액
+	int     sale_amt  = 0      ;  // 다운로드 판매금액
+	int     inout_cmt = 0      ;  // 다운로드 수수료
+	int     hold_amt  = 0      ;  // 사이버머니 보유금액
+	int     keep_amt  = 0      ;  // 예치금
+	int     seq_no1   = 0      ;  // 다운로드자 입출금내역일련번호
+	int     seq_no2   = 0      ;  // 공유자  입출금내역일련번호
+
+	char    dn_user      [12+1];  // 다운로드 사용자
+	char    sh_user      [12+1];  // 공유자
+	char    dn_date      [ 8+1];  // 다운일자
+	char    ed_date       [8+1];  // 처리일자
+	char    ed_time       [6+1];  // 처리시간
+	/*--------------------------------------------------------------------*/
+	/* start!!!                                                           */
+	/*--------------------------------------------------------------------*/
+	//printf("fdns3003-> start...\n");
+	p_fdns3003r = (LPCFDNS3003_R) pRecvData;
+
+	// local 변수 Clear
+	memset(&ErrMsg   , 0x00, sizeof(ErrMsg   )); // 오류메시지
+	memset(&seq_no   , 0x00, sizeof(seq_no   )); // 다운로드이력 Key
+	memset(&file_size, 0x00, sizeof(file_size)); // 파일크기
+	memset(&down_size, 0x00, sizeof(down_size)); // 다운로드크기
+	memset(&dn_user  , 0x00, sizeof(dn_user  )); // 다운로드 사용자
+	memset(&sh_user  , 0x00, sizeof(sh_user  )); // 공유자
+	memset(&dn_date  , 0x00, sizeof(dn_date  )); // 다운일자
+
+	seq_no   = p_fdns3003r->seq_no   ;
+	file_size= p_fdns3003r->file_size;
+	down_size= p_fdns3003r->down_size;
+	/*
+	strcpyA(dn_user, p_fdns3003r->dn_user);
+	strcpyA(sh_user, p_fdns3003r->sh_user);
+	strcpyA(dn_date, p_fdns3003r->dn_date);
+	*/
+	memcpy(dn_user, p_fdns3003r->dn_user , sizeof(p_fdns3003r->dn_user) );
+	memcpy(sh_user, p_fdns3003r->sh_user , sizeof(p_fdns3003r->sh_user) );
+	memcpy(dn_date, p_fdns3003r->dn_date , sizeof(p_fdns3003r->dn_date) );
+	
+	#ifdef _DEBUG_
+	printf("fdns3003->fups3003 start\n");
+	printf("fdns3003->dn_user  =(%s)\n", dn_user);
+	printf("fdns3003->sh_user  =(%s)\n", sh_user);
+	printf("fdns3003->dn_date  =(%s)\n", dn_date);
+	printf("fdns3003->seq_no   =(%d)\n", seq_no);
+	printf("fdns3003->file_size=(%15.0f)\n", file_size);
+	printf("fdns3003->down_size=(%15.0f)\n", down_size);
+	#endif
+
+	// DB 연결
+	if (!(con=db_connect("nori")))
+	{
+		ErrNum = -300391;
+		sprintf(ErrMsg, "DB에 접속하지 못 하였습니다.\n");
+		goto fdns3003_err;
+	}
+	
+	//--------------------------------------------------------------------------
+	// 1. 다운로드 이력에서 예치금 가지고 온다.
+	//--------------------------------------------------------------------------
+	memset (szQuery, 0x00, sizeof(szQuery ));
+	strcpyA (szQuery, "SELECT date_format(now(),'%Y%m%d') ed_date "
+	                 "     , date_format(now(),'%H%i%s') ed_time "
+	                 "     , won_mega, keep_amt "
+	                 "  FROM nori.T_DOWN_FILE ");
+	memset (sztemp , 0x00, sizeof(sztemp ));
+	sprintf(sztemp , " WHERE dn_user = '%s'  "
+	                 "   AND dn_date = '%s'  "
+	                 "   AND seq_no  =  %d   "
+	                 ,dn_user
+	                 ,dn_date
+	                 ,seq_no
+	                 );
+	strcat(szQuery, sztemp);
+	if (mysql_query(con, szQuery)){
+		ErrNum = -300302;
+		sprintf(ErrMsg, "검색시 오류가 발생하였습니다.\n");
+		goto fdns3003_err;
+	}
+	if (!(res = mysql_store_result(con)))
+	{
+		ErrNum = -300303;
+		sprintf(ErrMsg, "테이베이스 오류입니다.\n");
+		goto fdns3003_err;
+	}
+	//--------------------------------------------------------------------------
+	//자료가 없다면....
+	//--------------------------------------------------------------------------
+ 	if (mysql_num_rows(res)==0)
+ 	{
+		//----------------------------------------------------------------------
+		// dn_date를 구한다.
+		//----------------------------------------------------------------------
+		mysql_free_result(res);
+		
+		memset (szQuery, 0x00, sizeof(szQuery ));
+		sprintf(szQuery, "SELECT max(dn_date) as dn_date"
+		                 "  FROM nori.T_DOWN_FILE     "
+		                 " WHERE dn_user = '%s'         "
+		                 ,dn_user
+		                 );
+		if (mysql_query(con, szQuery))
+		{
+			ErrNum = -300304;
+			sprintf(ErrMsg, "검색시 오류가 발생하였습니다.\n");
+			goto fdns3003_err;
+		}
+		if (!(res = mysql_store_result(con)))
+		{
+			ErrNum = -300305;
+			sprintf(ErrMsg, "테이베이스 오류입니다.\n");
+			goto fdns3003_err;
+		}
+	 	if (mysql_num_rows(res)==0)
+	 	{
+			ErrNum = -300306;
+			sprintf(ErrMsg, "검색된 자료가 없습니다.\n");
+			goto fdns3003_err;
+		}
+		if (row = mysql_fetch_row(res))
+		{
+			memset(&dn_date, 0x00, sizeof(dn_date));
+			strcpyA(dn_date, getstr(row, 0));
+		}
+		mysql_free_result(res);
+
+		//----------------------------------------------------------------------
+		// seq_no를 구한다.
+		//----------------------------------------------------------------------
+		memset (szQuery, 0x00, sizeof(szQuery ));
+		sprintf(szQuery, "SELECT max(seq_no) as seq_no "
+		                 "  FROM nori.T_DOWN_FILE    "
+		                 " WHERE dn_user = '%s'        "
+		                 "   AND dn_date = '%s'        "
+		                 ,dn_user
+		                 ,dn_date
+		                 );
+		if (mysql_query(con, szQuery))
+		{
+			ErrNum = -300307;
+			sprintf(ErrMsg, "검색시 오류가 발생하였습니다.");
+			goto fdns3003_err;
+		}
+		if (!(res = mysql_store_result(con)))
+		{
+			ErrNum = -300308;
+			sprintf(ErrMsg, "테이베이스 오류입니다.");
+			goto fdns3003_err;
+		}
+	 	if (mysql_num_rows(res)==0)
+	 	{
+			ErrNum = -300309;
+			sprintf(ErrMsg, "검색된 자료가 없습니다.");
+			goto fdns3003_err;
+		}
+		if (row = mysql_fetch_row(res))
+		{
+			memset(&seq_no , 0x00, sizeof(seq_no ));
+			seq_no  = getint(row, 0);
+		}
+		mysql_free_result(res);
+
+		#ifdef _DEBUG_
+		printf("fdns3003->-------------------------\n");
+		printf("fdns3003->dn_date, seq_no input 오류인경우\n");
+		printf("fdns3003->seq_no   = [%d]\n", seq_no  );
+		printf("fdns3003->dn_date  = [%s]\n", dn_date );
+		printf("fdns3003->-------------------------\n");
+		#endif
+		
+		//----------------------------------------------------------------------
+		// seq_no로 재조회한다.
+		//----------------------------------------------------------------------
+		memset (szQuery, 0x00, sizeof(szQuery ));
+		strcpyA (szQuery, "SELECT date_format(now(),'%Y%m%d') eed_date "
+		                 "     , date_format(now(),'%H%i%s') eed_time "
+		                 "     , won_mega, keep_amt "
+		                 "  FROM nori.T_DOWN_FILE ");
+		memset (sztemp , 0x00, sizeof(sztemp ));
+		sprintf(sztemp , " WHERE dn_user = '%s'  "
+		                 "   AND dn_date = '%s'  "
+		                 "   AND seq_no  =  %d   "
+		                 "   AND ed_date is null "
+		                 ,dn_user
+		                 ,dn_date
+		                 ,seq_no
+		                 );
+		strcat (szQuery, sztemp);
+		if (mysql_query(con, szQuery))
+		{
+			ErrNum = -300311;
+			sprintf(ErrMsg, "검색시 오류가 발생하였습니다.\n");
+			goto fdns3003_err;
+		}
+		if (!(res = mysql_store_result(con)))
+		{
+			ErrNum = -300312;
+			sprintf(ErrMsg, "테이베이스 오류입니다.\n");
+			goto fdns3003_err;
+		}
+	 	if (mysql_num_rows(res)==0)
+	 	{
+			ErrNum = -300313;
+			sprintf(ErrMsg, "검색된 자료가 없습니다.\n");
+			goto fdns3003_err;
+		}
+	}
+	//--------------------------------------------------------------------------
+	memset (ed_date, 0x00, sizeof(ed_date ));
+	memset (ed_time, 0x00, sizeof(ed_time ));
+	keep_amt  = 0;
+	won_mega  = 0;
+	#ifdef _DEBUG_
+	printf("fdns3003->---------------\n");
+	printf("fdns3003->seq_no   = [%d]\n", seq_no  );
+	printf("fdns3003->keep_amt = [%d]\n", keep_amt);
+	printf("fdns3003->won_mega = [%d]\n", won_mega);
+	printf("fdns3003->ed_date  = [%s]\n", ed_date );
+	printf("fdns3003->ed_time  = [%s]\n", ed_time );
+	printf("fdns3003->---------------\n");
+	#endif
+
+	if (row = mysql_fetch_row(res))
+	{
+		strcpyA(ed_date, getstr(row, 0));
+		strcpyA(ed_time, getstr(row, 1));
+		won_mega      = getint(row, 2);
+		keep_amt      = getint(row, 3);
+	}
+	mysql_free_result(res);
+	#ifdef _DEBUG_
+	printf("fdns3003->keep_amt = [%d]\n", keep_amt);
+	printf("fdns3003->won_mega = [%d]\n", won_mega);
+	printf("fdns3003->ed_date  = [%s]\n", ed_date );
+	printf("fdns3003->ed_time  = [%s]\n", ed_time );
+	#endif
+
+	//--------------------------------------------------------------------------
+	// 트렌젝션시작
+	//--------------------------------------------------------------------------
+	if (tran_begin(con)!=0)
+	{
+		ErrNum = -300392;
+		sprintf(ErrMsg, "테이베이스 오류입니다.\n");
+		goto fdns3003_tran_err;
+	}
+	//--------------------------------------------------------------------------
+	// 1-1. 다운로드크기 zero인 경우 다운로드 취소로 예치금 환원작업한다.
+	//--------------------------------------------------------------------------
+	if (down_size == 0)
+	{
+		//----------------------------------------------------------------------
+		// 사이버머니의 예치금 환원
+		//----------------------------------------------------------------------
+		#ifdef _DEBUG_
+		printf("fdns3003-> [환원]다운로드자 사이버머니(T_CYBER_MONEY) UPDATE...\n");
+		#endif
+		
+		memset (szQuery, 0x00, sizeof(szQuery ));
+		sprintf(szQuery, "UPDATE nori.T_CYBER_MONEY       "
+		                 "   SET hold_amt  = hold_amt  + %d "
+		                 "     , keep_amt  = keep_amt  - %d "
+		                 " WHERE user_id   = '%s'           "
+		                 ,keep_amt
+		                 ,keep_amt
+		                 ,dn_user
+		                 );
+		if (mysql_query(con, szQuery)){
+			ErrNum = -300314;
+			sprintf(ErrMsg, "다운로드한 사용자의 사이버머니를 계산하지 못했습니다.\n");
+			goto fdns3003_tran_err;
+	    }
+		//----------------------------------------------------------------------
+		// 다운로드이력 UPDATE
+		//----------------------------------------------------------------------
+		#ifdef _DEBUG_
+		printf("fdns3003-> [환원]다운로드이력(T_DOWN_FILE) UPDATE...\n");
+		#endif
+		
+		memset (szQuery, 0x00, sizeof(szQuery ));
+		sprintf(szQuery, "UPDATE nori.T_DOWN_FILE "
+		                 "   SET file_size = 0    "
+		                 "     , keep_amt  = 0    "
+		                 "     , ed_date   = '%s' "
+		                 "     , ed_time   = '%s' "
+		                 " WHERE dn_user   = '%s' "
+		                 "   AND dn_date   = '%s' "
+		                 "   AND seq_no    =  %d  "
+		                 ,ed_date
+		                 ,ed_time
+		                 ,dn_user
+		                 ,dn_date
+		                 ,seq_no
+		                 );
+		if (mysql_query(con, szQuery)){
+			ErrNum = -300315;
+			sprintf(ErrMsg, "다운로드이력을 생성하지 못했습니다.\n");
+			goto fdns3003_tran_err;
+	    }
+
+		if (tran_commit(con)!=0)
+		{
+			ErrNum = -300393;
+			sprintf(ErrMsg, "테이베이스 오류입니다.\n");
+			goto fdns3003_tran_err;
+		}
+		db_disconnect(con);
+	    
+	    return (1);
+	}
+	//--------------------------------------------------------------------------
+	// 2. 다운로드금액계산
+	//--------------------------------------------------------------------------
+	#ifdef _DEBUG_
+	printf("fdns3003-> 다운로드금액계산...\n");
+	#endif
+	if (file_size == down_size)
+	{
+		price_amt = keep_amt;
+	}
+	else
+	{
+		down_mega = (long)((down_size / 1048576.0) + 0.9999999);			// MB환산
+		price_amt = (long)(((double)down_mega / (double)won_mega) + 0.9);	// 금액환산
+	}
+	sale_amt  = (long)(((double)price_amt * 0.5) + 0.5);
+	inout_cmt = price_amt - sale_amt;
+
+
+	#ifdef _DEBUG_
+	printf("fdns3003->keep_amt   =(%d)\n", keep_amt);
+	printf("fdns3003->price_amt  =(%d)\n", price_amt);
+	printf("fdns3003->sale_amt   =(%d)\n", sale_amt);
+	printf("fdns3003->inout_cmt  =(%d)\n", inout_cmt);
+	#endif
+	
+	
+	if(keep_amt <= 0 || price_amt <=0 || sale_amt <0 || inout_cmt < 0 ) // db 값이 잘못 들어 왔을경우
+	{
+		
+		ErrNum = -300301;
+		sprintf(ErrMsg, "잘못된 정보입니다.");
+		goto fdns3003_err;
+		
+	}
+
+	//--------------------------------------------------------------------------
+	// 3. 다운로드이력 UPDATE
+	//--------------------------------------------------------------------------
+	#ifdef _DEBUG_
+	printf("fdns3003-> 다운로드이력(T_DOWN_FILE) UPDATE...\n");
+	#endif
+	memset (szQuery, 0x00, sizeof(szQuery ));
+	sprintf(szQuery, "UPDATE nori.T_DOWN_FILE "
+	                 "   SET down_size = %15.0f "
+	                 "     , price_amt = %d     "
+	                 "     , ed_date  = '%s' "
+	                 "     , ed_time  = '%s' "
+	                 " WHERE dn_user  = '%s' "
+	                 "   AND seq_no   =  %d  "
+	                 ,down_size
+	                 ,price_amt
+	                 ,ed_date
+	                 ,ed_time
+	                 ,dn_user
+	                 ,seq_no
+	                 );
+	if (mysql_query(con, szQuery)){
+		ErrNum = -300316;
+		sprintf(ErrMsg, "다운로드이력을 생성하지 못했습니다.\n");
+		goto fdns3003_tran_err;
+    }
+	//--------------------------------------------------------------------------
+	// 4-1. 다운로드자 처리
+	//    - 사이버머니 UPDATE
+	//--------------------------------------------------------------------------
+	#ifdef _DEBUG_
+	printf("fdns3003-> 다운로드자 사이버머니(T_CYBER_MONEY) UPDATE...\n");
+	#endif
+	memset (szQuery, 0x00, sizeof(szQuery ));
+	sprintf(szQuery, "UPDATE nori.T_CYBER_MONEY       "
+	                 "   SET hold_amt  = hold_amt  + %d "
+	                 "     , keep_amt  = keep_amt  - %d "
+	                 "     , total_amt = total_amt - %d "
+	                 " WHERE user_id   = '%s'           "
+	                 ,(keep_amt - price_amt)
+	                 ,keep_amt
+	                 ,price_amt
+	                 ,dn_user
+	                 );
+	#ifdef _DEBUG_
+	printf("fdns3003-> sql(%s)\n", szQuery);
+	#endif
+	
+	if (mysql_query(con, szQuery)){
+		ErrNum = -300317;
+		sprintf(ErrMsg, "다운로드한 사용자의 사이버머니를 계산하지 못했습니다.\n");
+		goto fdns3003_tran_err;
+    }
+	//--------------------------------------------------------------------------
+	// 4-2. 다운로드자 - 입출금내역일련번호 생성
+	//--------------------------------------------------------------------------
+	memset (szQuery, 0x00, sizeof(szQuery ));
+	sprintf(szQuery, "SELECT ifnull(max(a.seq_no),0)+1 as seq_no"
+	                 "  FROM nori.T_INOUT_AMOUNT a  "
+	                 " WHERE a.user_id    = '%s'      "
+	                 "   AND a.inout_date = '%s'      "
+	                 ,dn_user
+	                 ,ed_date);
+
+	if (mysql_query(con, szQuery)){
+		ErrNum = -300318;
+		sprintf(ErrMsg, "테이베이스 오류입니다.\n");
+		goto fdns3003_tran_err;
+	}
+	if (!(res = mysql_store_result(con)))
+	{
+		ErrNum = -300319;
+		sprintf(ErrMsg, "테이베이스 오류입니다.\n");
+		goto fdns3003_tran_err;
+	}
+ 	if (mysql_num_rows(res)==0)
+ 	{
+		ErrNum = -300320;
+		sprintf(ErrMsg, "검색된 자료가 없습니다.\n");
+		mysql_free_result(res);
+		goto fdns3003_tran_err;
+	}
+	row = mysql_fetch_row(res);
+	seq_no1 = 0;
+	//memset(seq_no1, 0x00, sizeof(seq_no1));
+	seq_no1 = getint(row, 0);
+	
+	mysql_free_result(res);
+	//--------------------------------------------------------------------------
+	// 4-2. 다운로드자 - 입출금내역 생성
+	//--------------------------------------------------------------------------
+	memset (szQuery, 0x00, sizeof(szQuery ));
+	sprintf(szQuery, "INSERT INTO nori.T_INOUT_AMOUNT"
+	                 "     ( user_id     , inout_date  "
+	                 "     , seq_no      , inout_time  "
+	                 "     , inout_code  , inout_gu    "
+	                 "     , cmt_yn      , in_amt      "
+	                 "     , out_amt     , rem_amt     "
+	                 "     , inout_smy   , id          "
+	                 "     , deal_no     )             "
+	                 "SELECT a.user_id   , '%s'        "
+	                 "     ,  %d         , '%s'        "
+	                 "     , '23'        , '2'         "
+	                 "     , 'N'         , 0           "
+	                 "     ,  %d         , a.total_amt "
+	                 "     , '%s'        ,  %d         "
+	                 "     , 0                         "
+	                 "  FROM nori.T_CYBER_MONEY a    "
+	                 " WHERE a.user_id   = '%s'        "
+	                 ,ed_date
+	                 ,seq_no1
+	                 ,ed_time
+	                 ,price_amt
+	                 ,sh_user
+	                 ,seq_no
+	                 ,dn_user
+	                 );
+	if (mysql_query(con, szQuery)){
+		ErrNum = -300321;
+		sprintf(ErrMsg, "다운로드한 사용자의 입출금내역을 생성하지 못했습니다.\n");
+		goto fdns3003_tran_err;
+    }
+	//--------------------------------------------------------------------------
+	// 5-1. 공유자 처리 
+	//    - 사이버머니 UPDATE
+	//--------------------------------------------------------------------------
+	#ifdef _DEBUG_
+	printf("fdns3003-> 공유자 사이버머니(T_CYBER_MONEY) UPDATE...\n");
+	#endif
+	memset (szQuery, 0x00, sizeof(szQuery ));
+	sprintf(szQuery, "UPDATE nori.T_CYBER_MONEY       "
+	                 "   SET hold_amt  = hold_amt  + %d "
+	                 "     , total_amt = total_amt + %d "
+	                 " WHERE user_id   = '%s'           "
+	                 ,sale_amt
+	                 ,sale_amt
+	                 ,sh_user
+	                 );
+	if (mysql_query(con, szQuery)){
+		ErrNum = -300322;
+		sprintf(ErrMsg, "공유자의 사이버머니를 계산하지 못했습니다.\n");
+		goto fdns3003_tran_err;
+    }
+	//--------------------------------------------------------------------------
+	// 5-1. 공유자 - 입출금내역일련번호 생성
+	//--------------------------------------------------------------------------
+	memset (szQuery, 0x00, sizeof(szQuery ));
+	sprintf(szQuery, "SELECT ifnull(max(a.seq_no),0)+1 as seq_no"
+	                 "  FROM nori.T_INOUT_AMOUNT a  "
+	                 " WHERE a.user_id    = '%s'      "
+	                 "   AND a.inout_date = '%s'      "
+	                 ,sh_user
+	                 ,ed_date);
+
+	if (mysql_query(con, szQuery)){
+		ErrNum = -300323;
+		sprintf(ErrMsg, "테이베이스 오류입니다.\n");
+		goto fdns3003_tran_err;
+	}
+	if (!(res = mysql_store_result(con)))
+	{
+		ErrNum = -300324;
+		sprintf(ErrMsg, "테이베이스 오류입니다.\n");
+		goto fdns3003_tran_err;
+	}
+ 	if (mysql_num_rows(res)==0)
+ 	{
+		ErrNum = -300325;
+		sprintf(ErrMsg, "검색된 자료가 없습니다.\n");
+		mysql_free_result(res);
+		goto fdns3003_tran_err;
+	}
+	row = mysql_fetch_row(res);
+	seq_no2 = 0;
+//	memset(seq_no2, 0x00, sizeof(seq_no2));
+	seq_no2 = getint(row, 0);
+	
+	mysql_free_result(res);
+	//--------------------------------------------------------------------------
+	// 5-2. 공유자 - 입출금내역 생성
+	//--------------------------------------------------------------------------
+	memset (szQuery, 0x00, sizeof(szQuery ));
+	sprintf(szQuery, "INSERT INTO nori.T_INOUT_AMOUNT"
+	                 "     ( user_id     , inout_date  "
+	                 "     , seq_no      , inout_time  "
+	                 "     , inout_code  , inout_gu    "
+	                 "     , cmt_yn      , in_amt      "
+	                 "     , out_amt     , rem_amt     "
+	                 "     , inout_cmt   , inout_rat   "
+	                 "     , inout_smy   , id          "
+	                 "     , deal_no     )             "
+	                 "SELECT a.user_id   , '%s'        "
+	                 "     ,  %d         , '%s'        "
+	                 "     , '13'        , '1'         "
+	                 "     , 'Y'         ,  %d         "
+	                 "     , 0           , a.total_amt "
+	                 "     , %d          , 50          "
+	                 "     , '%s'        , %d          "
+	                 "     , 0                         "
+	                 "  FROM nori.T_CYBER_MONEY a    "
+	                 " WHERE a.user_id   = '%s'        "
+	                 ,ed_date
+	                 ,seq_no2
+	                 ,ed_time
+	                 ,sale_amt
+	                 ,inout_cmt
+	                 ,dn_user
+	                 ,seq_no
+	                 ,sh_user
+	                 );
+	if (mysql_query(con, szQuery)){
+		ErrNum = -300326;
+		sprintf(ErrMsg, "다운로드한 사용자의 입출금내역을 생성하지 못했습니다.\n");
+		goto fdns3003_tran_err;
+    }
+
+	if (tran_commit(con)!=0)
+	{
+		ErrNum = -300393;
+		sprintf(ErrMsg, "테이베이스 오류입니다.\n");
+		goto fdns3003_tran_err;
+	}
+
+	db_disconnect(con);
+	
+	return (1);
+//------------------------------------------------------------------------------
+fdns3003_err:
+	infLOG(ERROR, "fdns3003->ERRMSG: [%d](%s)\n",ErrNum, ErrMsg);
+	infLOG(ERROR, "fdns3003->DB ERR: [%d](%s)\n",mysql_errno(con), mysql_error(con));
+	#ifdef _DEBUG_
+    printf("fdns3002-> [%d](%s)\n",ErrNum, ErrMsg);
+	printf("fdns3002-> [%d](%s)\n",mysql_errno(con), mysql_error(con));
+	#endif
+
+	db_disconnect(con);
+	E_dump(ErrNum, ErrMsg, pSendData);
+   	return(ErrNum); 
+
+fdns3003_tran_err:
+	infLOG(ERROR, "fdns3003->ERRMSG: [%d](%s)\n",ErrNum, ErrMsg);
+	infLOG(ERROR, "fdns3003->DB ERR: [%d](%s)\n",mysql_errno(con), mysql_error(con));
+	#ifdef _DEBUG_
+    printf("fdns3002-> [%d](%s)\n",ErrNum, ErrMsg);
+	printf("fdns3002-> [%d](%s)\n",mysql_errno(con), mysql_error(con));
+	#endif
+
+	tran_rollback(con);
+	db_disconnect(con);
+	E_dump(ErrNum, ErrMsg, pSendData);
+   	return(ErrNum); 
+}

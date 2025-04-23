@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="utf-8"?>
+<wc-entries
+   xmlns="svn:">
+<entry
+   committed-rev="419"
+   name=""
+   committed-date="2013-06-13T06:48:26.758324Z"
+   url="svn://172.16.9.207/filenori/server/zangsi_with_dcmd/fdnsvr/inc"
+   last-author="jindogg"
+   kind="dir"
+   uuid="b0f91eb5-12d8-47af-bf6c-ac0a4974f54d"
+   revision="610"/>
+<entry
+   committed-rev="324"
+   name="fdncomproc.h"
+   text-time="2013-05-09T06:43:12.000000Z"
+   committed-date="2013-05-08T06:30:42.652006Z"
+   checksum="b69c2384db6944d70e8d89b19519cb0f"
+   last-author="jindogg"
+   kind="file"
+   prop-time="2013-05-09T06:43:12.000000Z"/>
+<entry
+   committed-rev="324"
+   name="fdnproc.h"
+   text-time="2013-05-09T06:43:12.000000Z"
+   committed-date="2013-05-08T06:30:42.652006Z"
+   checksum="369acdb874236bc9e096529ccb1d4df1"
+   last-author="jindogg"
+   kind="file"
+   prop-time="2013-05-09T06:43:12.000000Z"/>
+<entry
+   committed-rev="324"
+   name="fdnmain.h"
+   text-time="2013-05-09T06:43:12.000000Z"
+   committed-date="2013-05-08T06:30:42.652006Z"
+   checksum="befdd310d6f219e2eb9c2ff25efde098"
+   last-author="jindogg"
+   kind="file"
+   prop-time="2013-05-09T06:43:12.000000Z"/>
+<entry
+   committed-rev="324"
+   name="fdncomlib.h"
+   text-time="2013-05-09T06:43:12.000000Z"
+   committed-date="2013-05-08T06:30:42.652006Z"
+   checksum="bd855e934cfd995dfc8f0b697b1bcf72"
+   last-author="jindogg"
+   kind="file"
+   prop-time="2013-05-09T06:43:12.000000Z"/>
+<entry
+   committed-rev="324"
+   name="fdnguruproc.h"
+   text-time="2013-05-09T06:43:12.000000Z"
+   committed-date="2013-05-08T06:30:42.652006Z"
+   checksum="6c68f589ef69c37b7f2866fe0f04a950"
+   last-author="jindogg"
+   kind="file"
+   prop-time="2013-05-09T06:43:12.000000Z"/>
+<entry
+   committed-rev="324"
+   name="fdns3001.h"
+   text-time="2013-05-09T06:43:12.000000Z"
+   committed-date="2013-05-08T06:30:42.652006Z"
+   checksum="458a3a82f4d33f8ba83efb7a165e08c5"
+   last-author="jindogg"
+   kind="file"
+   prop-time="2013-05-09T06:43:12.000000Z"/>
+<entry
+   committed-rev="324"
+   name="fdns3002.h"
+   text-time="2013-05-09T06:43:12.000000Z"
+   committed-date="2013-05-08T06:30:42.652006Z"
+   checksum="44777d6e3f08445f0725b5224a09ccbc"
+   last-author="jindogg"
+   kind="file"
+   prop-time="2013-05-09T06:43:12.000000Z"/>
+<entry
+   committed-rev="324"
+   name="fdns3011.h"
+   text-time="2013-05-09T06:43:12.000000Z"
+   committed-date="2013-05-08T06:30:42.652006Z"
+   checksum="bcadce05b29d416b5d6cb77be765a38c"
+   last-author="jindogg"
+   kind="file"
+   prop-time="2013-05-09T06:43:12.000000Z"/>
+<entry
+   committed-rev="324"
+   name="fdns3003.h"
+   text-time="2013-05-09T06:43:12.000000Z"
+   committed-date="2013-05-08T06:30:42.652006Z"
+   checksum="41e795d3dde99464399321021a9c588e"
+   last-author="jindogg"
+   kind="file"
+   prop-time="2013-05-09T06:43:12.000000Z"/>
+<entry
+   committed-rev="324"
+   name="fdns3004.h"
+   text-time="2013-05-09T06:43:12.000000Z"
+   committed-date="2013-05-08T06:30:42.652006Z"
+   checksum="e73834a9f77b522ffd3b9489e736e64b"
+   last-author="jindogg"
+   kind="file"
+   prop-time="2013-05-09T06:43:12.000000Z"/>
+<entry
+   committed-rev="419"
+   name="fdndefine.h"
+   text-time="2013-06-18T00:41:31.000000Z"
+   committed-date="2013-06-13T06:48:26.758324Z"
+   checksum="e5bb7672dabc655890efadf81f3b9ec3"
+   last-author="jindogg"
+   kind="file"
+   prop-time="2013-06-18T00:41:31.000000Z"/>
+<entry
+   committed-rev="324"
+   name="fdndownproc.h"
+   text-time="2013-05-09T06:43:12.000000Z"
+   committed-date="2013-05-08T06:30:42.652006Z"
+   checksum="69d057778a020fd768206769ca5fc349"
+   last-author="jindogg"
+   kind="file"
+   prop-time="2013-05-09T06:43:12.000000Z"/>
+<entry
+   committed-rev="324"
+   name="fdnsock.h"
+   text-time="2013-05-09T06:43:12.000000Z"
+   committed-date="2013-05-08T06:30:42.652006Z"
+   checksum="ebd6a45af1ccd9340b10f6a2dffd9765"
+   last-author="jindogg"
+   kind="file"
+   prop-time="2013-05-09T06:43:12.000000Z"/>
+</wc-entries>

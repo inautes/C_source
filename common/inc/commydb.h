@@ -1,0 +1,37 @@
+/******************************************************************************
+ *   서브시스템 : 공통모듈
+ *   프로그램명 : commydb.h
+ *         기능 : MYSQL 관련 사항
+ *         설명 :
+ *       작성자 : JDP
+ *       작성일 : 2004/02/16
+ *     수정이력 :
+********************************************************************************
+1         2         3         4         5         6         7         8
+12345678901234567890123456789012345678901234567890123456789012345678901234567890
+*******************************************************************************/
+#ifndef	_COMMYDB_H_
+#define	_COMMYDB_H_
+
+MYSQL *db_connect(char *dbname,char *ip,char *user,char *passwd);
+
+MYSQL *db_connect(char *dbname);
+MYSQL *Cpr_db_connect(char *dbname);
+MYSQL *Op_db_connect(char *dbname);
+MYSQL *Hadoop_db_connect(char *dbname);
+MYSQL *log_db_connect(char *dbname);
+void db_disconnect(MYSQL *db);
+int tran_begin(MYSQL *db);
+int tran_end(MYSQL *db);
+int tran_next_result(MYSQL *db);
+int tran_commit(MYSQL *db);
+int commit(MYSQL *db);
+int tran_rollback(MYSQL *db);
+long getint(MYSQL_ROW row, int x);
+double getnum(MYSQL_ROW row, int x);
+char *getstr(MYSQL_ROW row, int x);
+
+#endif
+/*******************************************************************************
+ * End of file...
+ ******************************************************************************/

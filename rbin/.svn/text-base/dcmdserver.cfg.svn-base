@@ -1,0 +1,86 @@
+###
+### userparm Config File
+###
+
+[APPLICATION]
+PROCNAME=fdnserver 					# process name
+MAXPSCNT=1 							# execute process max count
+
+[LOG INFOMATION]
+LOGLEVEL=1 							# log level (0~9)
+ERRORLOG=1							# error log file create (0:NONE, 1:CREATE)
+LOGFBASE=/home/ezwon/zangsi_with_dcmd/log/dcmdserver # log path and name (sample_yyyymmdd.log)
+
+[DATABASE]
+DBUSERID=scott						# oracle userid
+DBPASSWD=tiger						# oracle password
+DBCONSTR=scott/tiger@dbalias		# oracle userid/password@dbalias
+
+[REMOTE DATABASE]
+RTUSERID=scott						# remote oracle userid
+RTPASSWD=tiger						# remote oracle password
+RTCONSTR=scott/tiger@dbalias		# remote oracle userid/password@dbalias
+
+[FILE INFOMATION]
+DATFPATH=/user/project/data			# output data file path 
+OUTFNAME=filename					# output data file name
+INPFNAME=filename					# input  data file name
+SEQFNAME=filename					# sequence number manage file name
+
+[SYSTEM INFOMATION]
+LOCALSID=serverid					# local serverid or hostname
+OTHERSYS=hostname					# other system hostname or alias
+
+IPCSEMKY=800						# ipc semaphore key
+IPCMSGKY=699						# ipc message queue key
+IPCSHMKY=700						# ipc shared memory key
+
+HOSTNAME=hostname					# hostname
+SOCKADDR=999.999.999.999			# server socket address
+SOCKPORT=9999						# server port number 
+SOCKSIZE=4096						# socket size
+
+REGIONID=regionid					# region id
+REGIONNM=regionnm					# region name
+REGIONIP=regionip					# region ip (address)
+SERVERNM=servernm					# server name
+SERVERIP=serverip					# server ip (address)
+INETPORT=inetport					# server port
+SVRALIAS=svralias					# server alias
+
+[RS232C]
+TTY_NAME=abcd						# TTY Name( TTY Port )
+IO_SPEED=4800						# Speed
+BIT_TYPE=7							# Bit Type '7': 7 Bits,  '8': '8 Bits
+ISPARITY=1							# Parity Enable = '1'
+
+[ETC]
+EXECMODE=DEV						# development(DEV) or operation(OPN) system
+TIMEDSEC=10							# timeout
+RETRYCNT=3							# retry max conut
+WAITSECS=5							# wait time
+RETRYSEC=10							# wait time
+INTERVAL=10							# wait time
+THRCOUNT=0							# thread conut
+FORMATID=temp						# reserved
+
+[MULTI PROCESS INFOMATION]
+EACHWORK=process_name1|id|region_name|socket_addr|socket_port|Y|server_alias
+EACHWORK=process_name2|id|region_name|socket_addr|socket_port|Y|server_alias
+EACHWORK=process_name3|id|region_name|socket_addr|socket_port|Y|server_alias
+:
+EACHWORK=process_namen|id|region_name|socket_addr|socket_port|Y|server_alias
+
+[FILE]
+USEFILES=filename1					# program in use filename
+USEFILES=filename2
+USEFILES=filename3
+:
+USEFILES=filenamen
+
+[X25]
+PVC_NAME=PVC-1						# x25 pvc_name 
+PVC_NAME=PVC-2
+PVC_NAME=PVC-3
+:
+PVC_NAME=PVC-n

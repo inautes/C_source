@@ -1,0 +1,198 @@
+#include <stdio.h>      /* for printf() and fprintf() */
+#include <sys/socket.h> /* for socket(), bind(), and connect() */
+#include <arpa/inet.h>  /* for sockaddr_in and inet_ntoa() */
+#include <string.h>     /* for memset() */
+#include <errno.h>
+#include <unistd.h>     /* for close() sleep()*/
+//#include <netinet/in.h>
+#include <sys/utsname.h>
+#include <netdb.h>
+
+
+#include "installdefine.h"
+#include "installsock.h"
+#include "apdefine.h" //for log
+#include "comcomm.h" //for log
+
+
+int CreateTCPServerSocket(unsigned short port)
+{
+    int sock;                        /* socket to create */
+    struct sockaddr_in echoServAddr; /* Local address */
+
+    /* Create socket for incoming connections */
+    if ((sock = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP)) < 0)
+    {
+    	infLOG(ERROR, "] 소켓 생성 실패 \n");
+    	#ifdef __DEBUG
+    	printf("] 소켓 생성 실패 \n");
+    	#endif
+    	return -1;
+    }
+
+	int value = 1;
+
+    int st = setsockopt(sock,SOL_SOCKET,SO_REUSEADDR ,&value,sizeof(value));
+
+    if(st != 0)
+	{
+		#ifdef __DEBUG
+		printf(" ] 소켓 설정 실패 [SO_REUSEADDR] errno = ( %d ) \n",errno);
+		#endif
+		infLOG(ERROR, " ] 소켓 설정 실패 [SO_REUSEADDR] errno = ( %d ) \n",errno);
+	}
+
+    /* Construct local address structure */
+    memset(&echoServAddr, 0, sizeof(echoServAddr));   /* Zero out structure */
+    echoServAddr.sin_family = AF_INET;                /* Internet address family */
+    echoServAddr.sin_addr.s_addr = htonl(INADDR_ANY); /* Any incoming interface */
+    echoServAddr.sin_port = htons(port);              /* Local port */
+
+   	#ifdef __DEBUG
+   	printf(" ] 소켓 bind 설정 [%d][%d][%d] \n",(int)echoServAddr.sin_port, htons(port), port);
+   	#endif
+    /* Bind to the local address */
+    if (bind(sock, (struct sockaddr *) &echoServAddr, sizeof(echoServAddr)) < 0)
+    {
+    	infLOG(ERROR, " ] 소켓 bind 설정 실패 [BIND] errno = ( %d ) \n",errno);
+    	#ifdef __DEBUG
+    	printf(" ] 소켓 bind 설정 실패 [BIND] errno = ( %d ) [%d][%d][%d] \n",errno, (int)echoServAddr.sin_port, htons(port), port);
+    	perror("bind error");
+    	#endif
+    	return -1;
+    }
+
+    /* Mark the socket so it will listen for incoming connections */
+    if (listen(sock, SOMAXCONN) < 0)
+    {
+    	infLOG(ERROR, " ] 소켓 listen 설정 실패 [listen] max ( %d ) , errno = ( %d ) \n",SOMAXCONN,errno);
+    	#ifdef __DEBUG
+    	printf(" ] 소켓 listen 설정 실패 [listen] max ( %d ) , errno = ( %d ) \n",SOMAXCONN,errno);
+    	#endif
+    	return -1;
+    }
+
+    return sock;
+}
+
+int AcceptTCPConnection(int servSock)
+{
+    int clntSock;                    /* Socket descriptor for client */
+    struct sockaddr_in echoClntAddr; /* Client address */
+    unsigned int clntLen;            /* Length of client address data structure */
+
+    /* Set the size of the in-out parameter */
+    clntLen = sizeof(echoClntAddr);
+
+    /* Wait for a client to connect */
+    if ((clntSock = accept(servSock, (struct sockaddr *) &echoClntAddr, &clntLen)) < 0)
+    {
+  		#ifdef __DEBUG
+		printf("AcceptTCPConnection	]  Accept Failed ( %d )\n",errno);
+		#endif
+		infLOG(ERROR, "AcceptTCPConnection	] Accept Failed ( %d )\n",errno);
+    }
+    /* clntSock is connected to a client! */
+  	#ifdef __DEBUG
+	printf("AcceptTCPConnection	]  Accept  ( %s )\n",inet_ntoa(echoClntAddr.sin_addr));
+	#endif
+
+    return clntSock;
+}
+
+//여기서 부터 recvdata ..함수
+int RecvData(int nSockID,char* RecvBuffer,int nRecvLen)
+{
+	int iRet;
+	memset(RecvBuffer,0x00,nRecvLen); //<-- 버퍼 초기화
+
+	if(nSockID <0)
+		return(-1);
+
+	int nCount=0;
+	int nRecv = nRecvLen;
+
+	while(nRecv > 0) //recv 받은 데이터가 다 받을때까정..
+	{
+		iRet = recv(nSockID,(char*)RecvBuffer+nCount,nRecv,0); // 받기
+		if(iRet<0) // 0보다 작으면 에러 ..win32에서는 getlasterror 로 채크 할수  있음
+		{
+			int err = errno;
+			return(-1*err); //에러 return
+		}
+		else
+		{
+			if(iRet == 0) //0이면 접속이 끊김...즉 인터넷 불통 또는 강제 종료
+				return 0;
+			nRecv = nRecv - iRet; //nRecv(받아야 할 크기 ) - iRet(받은 크기)
+			//다 받으면 nRecv 가 0...그렇치 않으면 ..에러..
+			nCount = nCount + iRet; // 받은 사이즈
+		}
+	}
+
+	return(nCount); //받은 사이즈 return;
+}
+
+int SendData(int nSockID,char* SendBuffer,int nSendLen)
+{
+	int nTempLen,iRet;
+
+	if(nSockID < 0)
+		return(-1);
+
+	nTempLen = 0;
+
+	while(nTempLen < nSendLen)
+	{
+		if( (nSendLen - nTempLen ) < SOCKBUF )
+			iRet = send(nSockID,&SendBuffer[nTempLen],(nSendLen - nTempLen),0);
+		else
+			iRet = send(nSockID,&SendBuffer[nTempLen], SOCKBUF  ,0);
+
+		if(iRet <0)
+		{
+			int err = errno;
+			return(-1*err);
+		}
+		else
+		{
+			if(iRet == 0)
+				return 0;
+			nTempLen += iRet;
+		}
+	}
+
+	return(nTempLen);
+}
+
+char* my_addrs()
+{
+    struct hostent  *hptr;
+    struct in_addr    myen;
+    struct utsname  myname;
+    long int *add;
+
+
+
+    if (uname(&myname) < 0)
+        return NULL;
+
+    if ((hptr = gethostbyname(myname.nodename)) == NULL)
+        return NULL;
+
+//	printf("my_addrs	]  (%s) \n",hptr->h_name);
+
+
+
+	while(*hptr->h_addr_list != NULL)
+	{
+		add = (long int *)*hptr->h_addr_list;
+		myen.s_addr = *add;
+//		printf("%s\n", inet_ntoa(myen));
+		hptr->h_addr_list++;
+	}
+
+
+
+    return inet_ntoa(myen);
+}

@@ -1,0 +1,159 @@
+/******************************************************************************
+ *   서브시스템 : CMD서버
+ *   프로그램명 : fdns3001.cc
+ *         기능 : 사이버머니조회
+ *         설명 :
+ *       작성자 : 전봉구
+ *       작성일 : 2004/02/16
+ *     수정이력 :
+********************************************************************************
+1         2         3         4         5         6         7         8
+12345678901234567890123456789012345678901234567890123456789012345678901234567890
+*******************************************************************************/
+#include <mysql.h>
+#include <stdarg.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#include "apdefine.h"
+#include "comcomm.h"
+#include "commydb.h"
+#include "fdns3001.h"
+
+#define  MAX_ROWS	1
+//#define  _DEBUG_
+
+//******************************************************************************
+//* fdns3001 main
+//******************************************************************************
+int fdns3001(char *pRecvHead, char *pRecvData, char* &pSendData)
+{
+	MYSQL     *con;
+	MYSQL_RES *res;
+	MYSQL_ROW  row;
+
+	LPHEADER     p_headerr;
+	CFDNS3001_R	*p_fdns3001r;
+	
+	char szQuery[1000];  // query string
+	char ErrMsg[256];    // error message
+	int  ErrNum;         // error no
+	int  nRowcnt;        // select row count
+
+	// input variables
+	char dn_user   [12+1];   // 다운로드 사용자
+	char sh_user   [12+1];   // 공유자
+
+	/*--------------------------------------------------------------------*/
+	/* start!!!                                                           */
+	/*--------------------------------------------------------------------*/
+	#ifdef _DEBUG_
+	printf("fdns3001-> start...\n");
+	#endif
+	p_headerr   = (LPHEADER     ) pRecvHead;
+	p_fdns3001r = (LPCFDNS3001_R) pRecvData;
+
+	// local 변수 Clear
+	memset(&ErrMsg , 0x00, sizeof(ErrMsg )); // 오류메시지
+	memset(&dn_user, 0x00, sizeof(dn_user)); // 다운로드 사용자
+	memset(&sh_user, 0x00, sizeof(sh_user)); // 공유자
+
+	/*
+	strcpyA(dn_user, p_fdns3001r->dn_user);
+	strcpyA(sh_user, p_fdns3001r->sh_user);
+	*/
+	
+	memcpy(dn_user, p_fdns3001r->dn_user, sizeof(p_fdns3001r->dn_user));
+	memcpy(sh_user, p_fdns3001r->sh_user, sizeof(p_fdns3001r->sh_user));
+	
+	#ifdef _DEBUG_
+	printf("fdns3001->dn_user=(%s)\n", dn_user);
+	printf("fdns3001->sh_user=(%s)\n", sh_user);
+	#endif
+
+	memset (szQuery, 0x00, sizeof(szQuery ));
+	sprintf(szQuery, "SELECT a.hold_amt,  b.won_mega "
+	                 "  FROM nori.T_CYBER_MONEY a  "
+	                 "     , nori.T_MYDISK_INFO b  "
+	                 " WHERE a.user_id = '%s'        "
+	                 "   AND b.user_id = '%s'        "
+	                 ,dn_user
+	                 ,sh_user
+	                 );
+	                 
+
+	// DB 연결
+	if (!(con=db_connect("nori")))
+	{
+		ErrNum = -300191;
+		sprintf(ErrMsg, "DB에 접속하지 못 하였습니다...\n");
+		E_dump(ErrNum, ErrMsg, pSendData);
+       	return(ErrNum); 
+	}
+
+	if (mysql_query(con, szQuery)){
+		ErrNum = -300102;
+		sprintf(ErrMsg, "검색시 오류가 발생하였습니다.(%d)\n", mysql_error(con));
+
+		mysql_close(con);
+		E_dump(ErrNum, ErrMsg, pSendData);
+       	return(ErrNum); 
+	}
+
+	//임시버퍼생성
+	LPCFDNS3001_S t_fdns3001s = new CFDNS3001_S[MAX_ROWS];//struct _FILEINFO;
+	memset(t_fdns3001s, 0x00, (sizeof(CFDNS3001_S)*MAX_ROWS));
+
+	//질의 결과를 얻는다
+	res = mysql_store_result(con);
+	nRowcnt = 0;
+	while((row = mysql_fetch_row(res))) {
+		#ifdef _DEBUG_
+		printf("t_fdns3001s[nRowcnt].hold_amt  (%d)\n", getint(row, 0));
+		printf("t_fdns3001s[nRowcnt].won_mega  (%d)\n", getint(row, 1));
+		#endif
+		
+		t_fdns3001s[nRowcnt].hold_amt  = getint(row, 0);
+		t_fdns3001s[nRowcnt].won_mega  = getint(row, 1);
+
+		nRowcnt++;
+		
+		// buffer크기 보다 큰경우
+		if (nRowcnt >= MAX_ROWS)
+			break;
+	}
+	mysql_free_result(res);
+	mysql_close(con);
+
+	//전송할 버퍼생성
+	int nDataSize = HEADER_SIZE + sizeof(CFDNS3001_S) * 1;
+	
+	HEADER headers;
+	memcpy(&headers, p_headerr, HEADER_SIZE); //header	
+	headers.nDataCnt  = 1;
+	headers.nDataSize = sizeof(CFDNS3001_S);
+
+	pSendData = new char[nDataSize];
+	memset(pSendData, 0x00, nDataSize);
+	
+	memcpy(pSendData, &headers, sizeof(HEADER)); //header	
+	memcpy(pSendData+HEADER_SIZE, t_fdns3001s, nDataSize - HEADER_SIZE); //body
+	delete[] t_fdns3001s;
+
+	#ifdef _DEBUG_
+	printf("fdns3001-> end sucess sendsize(%d)\n", nDataSize);
+	#endif
+
+	return (1);
+}
+
+
+/*
+select a.hold_amt,  b.won_mega
+  from nori.T_CYBER_MONEY a
+    , nori.T_MYDISK_INFO b
+ where a.user_id = 'jbk'
+   and b.user_id = 'jbk'
+                   
+*/

@@ -1,0 +1,7 @@
+#!/usr/bin/expect
+spawn bash -c "scp -r -P 51004 ./rbin/dcmdserver root@116.124.129.100:/root/dcmdserver/bin/dcmdserver_20120508_new"
+expect -e "password:"
+sleep 2
+send "tjdrhdgk3!@#"
+interact
+

@@ -1,0 +1,120 @@
+/*============================================================================*/
+/* PROJECT명 : CMD서버                                                        */
+/* FILE   명 : comhead.h                                                      */
+/* 기     능 : 통신버퍼의 헤더구조                                            */
+/* REVISION  : 2004.10.06                                                     */
+/* 작성자    : 전봉구                                                         */
+/*============================================================================*/
+#ifndef __HEADER__
+#define __HEADER__
+
+/*----------------------------------------------------------------------------*/
+/* Protocol Header Information                                                */
+/*----------------------------------------------------------------------------*/
+typedef struct _HEADER
+{
+	int     nCmd        ;			/* CMD 번호    */ 
+	int     nDataCnt    ;			/* row count   */ // 데이터 패킷 카운트
+	int		nDataSize   ;			/* row Size    */ // 데이터 사이즈   
+	int		nErrorCode  ;			/* Error번호   */
+	char	szUserID[12];			/* 사용자 ID   */
+} HEADER, *LPHEADER;
+
+#define	 HEADER_SIZE	sizeof( HEADER) 
+#define	_HEADER_SIZE	sizeof(_HEADER)
+
+/*----------------------------------------------------------------------------*/
+/* Protocol Header Information                                                */
+/* For Error Message Transfer to Client                                       */
+/*----------------------------------------------------------------------------*/
+typedef struct _ERR_HEADER
+{
+	HEADER	header;
+	char	errmsg[256];
+} ERR_HEADER;
+#define	 ERR_HEADER_SIZE	sizeof( ERR_HEADER)
+#define	_ERR_HEADER_SIZE	sizeof(_ERR_HEADER)
+
+
+#ifdef __DEBUG
+
+#define DB_COMMAND_SERVER_PORT 4999
+#define DB_COMMAND_SERVER_IP "172.16.9.206"
+//#define DB_COMMAND_SERVER_IP "59.106.127.98"
+
+#define DB_SUB_COMMAND_SERVER_PORT 4998
+#define DB_SUB_COMMAND_SERVER_IP "172.16.9.206"
+
+
+
+#ifndef REMOTE_SERVER_IP 
+#define REMOTE_SERVER_IP "192.168.0.39"
+#endif
+
+#ifndef REMOTE_CLIENT_PORT
+#define REMOTE_CLIENT_PORT 5003
+#endif
+
+#ifndef CMD_SERVER_IP
+#define CMD_SERVER_IP "172.16.9.206"
+//#define CMD_SERVER_IP "192.168.0.200"
+#endif
+
+
+#else
+
+
+#define DB_COMMAND_SERVER_PORT 4999
+#define DB_COMMAND_SERVER_IP "192.168.0.254"
+//#define DB_COMMAND_SERVER_IP "115.92.139.55"
+
+#define DB_SUB_COMMAND_SERVER_PORT 4998
+#define DB_SUB_COMMAND_SERVER_IP "192.168.0.253"
+
+
+#ifndef REMOTE_SERVER_IP 
+#define REMOTE_SERVER_IP " 61.252.171.39"
+//#define REMOTE_SERVER_IP "125.132.172.55"
+#endif
+
+#ifndef REMOTE_CLIENT_PORT
+#define REMOTE_CLIENT_PORT 5003
+#endif
+
+#ifndef CMD_SERVER_IP
+#define CMD_SERVER_IP " 61.252.171.39"
+#endif
+
+
+#endif
+
+
+
+/*
+#ifndef REMOTE_SERVER_IP 
+#define REMOTE_SERVER_IP "220.73.144.39"
+#endif
+
+#ifndef REMOTE_CLIENT_PORT
+#define REMOTE_CLIENT_PORT 5003
+#endif
+
+
+#ifdef __DEBUG
+#define CMD_SERVER_IP "172.16.9.213"
+//#define CMD_SERVER_IP "192.168.0.200"
+#else
+#define CMD_SERVER_IP "220.73.144.39"
+#endif
+*/
+
+
+#define MODE_NORMAL	20000 
+#define MODE_DSP	20001 
+
+
+
+
+
+
+#endif /* end of __HEADER__ */

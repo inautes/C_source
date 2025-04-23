@@ -1,0 +1,2 @@
+16:30:42.150`fupserver`32491`ERROR`CreateTCPServerSocket : bind() error - errno [ 98 ] error msg [ Address already in use ]
+16:30:42.151`fupserver`32491`ERROR`infMainRoutine       ] accept failed  9 Bad file descriptor

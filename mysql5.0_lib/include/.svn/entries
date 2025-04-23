@@ -1,0 +1,301 @@
+<?xml version="1.0" encoding="utf-8"?>
+<wc-entries
+   xmlns="svn:">
+<entry
+   committed-rev="470"
+   name=""
+   committed-date="2013-05-08T06:05:37.532532Z"
+   url="svn://172.16.9.207/ezwon/server/zangsi_with_dcmd/mysql5.0_lib/include"
+   last-author="jindogg"
+   kind="dir"
+   uuid="ae599a11-4fef-40d6-8bf3-4dd85d011f42"
+   revision="674"/>
+<entry
+   committed-rev="470"
+   name="my_net.h"
+   text-time="2013-05-09T06:42:51.000000Z"
+   committed-date="2013-05-08T06:05:37.532532Z"
+   checksum="1f1fbd37529fa3960bcaab5e23d07ef7"
+   last-author="jindogg"
+   kind="file"
+   prop-time="2013-05-09T06:42:51.000000Z"/>
+<entry
+   committed-rev="470"
+   name="sslopt-case.h"
+   text-time="2013-05-09T06:42:51.000000Z"
+   committed-date="2013-05-08T06:05:37.532532Z"
+   checksum="4e6b934ecf04053db732d9b4764d36c7"
+   last-author="jindogg"
+   kind="file"
+   prop-time="2013-05-09T06:42:51.000000Z"/>
+<entry
+   committed-rev="470"
+   name="my_alloc.h"
+   text-time="2013-05-09T06:42:51.000000Z"
+   committed-date="2013-05-08T06:05:37.532532Z"
+   checksum="9487d777c4a177a7d22097722ed38c82"
+   last-author="jindogg"
+   kind="file"
+   prop-time="2013-05-09T06:42:51.000000Z"/>
+<entry
+   committed-rev="470"
+   name="mysqld_ername.h"
+   text-time="2013-05-09T06:42:51.000000Z"
+   committed-date="2013-05-08T06:05:37.532532Z"
+   checksum="e0f8b3087072edea2067ae4b74c95096"
+   last-author="jindogg"
+   kind="file"
+   prop-time="2013-05-09T06:42:51.000000Z"/>
+<entry
+   committed-rev="470"
+   name="mysql_embed.h"
+   text-time="2013-05-09T06:42:51.000000Z"
+   committed-date="2013-05-08T06:05:37.532532Z"
+   checksum="fb63a17a8c3abc69d886d11f8e667052"
+   last-author="jindogg"
+   kind="file"
+   prop-time="2013-05-09T06:42:51.000000Z"/>
+<entry
+   committed-rev="470"
+   name="mysql.h"
+   text-time="2013-05-09T06:42:51.000000Z"
+   committed-date="2013-05-08T06:05:37.532532Z"
+   checksum="d3477fd88d4957368acb0a421fe8f247"
+   last-author="jindogg"
+   kind="file"
+   prop-time="2013-05-09T06:42:51.000000Z"/>
+<entry
+   committed-rev="470"
+   name="my_xml.h"
+   text-time="2013-05-09T06:42:51.000000Z"
+   committed-date="2013-05-08T06:05:37.532532Z"
+   checksum="a064976d7eaa7e5bbb55e175f8f36fe9"
+   last-author="jindogg"
+   kind="file"
+   prop-time="2013-05-09T06:42:51.000000Z"/>
+<entry
+   committed-rev="470"
+   name="my_global.h"
+   text-time="2013-05-09T06:42:51.000000Z"
+   committed-date="2013-05-08T06:05:37.532532Z"
+   checksum="261f9601e256b91d7705c9e8be8ed4c8"
+   last-author="jindogg"
+   kind="file"
+   prop-time="2013-05-09T06:42:51.000000Z"/>
+<entry
+   committed-rev="470"
+   name="sql_common.h"
+   text-time="2013-05-09T06:42:51.000000Z"
+   committed-date="2013-05-08T06:05:37.532532Z"
+   checksum="a407f1767fef4be1b61fbc11f266247e"
+   last-author="jindogg"
+   kind="file"
+   prop-time="2013-05-09T06:42:51.000000Z"/>
+<entry
+   committed-rev="470"
+   name="raid.h"
+   text-time="2013-05-09T06:42:51.000000Z"
+   committed-date="2013-05-08T06:05:37.532532Z"
+   checksum="3cadae922a3e0fc6df9bc2c374c1d200"
+   last-author="jindogg"
+   kind="file"
+   prop-time="2013-05-09T06:42:51.000000Z"/>
+<entry
+   committed-rev="470"
+   name="my_list.h"
+   text-time="2013-05-09T06:42:51.000000Z"
+   committed-date="2013-05-08T06:05:37.532532Z"
+   checksum="0c7d6909e707d59a34f7a09270c62b57"
+   last-author="jindogg"
+   kind="file"
+   prop-time="2013-05-09T06:42:51.000000Z"/>
+<entry
+   committed-rev="470"
+   name="my_sys.h"
+   text-time="2013-05-09T06:42:51.000000Z"
+   committed-date="2013-05-08T06:05:37.532532Z"
+   checksum="3926953d830916b1569dc4066b610e9e"
+   last-author="jindogg"
+   kind="file"
+   prop-time="2013-05-09T06:42:51.000000Z"/>
+<entry
+   committed-rev="470"
+   name="my_no_pthread.h"
+   text-time="2013-05-09T06:42:51.000000Z"
+   committed-date="2013-05-08T06:05:37.532532Z"
+   checksum="3d72234cca8b50a9742aaa1d2c99c0d5"
+   last-author="jindogg"
+   kind="file"
+   prop-time="2013-05-09T06:42:51.000000Z"/>
+<entry
+   committed-rev="470"
+   name="my_semaphore.h"
+   text-time="2013-05-09T06:42:51.000000Z"
+   committed-date="2013-05-08T06:05:37.532532Z"
+   checksum="808131769888134f016dc68f3076d81e"
+   last-author="jindogg"
+   kind="file"
+   prop-time="2013-05-09T06:42:51.000000Z"/>
+<entry
+   committed-rev="470"
+   name="my_pthread.h"
+   text-time="2013-05-09T06:42:51.000000Z"
+   committed-date="2013-05-08T06:05:37.532532Z"
+   checksum="974e6993b434e79f38f9b25a5525e544"
+   last-author="jindogg"
+   kind="file"
+   prop-time="2013-05-09T06:42:51.000000Z"/>
+<entry
+   committed-rev="470"
+   name="sslopt-vars.h"
+   text-time="2013-05-09T06:42:51.000000Z"
+   committed-date="2013-05-08T06:05:37.532532Z"
+   checksum="2bdb016ae319a33b39e654cdae2f3d03"
+   last-author="jindogg"
+   kind="file"
+   prop-time="2013-05-09T06:42:51.000000Z"/>
+<entry
+   committed-rev="470"
+   name="sql_state.h"
+   text-time="2013-05-09T06:42:51.000000Z"
+   committed-date="2013-05-08T06:05:37.532532Z"
+   checksum="e2ccd338d3b4f4ca39a7768f03c2db42"
+   last-author="jindogg"
+   kind="file"
+   prop-time="2013-05-09T06:42:51.000000Z"/>
+<entry
+   committed-rev="470"
+   name="errmsg.h"
+   text-time="2013-05-09T06:42:51.000000Z"
+   committed-date="2013-05-08T06:05:37.532532Z"
+   checksum="830230a627a44ea978728221be68e87a"
+   last-author="jindogg"
+   kind="file"
+   prop-time="2013-05-09T06:42:51.000000Z"/>
+<entry
+   committed-rev="470"
+   name="m_ctype.h"
+   text-time="2013-05-09T06:42:51.000000Z"
+   committed-date="2013-05-08T06:05:37.532532Z"
+   checksum="c6f0a59c32e0907ea4adf5a94b45a740"
+   last-author="jindogg"
+   kind="file"
+   prop-time="2013-05-09T06:42:51.000000Z"/>
+<entry
+   committed-rev="470"
+   name="mysql_com.h"
+   text-time="2013-05-09T06:42:51.000000Z"
+   committed-date="2013-05-08T06:05:37.532532Z"
+   checksum="6ceabaa61ba538957cb9a0dc8b81f22c"
+   last-author="jindogg"
+   kind="file"
+   prop-time="2013-05-09T06:42:51.000000Z"/>
+<entry
+   committed-rev="470"
+   name="my_getopt.h"
+   text-time="2013-05-09T06:42:51.000000Z"
+   committed-date="2013-05-08T06:05:37.532532Z"
+   checksum="cc83d7b86a75bbb158667dc697326b39"
+   last-author="jindogg"
+   kind="file"
+   prop-time="2013-05-09T06:42:51.000000Z"/>
+<entry
+   committed-rev="470"
+   name="typelib.h"
+   text-time="2013-05-09T06:42:51.000000Z"
+   committed-date="2013-05-08T06:05:37.532532Z"
+   checksum="865d19f46484dbd8560c66621edf5c2c"
+   last-author="jindogg"
+   kind="file"
+   prop-time="2013-05-09T06:42:51.000000Z"/>
+<entry
+   committed-rev="470"
+   name="mysql_version.h"
+   text-time="2013-05-09T06:42:51.000000Z"
+   committed-date="2013-05-08T06:05:37.532532Z"
+   checksum="199427a728e9553d344c7d988edc0121"
+   last-author="jindogg"
+   kind="file"
+   prop-time="2013-05-09T06:42:51.000000Z"/>
+<entry
+   committed-rev="470"
+   name="my_config.h"
+   text-time="2013-05-09T06:42:51.000000Z"
+   committed-date="2013-05-08T06:05:37.532532Z"
+   checksum="b08b20978e9e609c01e702a65c8a006f"
+   last-author="jindogg"
+   kind="file"
+   prop-time="2013-05-09T06:42:51.000000Z"/>
+<entry
+   committed-rev="470"
+   name="keycache.h"
+   text-time="2013-05-09T06:42:51.000000Z"
+   committed-date="2013-05-08T06:05:37.532532Z"
+   checksum="7df194a4b50b7f1195a044ceb62ad866"
+   last-author="jindogg"
+   kind="file"
+   prop-time="2013-05-09T06:42:51.000000Z"/>
+<entry
+   committed-rev="470"
+   name="mysqld_error.h"
+   text-time="2013-05-09T06:42:51.000000Z"
+   committed-date="2013-05-08T06:05:37.532532Z"
+   checksum="66ccb25cbd950c8eafb6cf0815c516ba"
+   last-author="jindogg"
+   kind="file"
+   prop-time="2013-05-09T06:42:51.000000Z"/>
+<entry
+   committed-rev="470"
+   name="m_string.h"
+   text-time="2013-05-09T06:42:51.000000Z"
+   committed-date="2013-05-08T06:05:37.532532Z"
+   checksum="3c9f5d225ba82f58945d0bace8fe09c9"
+   last-author="jindogg"
+   kind="file"
+   prop-time="2013-05-09T06:42:51.000000Z"/>
+<entry
+   committed-rev="470"
+   name="readline.h"
+   text-time="2013-05-09T06:42:51.000000Z"
+   committed-date="2013-05-08T06:05:37.532532Z"
+   checksum="0c7cbf7e8cafd2e9b69ac940b7a8f44c"
+   last-author="jindogg"
+   kind="file"
+   prop-time="2013-05-09T06:42:51.000000Z"/>
+<entry
+   committed-rev="470"
+   name="mysql_time.h"
+   text-time="2013-05-09T06:42:51.000000Z"
+   committed-date="2013-05-08T06:05:37.532532Z"
+   checksum="e2d72f500b14d134ce3a52554ecc4efc"
+   last-author="jindogg"
+   kind="file"
+   prop-time="2013-05-09T06:42:51.000000Z"/>
+<entry
+   committed-rev="470"
+   name="my_dir.h"
+   text-time="2013-05-09T06:42:51.000000Z"
+   committed-date="2013-05-08T06:05:37.532532Z"
+   checksum="e411d36cb28b52873d9b6d036e44cbcc"
+   last-author="jindogg"
+   kind="file"
+   prop-time="2013-05-09T06:42:51.000000Z"/>
+<entry
+   committed-rev="470"
+   name="my_dbug.h"
+   text-time="2013-05-09T06:42:51.000000Z"
+   committed-date="2013-05-08T06:05:37.532532Z"
+   checksum="15bdf925cc9ca91966b6b118c5b80c77"
+   last-author="jindogg"
+   kind="file"
+   prop-time="2013-05-09T06:42:51.000000Z"/>
+<entry
+   committed-rev="470"
+   name="sslopt-longopts.h"
+   text-time="2013-05-09T06:42:51.000000Z"
+   committed-date="2013-05-08T06:05:37.532532Z"
+   checksum="d6b25d6aa935248c1161e5db3e9d9951"
+   last-author="jindogg"
+   kind="file"
+   prop-time="2013-05-09T06:42:51.000000Z"/>
+</wc-entries>

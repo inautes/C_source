@@ -1,0 +1,443 @@
+#include "fdnsock.h"
+
+#include "fdndefine.h"
+
+#include "apdefine.h"
+#include "comcomm.h"
+
+#include "comhead.h"
+
+#include "fdncomproc.h"
+
+#include <stdio.h>
+#include <string.h>     /* for memset() */ 
+#include <sys/types.h>
+#include <fcntl.h>
+#include <time.h> //randomize() 
+#include <errno.h> 
+#include <sys/stat.h> 
+#include <unistd.h>     /* for close() */ 
+#include <stdlib.h>     /* for atoi() and exit() */ 
+
+#include "com9201.h"
+
+extern multimap<int,USERINFO>m_UserList;
+
+int RequestEol(int& Socket,char *pRecvHead, char *pRecvData, char* &pSendData)
+{
+	
+	
+	HEADER headers;
+	memset(&headers,0x00,HEADER_SIZE);
+	
+	pSendData = new char[sizeof(HEADER)];
+	memset(pSendData,0x00,sizeof(HEADER));
+	
+	headers.nCmd = RS_EOL;
+	headers.nDataCnt = 0;
+	headers.nDataSize = 0;
+	
+	memcpy(pSendData,&headers,sizeof(HEADER));
+	
+
+	return END;//(HEADER_SIZE + (headers.nDataCnt * headers.nDataSize));//return 1;
+}
+
+
+int FileCheckID(int& Socket,char *pRecvHead, char *pRecvData, char* &pSendData)
+{
+	/////// id check ////////////
+	LPHEADER pHeader = (LPHEADER)pRecvHead;
+	ERR_HEADER errheader;
+	memset(&errheader,0x00,sizeof(ERR_HEADER));
+	HEADER headers;
+	memset(&headers,0x00,sizeof(HEADER));
+	CSERVERINFO serverinfo;
+	memset(&serverinfo,0x00,sizeof(CSERVERINFO));
+
+	bool bFind = false;
+	
+	// 아이디 중복 채크 제거//
+	multimap<int,USERINFO>::iterator mi;
+	
+	//mi = m_UserList.begin(); change
+	mi = m_UserList.find(Socket);
+	if(mi != m_UserList.end())
+	{
+		memcpy(mi->second.szUserID, pHeader->szUserID , sizeof(pHeader->szUserID));
+		#ifdef __DEBUG
+		printf(" ] insert id : %s\n",mi->second.szUserID);
+		#endif		
+	}
+
+/*
+typedef struct _COM9xxx
+{
+	int nStatus ; // 0 init 
+	CCOM9002_R old_com9002_R;
+	CCOM9002_R com9002_R;
+	CCOM9102_R com9102_R;	
+	
+}COM9XXX,*LPCOM9XXX;
+//9002 다운로드 시작
+//9102 다운로드 끝
+
+*/	
+
+	
+	
+	strcpyA(mi->second.gCom9xxx.com9002_R.conn_ip ,mi->second.thread.userIP);
+	strcpyA(mi->second.gCom9xxx.com9102_R.conn_ip ,mi->second.thread.userIP);
+
+	memcpy(mi->second.gCom9xxx.com9002_R.user_id,pHeader->szUserID,sizeof(pHeader->szUserID));
+	memcpy(mi->second.gCom9xxx.com9102_R.user_id,pHeader->szUserID,sizeof(pHeader->szUserID));
+	
+	
+	CCOM9201_R com9201_r;
+	memset(&com9201_r,0x00,sizeof(CCOM9201_R));
+	
+	strcpyA(com9201_r.conn_ip ,mi->second.gCom9xxx.com9002_R.conn_ip);
+	memcpy(com9201_r.user_id,pHeader->szUserID,sizeof(pHeader->szUserID));
+	
+	com9201(com9201_r);
+		
+	
+	headers.nCmd = RS_FILE_CHECK_ID_OK;
+
+	headers.nDataCnt =0;
+	headers.nDataSize = 0;
+	headers.nErrorCode = 0;
+	
+	pSendData = new char[sizeof(HEADER) + headers.nDataCnt * headers.nDataSize];
+
+	memset(pSendData,0x00,sizeof(HEADER) + headers.nDataCnt * headers.nDataSize);
+	memcpy(pSendData,&headers,sizeof(HEADER)); //head
+	// 아이디 중복 채크 제거 ///	
+
+/*	
+	multimap<int,USERINFO>::iterator mi;
+	mi = m_UserList.begin();
+	while(mi != m_UserList.end())
+	{
+
+		if(strcmp(mi->second.szUserID,pHeader->szUserID) == 0)
+		{
+			 bFind=true;
+			 break;
+		}
+		mi++;
+	}
+	
+	
+
+	if(bFind) //찾았으면
+	{
+		#ifdef __DEBUG
+		printf("  ./ have same id\n");
+		#endif
+		
+		headers.nCmd = RS_FILE_CHECK_ID_FAIL; // 같은것이 있다.
+		strcpyA(serverinfo.szIP , mi->second.thread.userIP);
+		
+		headers.nDataCnt =1;
+		headers.nDataSize =sizeof(CSERVERINFO);
+		headers.nErrorCode = 0;
+		
+		#ifdef __DEBUG
+		printf("  ./ send RS_FILE_CHECK_ID_FAIL\n");
+		#endif
+		
+		pSendData = new char[sizeof(HEADER) + headers.nDataCnt * headers.nDataSize];
+	
+		memset(pSendData,0x00,sizeof(HEADER) + headers.nDataCnt * headers.nDataSize);
+		
+		memcpy(pSendData,&headers,sizeof(HEADER)); //head
+		memcpy(pSendData + HEADER_SIZE,&serverinfo,headers.nDataCnt * headers.nDataSize); //body
+	
+	//	return (HEADER_SIZE + (headers.nDataCnt * headers.nDataSize));	
+		
+	}
+	else //같은것이 없다.
+	{
+		#ifdef __DEBUG
+		printf("  ./ not have same id\n");
+		#endif
+		// socket 비교해서 id 넣기
+		
+		
+		mi = m_UserList.begin();
+		while(mi != m_UserList.end())
+		{
+	
+			if(mi->first == Socket)
+			{
+				 strcpyA(mi->second.szUserID,pHeader->szUserID);
+				 break;
+			}
+			mi++;
+	
+		}
+	
+		#ifdef __DEBUG
+		printf("  ./ send RS_FILE_CHECK_ID_OK\n");
+		#endif
+		
+		headers.nCmd = RS_FILE_CHECK_ID_OK;
+
+		headers.nDataCnt =0;
+		headers.nDataSize = 0;
+		headers.nErrorCode = 0;
+		
+		pSendData = new char[sizeof(HEADER) + headers.nDataCnt * headers.nDataSize];
+	
+		memset(pSendData,0x00,sizeof(HEADER) + headers.nDataCnt * headers.nDataSize);
+		memcpy(pSendData,&headers,sizeof(HEADER)); //head
+		
+	}
+	*/
+	
+	return (HEADER_SIZE + (headers.nDataCnt * headers.nDataSize));
+}
+
+
+
+
+int AdminRequestIdDisconnect(int& Socket,char *pRecvHead, char *pRecvData, char* &pSendData)
+{
+	//접속 끝고 #define RS_FILE_REQUEST_ID_DISCONNECT_OK 514
+		
+	
+	
+	LPHEADER pHeader = (LPHEADER)pRecvHead;
+	ERR_HEADER errheader;
+	memset(&errheader,0x00,sizeof(ERR_HEADER));
+	HEADER headers;
+	memset(&headers,0x00,sizeof(HEADER));
+	
+	LPDISUSER pUserID = (LPDISUSER)pRecvData;
+	
+	multimap<int,USERINFO>::iterator mi;
+	mi = m_UserList.begin();
+	while(mi != m_UserList.end())
+	{
+
+		if(strcmp(mi->second.szUserID,pUserID->szUserID) == 0)
+		{
+			#ifdef __DEBUG
+			printf(" ] FileRequestIdDis  close socket : %d user (%d)",mi->first,pUserID->szUserID);
+			#endif
+			
+			 close(mi->first);
+			 m_UserList.erase(mi);
+			 break;
+		}
+		mi++;
+
+	}
+	
+	headers.nCmd = RS_ADMIN_REQUEST_ID_DISCONNECT_OK;
+
+	headers.nDataCnt =0;
+	headers.nDataSize = 0;
+	headers.nErrorCode = 0;
+	
+	pSendData = new char[sizeof(HEADER) + headers.nDataCnt * headers.nDataSize];
+
+	memset(pSendData,0x00,sizeof(HEADER) + headers.nDataCnt * headers.nDataSize);
+	memcpy(pSendData,&headers,sizeof(HEADER) + headers.nDataCnt * headers.nDataSize); //head
+
+	#ifdef __DEBUG
+	printf(" ] AdminRequestIdDis  disconnet successed\n");
+	#endif
+	
+	return (HEADER_SIZE + (headers.nDataCnt * headers.nDataSize));	
+}
+
+int FileRequestIdDisconnect(int& Socket,char *pRecvHead, char *pRecvData, char* &pSendData)
+{
+	//접속 끝고 #define RS_FILE_REQUEST_ID_DISCONNECT_OK 514
+	
+	LPHEADER pHeader = (LPHEADER)pRecvHead;
+	ERR_HEADER errheader;
+	memset(&errheader,0x00,sizeof(ERR_HEADER));
+	HEADER headers;
+	memset(&headers,0x00,sizeof(HEADER));
+	CSERVERINFO serverinfo;
+	memset(&serverinfo,0x00,sizeof(CSERVERINFO));
+
+	bool bFind = false;
+	
+	multimap<int,USERINFO>::iterator mi;
+	mi = m_UserList.begin(); 
+	//mi = m_UserList.find(Socket);
+	while(mi != m_UserList.end())
+	{
+
+		if(strcmp(mi->second.szUserID,pHeader->szUserID) == 0)
+		{
+			 close(mi->first);
+			 m_UserList.erase(mi);
+			 bFind = true;
+			 
+			 break;
+		}
+		mi++;
+
+	}
+	
+	
+	
+		// ID 저장하기
+	//mi = m_UserList.begin(); change
+	mi = m_UserList.find(Socket);
+	if(mi != m_UserList.end())
+	{
+		memcpy(mi->second.szUserID, pHeader->szUserID , sizeof(pHeader->szUserID));
+	}
+		
+	/*
+	while(mi != m_UserList.end())
+	{
+
+		if(mi->first == Socket )
+		{
+			 //strcpyA(mi->second.szUserID,pHeader->szUserID);
+			 memcpy(mi->second.szUserID, pHeader->szUserID , sizeof(pHeader->szUserID));
+			 break;
+		}
+		mi++;
+
+	}
+	*/
+	
+	headers.nCmd = RS_FILE_REQUEST_ID_DISCONNECT_OK;
+
+	headers.nDataCnt =0;
+	headers.nDataSize = 0;
+	headers.nErrorCode = 0;
+	
+	pSendData = new char[sizeof(HEADER) + headers.nDataCnt * headers.nDataSize];
+
+	memset(pSendData,0x00,sizeof(HEADER) + headers.nDataCnt * headers.nDataSize);
+	memcpy(pSendData,&headers,sizeof(HEADER)); //head
+
+	
+	return (HEADER_SIZE + (headers.nDataCnt * headers.nDataSize));
+	/*
+	printf("ID disconnect <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\n");
+	
+
+	bool bFind = false;
+	
+	multimap<int,USERINFO>::iterator mi;
+	mi = m_UserList.begin();
+	while(mi != m_UserList.end())
+	{
+
+		if(strcmp(mi->second.szUserID,pPacket->szUserID) == 0)
+		{
+			 close(mi->first);
+			 m_UserList.erase(mi);
+			 bFind = true;
+			 printf("ID find <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\n");
+			 break;
+		}
+		mi++;
+
+	}
+	
+	LPPACKET Packet = new struct _PACKET;
+	memset(Packet,0x00,sizeof(struct _PACKET));
+
+	printf("send ok <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\n");
+	
+	Packet->btCmd = RS_FILE_REQUEST_ID_DISCONNECT_OK;
+		// ID 저장하기
+	mi = m_UserList.begin();
+	while(mi != m_UserList.end())
+	{
+
+		if(mi->first == Socket )
+		{
+			 
+			 strcpyA(mi->second.szUserID,pPacket->szUserID);
+			 break;
+		}
+		mi++;
+
+	}
+	
+
+	if( SendData(Socket,(char*)Packet,sizeof(struct _PACKET)) <0)
+	{
+		delete Packet;
+		return -1;
+	}
+
+	delete Packet;
+*/
+}
+
+
+
+
+int RequesetUserList(int& Socket,char *pRecvHead, char *pRecvData, char* &pSendData)
+{
+
+  
+	
+	LPUSERLIST pData = new USERLIST[2000];
+	memset(pData,0x00,sizeof(USERLIST)*2000);
+
+
+	multimap<int,USERINFO>::iterator mi;
+	mi = m_UserList.begin();
+	
+	int nCount =0;
+	
+	while(mi != m_UserList.end())
+	{
+		
+		if(mi->first == Socket)
+			strcpyA(pData[nCount].szUserID,"jadmin");
+		else
+			strcpyA(pData[nCount].szUserID,mi->second.szUserID);
+		strcpyA(pData[nCount].szUserIP,mi->second.thread.userIP);
+		pData[nCount].nNumber = nCount ;
+		strcpyA(pData[nCount].szStartTime,mi->second.thread.startTime);
+					
+		#ifdef __DEBUG
+		printf("%4d ] [소켓번호 : %d] [주소 : %s] [아이디 : %s] [접속시간 %s]\n"
+					,nCount+1,mi->first,mi->second.thread.userIP,mi->second.szUserID,mi->second.thread.startTime);
+		#endif
+		
+		mi++;
+		nCount++;
+		if(nCount >= 1999)
+			break;
+		
+		
+	}
+	
+	HEADER header;
+	memset(&header,0x00,sizeof(header));
+	
+	header.nCmd = RS_CMD_REQUEST_USER_LIST;
+	header.nDataCnt = nCount;
+	header.nDataSize = sizeof(USERLIST);
+	
+	pSendData  = new char[HEADER_SIZE + sizeof(USERLIST)*nCount];
+	memset(pSendData ,0x00,HEADER_SIZE + sizeof(USERLIST)*nCount);
+	
+	memcpy( pSendData , &header,HEADER_SIZE);
+	
+	if(sizeof(USERLIST)*nCount > 0)
+		memcpy( pSendData + HEADER_SIZE, pData ,sizeof(USERLIST)*nCount);
+	
+
+	delete[] pData;
+	
+
+
+	return (HEADER_SIZE + (header.nDataCnt * header.nDataSize));	
+}

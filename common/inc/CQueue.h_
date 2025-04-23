@@ -1,0 +1,396 @@
+//##########################################################//
+//##    Template Queue                                    ##//
+//##    LeeHyungChur                                      ##//
+//##    2005. 3. 22                                       ##//
+//##########################################################//
+
+/*
+
+#ifndef _QUEUE
+#define _QUEUE
+
+#ifndef FALSE
+#define FALSE   0
+#endif
+
+#ifndef TRUE
+#define TRUE    1
+#endif 
+
+#ifndef NULL
+#define NULL    0
+#endif
+
+#include <stdio.h>
+#include <stdlib.h>
+
+template<class T>
+class CQueue
+{
+protected:
+
+	   
+	typedef struct _NODE
+	{
+		unsigned int uiKey; // 중복되지 않는 키값
+		T data;
+		_NODE* next;
+		_NODE* prev;
+	}NODE,*LPNODE;
+
+public:
+	CQueue();
+	virtual ~CQueue();
+
+	//operation
+	void Push(T* pData);       //Push Next NODE of Head
+	void Push(unsigned int uiKey,T* pData);
+	bool Pop(T& pDestbuffer);       //auto delete
+	bool RemoveAll();  //Delete All
+	bool Remove(NODE* pNode);     //Delete Prev NODE of tail
+	bool Find(unsigned int uiKey ,T data , bool bDeleteNode /*= true*/);
+	void Find(unsigned int uiKey ,T data);
+	void Find(unsigned int uiKey ,T* pData);
+	unsigned int GetTotalNodeCount();
+	void InitQue();
+	void RemoveInit();
+	#ifdef __DEBUG
+	void PopTest();
+	#endif
+private:
+	unsigned int ulNodeCount;
+	NODE* pHead;
+	NODE* pTail;
+};
+
+
+
+template<class T>
+CQueue<T>::CQueue()
+{
+	// create HEAD and TAIL NODE
+	pHead = NULL;
+	pTail = NULL;
+
+	InitQue();
+}
+
+template<class T>
+CQueue<T>::~CQueue()
+{
+
+	if(pHead != NULL)
+		delete pHead;
+	if(pTail != NULL)
+		delete pTail;
+}
+
+template<class T>
+void CQueue<T>::Find(unsigned int uiKey ,T* pData)
+{
+	NODE* pTempNode = pHead->next;
+	while(pTempNode != pTail )
+	{
+		if(uiKey == pTempNode->uiKey)
+		{	
+			pData = &pTempNode->data;	
+		}
+		pTemoNode = pTempNode->next;
+	}
+	pData = &pHead->data;
+	
+}
+
+template<class T>
+void CQueue<T>::Find(unsigned int uiKey ,T data)
+{
+	NODE* pTempNode = pHead->next;
+	while(pTempNode != pTail )
+	{
+		if(uiKey == pTempNode->uiKey)
+		{	
+			data = pTempNode->data;
+		}
+		pTemoNode = pTempNode->next;
+	}
+	data =  *pHead->data;
+}
+
+template<class T>
+bool CQueue<T>::Find(unsigned int uiKey ,T data , bool bDeleteNode =  true)
+{
+	NODE* pTempNode = pHead->next;
+	while(pTempNode != pTail )
+	{
+		if(uiKey == pTempNode->uiKey)
+		{	
+			date = pTempNode->data;
+			if( bDeleteNode )
+			{
+				Remove(pTempNode);
+			}
+			return true;
+		}
+		pTemoNode = pTempNode->next;
+	}
+	return false;
+	
+}
+
+template<class T>
+void CQueue<T>::InitQue()
+{
+	// create HEAD and TAIL NODE
+
+
+	if(pHead != NULL || pTail != NULL)
+	{
+		RemoveAll();
+		if(pHead != NULL)
+			delete pHead;
+		if(pTail != NULL)
+			delete pTail;
+	}
+
+	ulNodeCount = 0;
+
+	pHead = new NODE;
+	pTail = new NODE;
+
+	// Set Head NODE
+	pHead->prev = pHead;
+	pHead->next = pTail;
+	// Set Tail NODE
+	pTail->prev = pHead;
+	pTail->next = pTail;
+}
+
+
+template<class T>
+void CQueue<T>::Push(unsigned int uiKey,T* pData)
+{
+	ulNodeCount++;
+
+ 	NODE* pInsertNode = new NODE;
+	memset(pInsertNode,0x00,sizeof(NODE));
+
+
+/*
+	int clntSock;
+	int fileno;
+	CCOM9102_R user_info;
+	double dTotalFileLen;
+	double dCurrentFileLen;
+	double dSendedDataLen;
+	double dSendDataLen;
+	char szSendBuffer[SENDBUF];
+*/	
+	
+	pInsertNode->uiKey = uiKey;
+	pInsertNode->data = *pData;
+	pTail->prev->next = pInsertNode;
+	pInsertNode->prev = pTail->prev;
+	pTail->prev = pInsertNode;
+	pInsertNode->next = pTail;
+
+	pHead->next = pInsertNode;
+
+	/*
+	#ifdef __DEBUG
+	printf("> 큐 Push Key (%ld)\n",pInsertNode->uiKey);
+	#endif
+	*/	
+	//PopTest();
+   	    
+}
+
+
+template<class T>
+void CQueue<T>::Push(T* pData)
+{
+	ulNodeCount++;
+
+ 	NODE* pInsertNode = new NODE;
+	memset(pInsertNode,0x00,sizeof(NODE));
+
+	pInsertNode->uiKey = ulNodeCount;
+	pInsertNode->data = *pData;
+	pTail->prev->next = pInsertNode;
+	pInsertNode->prev = pTail->prev;
+	pTail->prev = pInsertNode;
+	pInsertNode->next = pTail;
+	
+	pHead->next = pInsertNode;
+	
+	/*
+	#ifdef __DEBUG
+	printf("> 큐 Push \n");
+	#endif	
+	*/
+	//PopTest();	
+}
+
+template<class T>
+bool CQueue<T>::Pop(T& pDestbuffer)
+{
+
+
+	/*
+	#ifdef __DEBUG
+	printf("> 큐 Pop \n");
+	#endif	
+	*/		
+	//PopTest();
+	
+   if(pHead->next == pTail)
+   {
+   	   #ifdef __DEBUG
+	   //printf("> 큐에 대이터가 없습니다.\n");
+	   #endif
+	   return false;
+   }
+
+   NODE* pTemp;
+   pTemp = pHead->next;
+   pDestbuffer = pTemp->data;
+
+   pHead->next = pTemp->next;
+   pTemp->next->prev = pHead;
+   pTail->prev=pTail->prev->prev;
+
+   delete  pTemp;
+	
+   ulNodeCount--;
+   
+
+   	   
+   return true;
+   
+	
+}
+
+
+template<class T>
+bool CQueue<T>::RemoveAll()
+{
+	if(pHead->next == pTail)
+	{
+		if( ulNodeCount != 0)
+		{
+	   	   #ifdef __DEBUG
+		   printf("> Error : Node TotalCount Error , Node Count is %ld\n",ulNodeCount);
+		   #endif
+		}
+   	   #ifdef __DEBUG
+	   //printf("> 큐에 대이터가 없습니다.\n");
+	   #endif		
+		return false;
+	}
+
+   NODE* pCurrent;
+   NODE* pOld;
+   pCurrent = pHead->next;
+   while(pCurrent != pTail)
+   {
+	    pOld = pCurrent;
+		pCurrent = pCurrent->next;
+		ulNodeCount--;
+		delete pOld;
+   }
+   pHead->next = pTail;
+   pTail->prev = pHead;
+
+   return true;
+}
+
+
+template<class T>
+bool CQueue<T>::Remove(NODE* pNode)
+{
+   if(pHead->next == pTail)
+   {
+   	   #ifdef __DEBUG
+	   //printf("> 큐에 대이터가 없습니다.\n");
+	   #endif
+	   return false;
+   }
+
+
+   pNode->prev->next = pNode->next;
+   pNode->next->prev = pNode->prev;
+
+   delete  pNode;
+	
+   ulNodeCount--;
+   return true;
+}
+
+
+template<class T>
+unsigned int CQueue<T>::GetTotalNodeCount()
+{
+	/*
+	NODE* pTemp;
+	unsigned long ulNum=0;
+	if(pHead->next == pTail)
+		return ulNum;
+
+	pTemp = pHead->next;
+	while( pTemp != pTail)
+	{
+		++ulNum;
+		pTemp = pTemp->next;
+	}
+	return ulNum;
+	*/
+	return ulNodeCount;
+}
+
+#ifdef __DEBUG
+template<class T>
+void CQueue<T>::PopTest()
+{
+	
+
+	printf("--------------------------------------\n");
+  if(pHead->next == pTail)
+   {
+   	
+	   printf("> 큐에 대이터가 없습니다.\n");
+
+	   return ;
+   }
+
+
+	NODE* pTemp;
+	pTemp = pHead->next;
+	T pDestbuffer = pTemp->data;
+	
+	printf("> 큐 데이터 확인\n"
+			"> pDestbuffer.clntSock (%d)			 \n"
+			"> pDestbuffer.fileno (%d)             \n" 
+			"> pDestbuffer.user_info.user_id (%s)  \n"
+			"> pDestbuffer.dTotalFileLen (%15.0f)  \n"
+			"> pDestbuffer.dCurrentFileLen (%15.0f)\n"
+			"> pDestbuffer.dSendedDataLen (%15.0f) \n"
+			"> pDestbuffer.dSendDataLen (%15.0f)   \n"
+			,pDestbuffer.clntSock,
+			pDestbuffer.fileno,
+			pDestbuffer.user_info.user_id,
+			pDestbuffer.dTotalFileLen,
+			pDestbuffer.dCurrentFileLen,
+			pDestbuffer.dSendedDataLen,
+			pDestbuffer.dSendDataLen);
+	
+	
+   	printf("--------------------------------------\n");
+
+   	
+}
+#endif
+
+#endif //class Queue
+
+
+
+*/
