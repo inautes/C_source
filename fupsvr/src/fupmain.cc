@@ -245,18 +245,11 @@ int infMainRoutine(int argc,char** argv)
     signal(SIGTTOU, SIG_IGN);
   */  
     infSetUserParm(&gstUserParm, argc, argv);
-    // Property 설정 읽기 (dcmdserver 방식 참고)
-    Property pP;
-    pP.SetProcName(argv[0]);
-    pP.GetStrProperty("[INFO]", "DCMD_IP", g_szDcmdIP);
-    pP.GetIntProperty("[INFO]", "DCMD_PORT", g_nDcmdPort);
-    pP.GetStrProperty("[INFO]", "SUB_DCMD_IP", g_szSUB_DcmdIP);
-    pP.GetIntProperty("[INFO]", "SUB_DCMD_PORT", g_nSUB_DcmdPort);
-    
-    if(strlen(g_szDcmdIP) == 0 || g_nDcmdPort < 1000) {
-        infLOG(ERROR, "Error .cfg DCMD option - DCMD_IP: %s, DCMD_PORT: %d\n", g_szDcmdIP, g_nDcmdPort);
-        return -1;
-    }
+    // gdefine.h 상수 사용 (상용 환경과 동일)
+    strcpy(g_szDcmdIP, DB_COMMAND_SERVER_IP);
+    g_nDcmdPort = DB_COMMAND_SERVER_PORT;
+    strcpy(g_szSUB_DcmdIP, DB_SUB_COMMAND_SERVER_IP);
+    g_nSUB_DcmdPort = DB_SUB_COMMAND_SERVER_PORT;
     
     infLOG(ALWAY, "DCMD Server Config - IP: %s, PORT: %d\n", g_szDcmdIP, g_nDcmdPort);
     infLOG(ALWAY, "SUB DCMD Server Config - IP: %s, PORT: %d\n", g_szSUB_DcmdIP, g_nSUB_DcmdPort);
