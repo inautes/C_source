@@ -1,5 +1,5 @@
 /*----------------------------------------------------------------------------
-   ¹Þ´ø ÆÄÀÏ »èÁ¦ 
+   ï¿½Þ´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ 
 if(pFileinfo->nTypeDisk == FT_MYDISK && pFileinfo->nType == FT_FILE)
 {
 
@@ -28,6 +28,7 @@ else if(pFileinfo->nTypeDisk == FT_MYDISK && pFileinfo->nType == FT_FOLDER)
 #include "fupcomlib.h"
 
 #include "comhead.h"
+#include "fupmain.h"
 
 #include "com9003.h"
 #include "com9103.h"
@@ -57,7 +58,7 @@ int MyDiskFileRequestNextFile(int& Socket,char *pRecvHead, char *pRecvData, char
 	pSendData = new char[sizeof(HEADER)];
 	memset(pSendData,0x00,sizeof(HEADER));
 	
-	headers.nCmd = RS_MYDISK_FILE_REQUEST_NEXT_FILEINFO;//RS_MYDISK_FILE_REQUEST_FILE_FILINFO; //ÆÄÀÏ Á¤º¸ ¿äÃ»
+	headers.nCmd = RS_MYDISK_FILE_REQUEST_NEXT_FILEINFO;//RS_MYDISK_FILE_REQUEST_FILE_FILINFO; //ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ã»
 	headers.nDataCnt = 0;
 	headers.nDataSize = 0;
 	
@@ -67,7 +68,7 @@ int MyDiskFileRequestNextFile(int& Socket,char *pRecvHead, char *pRecvData, char
 	return (HEADER_SIZE + (headers.nDataCnt * headers.nDataSize));//return 1;
 }
 
-//11¿ù 15ÀÏ ¿©±â ±îÁö 
+//11ï¿½ï¿½ 15ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ 
 
 int MyDiskFileRequestFile(int& Socket,char *pRecvHead, char *pRecvData, char* &pSendData)
 {
@@ -78,7 +79,7 @@ int MyDiskFileRequestFile(int& Socket,char *pRecvHead, char *pRecvData, char* &p
 	pSendData = new char[sizeof(HEADER)];
 	memset(pSendData,0x00,sizeof(HEADER));
 	
-	headers.nCmd = RS_MYDISK_FILE_REQUEST_FILE_FILINFO;//RS_MYDISK_FILE_REQUEST_FILE_FILINFO; //ÆÄÀÏ Á¤º¸ ¿äÃ»
+	headers.nCmd = RS_MYDISK_FILE_REQUEST_FILE_FILINFO;//RS_MYDISK_FILE_REQUEST_FILE_FILINFO; //ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ã»
 	headers.nDataCnt = 0;
 	headers.nDataSize = 0;
 	
@@ -94,7 +95,7 @@ int MyDiskFileRequestList(int& Socket,char *pRecvHead, char *pRecvData, char* &p
 {
 	
 
-	///// ÆÄÀÏ Á¤º¸ ±¸Á¶Ã¼ »ý¼º ////
+	///// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ã¼ ï¿½ï¿½ï¿½ï¿½ ////
 	
 	
 	LPHEADER pHeader = (LPHEADER)pRecvHead; //head
@@ -142,42 +143,42 @@ int MyDiskFileRequestList(int& Socket,char *pRecvHead, char *pRecvData, char* &p
 		
 		#ifdef __DEBUG
 //				01234567890123456789 ]
-		printf("FileRequestList      ] Æú´õ °Ë»ö	 %s\n",szCheckName);
+		printf("FileRequestList      ] ï¿½ï¿½ï¿½ï¿½ ï¿½Ë»ï¿½	 %s\n",szCheckName);
 		#endif		
 		
 			
 		int stat = lstat64(szCheckName,&statbuf);
-		if(stat != 0) //ÆÄÀÏÀÌ ¾øÀ¸¸é Æú´õ ¸¸µé±â.
+		if(stat != 0) //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½.
 		{
 			#ifdef __DEBUG
 //					01234567890123456789 ]
-			printf("FileRequestList      ] Æú´õ »ý¼º   %s\n",szCheckName);
+			printf("FileRequestList      ] ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½   %s\n",szCheckName);
 			#endif		
 			
 			if(MakeFolder(szCheckName)== -1)
 			{
 				#ifdef __DEBUG
 //						01234567890123456789 ]
-				printf("FileRequestList      ] Æú´õ »ý¼º ½ÇÆÐ %s\n",szCheckName);
+				printf("FileRequestList      ] ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ %s\n",szCheckName);
 				#endif		
 			}
 		}
 		else
 		{
-		    infLOG(ERROR, "FileDataTransfer  ERR]  === Æú´õ »ý¼º ¿À·ù === \n"); 	
+		    infLOG(ERROR, "FileDataTransfer  ERR]  === ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ === \n"); 	
 		}
 		
 /*	
 	while(bResult == false)
 	{
 		nCheckLoop++;
-		if( nCheckLoop > 50 ) //Æú´õ¸¦ »ý¼ºÇÏÁö ¸øÇÏ¿´À»¶§.
+		if( nCheckLoop > 50 ) //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ï¿ï¿½ï¿½ï¿½ï¿½ï¿½.
 		{
 			pSendData = new char[sizeof(ERR_HEADER)];
 			memset(pSendData,0x00,sizeof(ERR_HEADER));
 			errheader.header.nCmd = RS_ERR;
 			errheader.header.nErrorCode = -RS_FILE_DATA_TRANSFER;
-			strcat(errheader.errmsg,"¼­¹ö ¿¡¼­ Æú´õ ¸¸µé±â¸¦ ½ÇÆÐ ÇÏ¿´½À´Ï´Ù.");
+			strcat(errheader.errmsg,"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½â¸¦ ï¿½ï¿½ï¿½ï¿½ ï¿½Ï¿ï¿½ï¿½ï¿½ï¿½Ï´ï¿½.");
 			
 			memcpy(pSendData, &errheader, sizeof(ERR_HEADER));
 		
@@ -203,11 +204,11 @@ int MyDiskFileRequestList(int& Socket,char *pRecvHead, char *pRecvData, char* &p
 		
 				
 	
-		//folder ÀÌ¸§ ¾ò±â
+		//folder ï¿½Ì¸ï¿½ ï¿½ï¿½ï¿½
 		
 		
 		
-		srand((unsigned int)time(NULL))	; //random ÀÌ¸§À» À§ÇÔ ½Ãµå ÁöÁ¤
+		srand((unsigned int)time(NULL))	; //random ï¿½Ì¸ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ãµï¿½ ï¿½ï¿½ï¿½ï¿½
 		
 		nFolderName = random()%100000000; 	
 		
@@ -223,15 +224,15 @@ int MyDiskFileRequestList(int& Socket,char *pRecvHead, char *pRecvData, char* &p
 		#endif
 			
 		int stat = lstat64(szCheckName,&statbuf);
-		if(stat != 0) //ÆÄÀÏÀÌ ¾øÀ¸¸é Æú´õ ¸¸µé±â.
+		if(stat != 0) //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½.
 		{
 			if(MakeFolder(szCheckName)== -1)
 			{
 
 			}
-			bResult = true; //ÆÄÀÏ ÀÌ¸§ÀÌ °áÁ¤ µÇ¾úÀ¸¸é...true							
+			bResult = true; //ï¿½ï¿½ï¿½ï¿½ ï¿½Ì¸ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ç¾ï¿½ï¿½ï¿½ï¿½ï¿½...true							
 		}
-		else // °°Àº ÀÌ¸§ÀÌ ¾Æ´Ò¶§ ±îÁö ...
+		else // ï¿½ï¿½ï¿½ï¿½ ï¿½Ì¸ï¿½ï¿½ï¿½ ï¿½Æ´Ò¶ï¿½ ï¿½ï¿½ï¿½ï¿½ ...
 			bResult = false;		
 	
 	}
@@ -253,22 +254,22 @@ int MyDiskFileRequestList(int& Socket,char *pRecvHead, char *pRecvData, char* &p
 	printf("MyDiskFileRequestList] %s\n",FolderInfo.szDownPath);
 	#endif
 	
-	memcpy(FolderInfo.cfups4003.file_path,szFullName,sizeof(szFullName)); //¼­¹öÃø ÆÐ½º
+	memcpy(FolderInfo.cfups4003.file_path,szFullName,sizeof(szFullName)); //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ð½ï¿½
 	#ifdef __DEBUG
-	printf("MyDiskFileRequestList] ¼­¹öÃø ÆÐ½º : %s    /  %s\n",pFileinfo->szDownPath,szFullName);
+	printf("MyDiskFileRequestList] ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ð½ï¿½ : %s    /  %s\n",pFileinfo->szDownPath,szFullName);
 	#endif
 
-	memcpy(FolderInfo.cfups4003.file_name2,pFileinfo->szFolderName,sizeof(pFileinfo->szFolderName)); //·ÎÄÃÆÄÀÏ ÀÌ¸§
+	memcpy(FolderInfo.cfups4003.file_name2,pFileinfo->szFolderName,sizeof(pFileinfo->szFolderName)); //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ì¸ï¿½
 	
 	#ifdef __DEBUG
-	printf("MyDiskFileRequestList] ·ÎÄÃÃø ÆÄÀÏ ÀÌ¸§ : %s\n",pFileinfo->szFolderName);
+	printf("MyDiskFileRequestList] ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ì¸ï¿½ : %s\n",pFileinfo->szFolderName);
 	#endif
 
 	
-	memcpy(FolderInfo.cfups4003.file_name1,szFolderName,sizeof(szFolderName));			 //¼­¹öÆÄÀÏ
+	memcpy(FolderInfo.cfups4003.file_name1,szFolderName,sizeof(szFolderName));			 //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 
 	#ifdef __DEBUG
-	printf("MyDiskFileRequestList] ¼­¹öÃø ÆÄÀÏ ÀÌ¸§ : %s\n",szFolderName);
+	printf("MyDiskFileRequestList] ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ì¸ï¿½ : %s\n",szFolderName);
 	#endif
 
 			
@@ -288,7 +289,7 @@ int MyDiskFileRequestList(int& Socket,char *pRecvHead, char *pRecvData, char* &p
 }
 
 
-//ÇÊ·Î±× & ³»ÀÚ·á½Ç
+//ï¿½Ê·Î±ï¿½ & ï¿½ï¿½ï¿½Ú·ï¿½ï¿½
 int MyDiskFileDataTransfer(int& Socket,char *pRecvHead, char *pRecvData, char* &pSendData)
 {
 	
@@ -296,11 +297,11 @@ int MyDiskFileDataTransfer(int& Socket,char *pRecvHead, char *pRecvData, char* &
 	#ifdef __DEBUG
 	printf("MyDiskFileDataTran   ] loading file data transfer...\n");
 	#endif
-	///// ÆÄÀÏ Á¤º¸ ±¸Á¶Ã¼ »ý¼º ////
+	///// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ã¼ ï¿½ï¿½ï¿½ï¿½ ////
 	
 
-	bool bFOpenAppendMode = false;	        // ÆÄÀÏ ¿­±â ¸ðµå 
-	int stat = -1;                          // ÆÄÀÏ »óÅÂ
+	bool bFOpenAppendMode = false;	        // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ 
+	int stat = -1;                          // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	struct stat64 statbuf;                  
 	LPHEADER pHeader = (LPHEADER)pRecvHead; //head
 	
@@ -312,13 +313,13 @@ int MyDiskFileDataTransfer(int& Socket,char *pRecvHead, char *pRecvData, char* &
 	
 	LPMFILEINFO pFileinfo = (LPMFILEINFO)pRecvData; //body
 	
-	//9001 È£Ãâ // »ç¿ëÀÚ¼ö Áõ°¡
-	//9101 È£Ãâ //»ç¿ëÀÚ¼ö °¨¼Ò			
+	//9001 È£ï¿½ï¿½ // ï¿½ï¿½ï¿½ï¿½Ú¼ï¿½ ï¿½ï¿½ï¿½ï¿½
+	//9101 È£ï¿½ï¿½ //ï¿½ï¿½ï¿½ï¿½Ú¼ï¿½ ï¿½ï¿½ï¿½ï¿½			
 				
 	CCOM9001_R com9001_r ;  
 	memset(&com9001_r,0x00,sizeof(CCOM9001_R));
 
-	multimap<int,USERINFO>::iterator mi; //IP Á¶È¸
+	multimap<int,USERINFO>::iterator mi; //IP ï¿½ï¿½È¸
 	
 	mi = m_UserList.find(Socket);
 	if(mi != m_UserList.end())
@@ -328,11 +329,11 @@ int MyDiskFileDataTransfer(int& Socket,char *pRecvHead, char *pRecvData, char* &
 	
 	strcpy(com9001_r.server_id , pFileinfo->szServerID);
 	com9001_r.temp_id =  pFileinfo->cfups4003.id;
-	memcpy(com9001_r.user_id ,pHeader->szUserID,sizeof(pHeader->szUserID)); // »ç¿ëÀÚ
+	memcpy(com9001_r.user_id ,pHeader->szUserID,sizeof(pHeader->szUserID)); // ï¿½ï¿½ï¿½ï¿½ï¿½
 	com9001_r.upload_size = pFileinfo->cfups4003.file_size;
 	
 
-	com9001 ( com9001_r );
+	com9001 ( com9001_r, g_szDcmdIP, g_nDcmdPort );
 
 	CCOM9101_R com9101_r ;
 	
@@ -340,7 +341,7 @@ int MyDiskFileDataTransfer(int& Socket,char *pRecvHead, char *pRecvData, char* &
 	strcpy(com9101_r.conn_ip , com9001_r.conn_ip);
 	strcpy(com9101_r.server_id , com9001_r.server_id);
 	com9101_r.temp_id =  com9001_r.temp_id;
-	strcpy(com9101_r.user_id ,com9001_r.user_id); // »ç¿ëÀÚ
+	strcpy(com9101_r.user_id ,com9001_r.user_id); // ï¿½ï¿½ï¿½ï¿½ï¿½
 	com9101_r.upload_size = com9001_r.upload_size;
 	
 	
@@ -359,26 +360,26 @@ int MyDiskFileDataTransfer(int& Socket,char *pRecvHead, char *pRecvData, char* &
 
 
 	
-	CCOM9104_R pcom9104_r; // ¹Þ´ø ÆÄÀÏ Ãë¼Ò½Ã DB µ¹¸®±â ( T_CONTENTS_TEMP »èÁ¦ )
+	CCOM9104_R pcom9104_r; // ï¿½Þ´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ò½ï¿½ DB ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ( T_CONTENTS_TEMP ï¿½ï¿½ï¿½ï¿½ )
 
 	MFILEINFO rMFileinfo;
 	
-	double dTotalRecvLen = 0; //ÃÑ ¹ÞÀº ±æÀÌ
-	double dTotalLen = 0; // downµÉ ÆÄÀÏÀÇ ÃÑ ±æÀÌ
-	int nWriteLen=0;      // ÆÄÀÏ¿¡ ¾´ ±æÀÌ
-	int nRecvLen=0;       // ¼ÒÄÏÀ¸·Î ºÎÅÍ ¹ÞÀº ±æÀÌ
+	double dTotalRecvLen = 0; //ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	double dTotalLen = 0; // downï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	int nWriteLen=0;      // ï¿½ï¿½ï¿½Ï¿ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	int nRecvLen=0;       // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	bool bCreateFile=false;
 		
-	int nCheckStop = 0;  // while ¹® Á¦¾î
+	int nCheckStop = 0;  // while ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	
 	/*
 	char szErrMsg[256];
 	memset(szErrMsg,0x00,sizeof(szErrMsg));
 	*/
-	CCOM9105_R com9105_r; // temp ¿¡ ÆÄÀÏ Á¤º¸ ÀúÀå.	
+	CCOM9105_R com9105_r; // temp ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½.	
 	memset(&com9105_r,0x00,sizeof(CCOM9105_R));
 	
-	CCOM9103_R pcom9103_r; // ÇÊ·Î±× ¿ë·® Á¦¾î
+	CCOM9103_R pcom9103_r; // ï¿½Ê·Î±ï¿½ ï¿½ë·® ï¿½ï¿½ï¿½ï¿½
 	memset(&pcom9103_r,0x00,sizeof(CCOM9103_R));
 	
 
@@ -388,7 +389,7 @@ int MyDiskFileDataTransfer(int& Socket,char *pRecvHead, char *pRecvData, char* &
 		pcom9103_r.file_size = pFileinfo->dFileSize ;
 		memcpy(pcom9103_r.user_id ,pHeader->szUserID,sizeof(pHeader->szUserID));
 		
-		if(com9103(pcom9103_r,errheader.errmsg)< 0)
+		if(com9103(pcom9103_r, errheader.errmsg, g_szDcmdIP, g_nDcmdPort)< 0)
 		{
 			infLOG(ALWAY, "MyDiskFileDataTran ER] Update mydisk place (com9103)\n"); 	
 			#ifdef __DEBUG
@@ -403,8 +404,8 @@ int MyDiskFileDataTransfer(int& Socket,char *pRecvHead, char *pRecvData, char* &
 			
 			memcpy(pSendData, &errheader, sizeof(ERR_HEADER));
 	
-			pHeader->nCmd = RS_ERR; // ¿¡·¯ Ã³¸® 
-			com9101 ( com9101_r);
+			pHeader->nCmd = RS_ERR; // ï¿½ï¿½ï¿½ï¿½ Ã³ï¿½ï¿½ 
+			com9101 ( com9101_r, g_szDcmdIP, g_nDcmdPort);
 			
 			return -RS_MYDISK_FILE_DATA_TRANSFER;
 			
@@ -422,7 +423,7 @@ int MyDiskFileDataTransfer(int& Socket,char *pRecvHead, char *pRecvData, char* &
 		pcom9103_r.file_size = pFileinfo->cfups4003.file_size;
 		memcpy(pcom9103_r.user_id ,pHeader->szUserID,sizeof(pHeader->szUserID));
 		
-		if(com9103(pcom9103_r,errheader.errmsg)< 0)
+		if(com9103(pcom9103_r, errheader.errmsg, g_szDcmdIP, g_nDcmdPort)< 0)
 		{
 			infLOG(ALWAY, "MyDiskFileDataTran ER] Update mydata place (com9103)\n"); 	
 			#ifdef __DEBUG
@@ -438,19 +439,19 @@ int MyDiskFileDataTransfer(int& Socket,char *pRecvHead, char *pRecvData, char* &
 	
 			pHeader->nCmd = RS_ERR;
 			
-			com9101 ( com9101_r);
+			com9101 ( com9101_r, g_szDcmdIP, g_nDcmdPort);
 			return -RS_MYDISK_FILE_DATA_TRANSFER;
 			
 		}
 		
-		//9105 Æú´õ	
+		//9105 ï¿½ï¿½ï¿½ï¿½	
 		com9105_r.id = pFileinfo->cfups4003.id;  
-		memcpy(&com9105_r.user_id ,pHeader->szUserID,sizeof(pHeader->szUserID)); // »ç¿ëÀÚ
+		memcpy(&com9105_r.user_id ,pHeader->szUserID,sizeof(pHeader->szUserID)); // ï¿½ï¿½ï¿½ï¿½ï¿½
 		strcpy(com9105_r.server_id ,pFileinfo->szServerID);
 		strcpy(com9105_r.sfile_path ,pFileinfo->cfups4003.file_path);
 		strcpy(com9105_r.sfile_name ,pFileinfo->cfups4003.file_name1);
 		
-		com9105(com9105_r);
+		com9105(com9105_r, g_szDcmdIP, g_nDcmdPort);
 
 	
 	}
@@ -464,9 +465,9 @@ int MyDiskFileDataTransfer(int& Socket,char *pRecvHead, char *pRecvData, char* &
 		{
 		
 			///////////////////////////////////////////////
-			// temp »èÁ¦									 //
-			// ¼­¹ö ¿ë·® (upload_size) ¾÷µ¥ÀÌÆ® rollback  //
-			// ÆÄÀÏ »èÁ¦ 								 //
+			// temp ï¿½ï¿½ï¿½ï¿½									 //
+			// ï¿½ï¿½ï¿½ï¿½ ï¿½ë·® (upload_size) ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® rollback  //
+			// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ 								 //
 			///////////////////////////////////////////////
 			
 			memset(&pcom9104_r,0x00,sizeof(CCOM9104_R));
@@ -474,23 +475,23 @@ int MyDiskFileDataTransfer(int& Socket,char *pRecvHead, char *pRecvData, char* &
 			
 			
 			pcom9104_r.proc_flag  =  2;   // 1=wedisk 2=mydata
-			pcom9104_r.id         = pFileinfo->cfups4003.id;        // ÄÁÅ×Ã÷ID(T_CONTENTS_TEMP.id)
-			memcpy(pcom9104_r.user_id ,pHeader->szUserID,sizeof(pHeader->szUserID)); // »ç¿ëÀÚ
+			pcom9104_r.id         = pFileinfo->cfups4003.id;        // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ID(T_CONTENTS_TEMP.id)
+			memcpy(pcom9104_r.user_id ,pHeader->szUserID,sizeof(pHeader->szUserID)); // ï¿½ï¿½ï¿½ï¿½ï¿½
 			pcom9104_r.file_size = pFileinfo->cfups4003.file_size;
-			if(com9104(pcom9104_r) < 0)
+			if(com9104(pcom9104_r, g_szDcmdIP, g_nDcmdPort) < 0)
 			{
-				infLOG(ERROR, "Exception )  ³»ÀÚ·á½Ç rollback ¿À·ù (com9104)\n"); 	
+				infLOG(ERROR, "Exception )  ï¿½ï¿½ï¿½Ú·ï¿½ï¿½ rollback ï¿½ï¿½ï¿½ï¿½ (com9104)\n"); 	
 			}
 
 	
-			com9101 ( com9101_r);
+			com9101 ( com9101_r, g_szDcmdIP, g_nDcmdPort);
 
 			return 0;			
 						
 		}			
 
 	    	
-		headers.nCmd  = RS_FILE_DATA_SIGN_CHECK; // ÆÄÀÏ Àü¼Û ¸Þ¼¼Áö    	
+		headers.nCmd  = RS_FILE_DATA_SIGN_CHECK; // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Þ¼ï¿½ï¿½ï¿½    	
 		
 		if(pFileinfo->nReUploadFlag == RECONNECT_UPLOAD || pFileinfo->nReUploadFlag == RE_UPLOAD)
 		{
@@ -503,13 +504,13 @@ int MyDiskFileDataTransfer(int& Socket,char *pRecvHead, char *pRecvData, char* &
 			{
 				strcpy(strFullPath, pFileinfo->cfups4003.file_path); //./2004/02/18/16/raid
 				strcat(strFullPath,"/");
-				strcat(strFullPath,pFileinfo->cfups4003.file_name1);//<- ¿ä°Å °ª Àß¸ø µé¾î¿È
+				strcat(strFullPath,pFileinfo->cfups4003.file_name1);//<- ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ß¸ï¿½ ï¿½ï¿½ï¿½ï¿½
 				
 				//////////////////////////////////////////////////////////////////////////
 				
-				strcpy(szFullName,pFileinfo->szDownPath); //szDownPath Àº ./raid
+				strcpy(szFullName,pFileinfo->szDownPath); //szDownPath ï¿½ï¿½ ./raid
     			strcat(szFullName,"/");
-    			strcat(szFullName,pFileinfo->szFileName); //szfilename Àº a.txt
+    			strcat(szFullName,pFileinfo->szFileName); //szfilename ï¿½ï¿½ a.txt
     			
     			#ifdef __DEBUG
 				printf("MyDiskFileDataTran   ] FOLDER full path ( %s ) full name ( %s )\n",strFullPath,szFullName);
@@ -521,7 +522,7 @@ int MyDiskFileDataTransfer(int& Socket,char *pRecvHead, char *pRecvData, char* &
 			{
 				
 		    	strcpy(szFullName,pFileinfo->szDownPath);					
-				strcat(szFullName,"/"); //./2004/02/18/16/raid/   <-- '/' Ãß°¡
+				strcat(szFullName,"/"); //./2004/02/18/16/raid/   <-- '/' ï¿½ß°ï¿½
 				strcat(szFullName,pFileinfo->szFileName);
 				
 				strcpy(strFullPath, pFileinfo->cfups4003.file_path); //./2004/02/18/16/raid
@@ -530,17 +531,17 @@ int MyDiskFileDataTransfer(int& Socket,char *pRecvHead, char *pRecvData, char* &
 				
 				infLOG(ERROR, "FileDataTransfer   RE] FOLDER full path ( %s ) full name ( %s )\n",strFullPath,szFullName);
 				
-				//9105 ÆÄÀÏ
+				//9105 ï¿½ï¿½ï¿½ï¿½
 				
 				memset(&com9105_r,0x00,sizeof(CCOM9105_R));
 			
 				com9105_r.id = pFileinfo->cfups4003.id;  
-				memcpy(&com9105_r.user_id ,pHeader->szUserID,sizeof(pHeader->szUserID)); // »ç¿ëÀÚ
+				memcpy(&com9105_r.user_id ,pHeader->szUserID,sizeof(pHeader->szUserID)); // ï¿½ï¿½ï¿½ï¿½ï¿½
 				strcpy(com9105_r.server_id ,pFileinfo->szServerID);
 				strcpy(com9105_r.sfile_path ,pFileinfo->szDownPath);
 				strcpy(com9105_r.sfile_name ,pFileinfo->szFileName);
 				
-				com9105(com9105_r);
+				com9105(com9105_r, g_szDcmdIP, g_nDcmdPort);
 						
 				#ifdef __DEBUG
 				printf("MyDiskFileDataTran   ] FOLDER full path ( %s ) full name ( %s )\n",strFullPath,szFullName);
@@ -554,12 +555,12 @@ int MyDiskFileDataTransfer(int& Socket,char *pRecvHead, char *pRecvData, char* &
 						
 							 
 			int stat = stat64(szFullName,&statbuf); 
-			if(stat != 0) //ÆÄÀÏÀÌ ¾øÀ¸¸é Æú´õ ¸¸µé±â.
+			if(stat != 0) //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½.
 			{
 				#ifdef __DEBUG
 				printf("MyDiskFileDataTran   ] the file is not visible..\n");
 				#endif
-				//if(errno == ENOENT) //ÆÄÀÏÀÌ³ª ÆÐ½º°¡ ¾øÀ½
+				//if(errno == ENOENT) //ï¿½ï¿½ï¿½ï¿½ï¿½Ì³ï¿½ ï¿½Ð½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 				{
 					MakeFolder(pFileinfo->szDownPath) ;
 					#ifdef __DEBUG
@@ -573,7 +574,7 @@ int MyDiskFileDataTransfer(int& Socket,char *pRecvHead, char *pRecvData, char* &
 				#ifdef __DEBUG
 
 			//			01234567890123456789]
-				printf("MyDiskFileDataTran   ] Æú´õ °¡ ÀÖÀ½ 		] %s\n",pFileinfo->szDownPath);
+				printf("MyDiskFileDataTran   ] ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ 		] %s\n",pFileinfo->szDownPath);
 				
 				#endif
 			}
@@ -586,9 +587,9 @@ int MyDiskFileDataTransfer(int& Socket,char *pRecvHead, char *pRecvData, char* &
 	    	printf("MyDiskFileDataTran   ] NORMAL_UPLOAD\n" );
 	    	#endif					
 			
-			bCreateFile = false;// °°Àº ÀÌ¸§ÀÌ »ý¼ºµÇ¾ú´ÂÁö check
+			bCreateFile = false;// ï¿½ï¿½ï¿½ï¿½ ï¿½Ì¸ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ç¾ï¿½ï¿½ï¿½ï¿½ï¿½ check
 			
-			///// ³¯Â¥ ½Ã°£ »ý¼º ////
+			///// ï¿½ï¿½Â¥ ï¿½Ã°ï¿½ ï¿½ï¿½ï¿½ï¿½ ////
 			time_t			curtime;
 			struct tm		*stm;
 			time( &curtime );
@@ -598,7 +599,7 @@ int MyDiskFileDataTransfer(int& Socket,char *pRecvHead, char *pRecvData, char* &
 			bool bResult = false;
 			int nCheckLoop = 0;	
 			
-			srand((unsigned int)time(NULL))	; //random ÀÌ¸§À» À§ÇÔ ½Ãµå ÁöÁ¤
+			srand((unsigned int)time(NULL))	; //random ï¿½Ì¸ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ãµï¿½ ï¿½ï¿½ï¿½ï¿½
 						
 			if(pFileinfo->nType == FT_FILE)
 			{
@@ -613,8 +614,8 @@ int MyDiskFileDataTransfer(int& Socket,char *pRecvHead, char *pRecvData, char* &
 				memset(szFullName,0x00,sizeof(szFullName));					
 		    	
 		    	strcpy(szFullName,pFileinfo->szDownPath);					
-				strcat(szFullName,"/"); //./2004/02/18/16/raid/   <-- '/' Ãß°¡
-		    	//file name ¾ò±â
+				strcat(szFullName,"/"); //./2004/02/18/16/raid/   <-- '/' ï¿½ß°ï¿½
+		    	//file name ï¿½ï¿½ï¿½
 		    	char szFilename[50];
 		    	char szFileType[10];
 		    	memset(szFilename,0x00,sizeof(szFilename));
@@ -623,18 +624,18 @@ int MyDiskFileDataTransfer(int& Socket,char *pRecvHead, char *pRecvData, char* &
 		    	
 				sprintf(szFilename,"%lu",pFileinfo->cfups4003.id);		
 		    	
-		    	//local ÆÄÀÏÀÌ¸§À¸·Î ºÎÅÍ È®ÀåÀÚ ¾ò±â.
+		    	//local ï¿½ï¿½ï¿½ï¿½ï¿½Ì¸ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ È®ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½.
 		    	int nLen = GetReverseIndex(pFileinfo->cfups4003.file_name2 , '.');
 				
 				
-				infLOG(ALWAY, " MyDiskFileDataTran   ] File ÀÌ¸§ ( %s ) \n",pFileinfo->cfups4003.file_name2); 
+				infLOG(ALWAY, " MyDiskFileDataTran   ] File ï¿½Ì¸ï¿½ ( %s ) \n",pFileinfo->cfups4003.file_name2); 
 				if(nLen < 0)
 				{
 					#ifdef __DEBUG
-					printf("MyDiskFileDataTran   ] È®ÀåÀÚ¸¦ °¡Áö°í ÀÖÁö ¾Ê½À´Ï´Ù.  %s\n",pFileinfo->cfups4003.file_name2);		
+					printf("MyDiskFileDataTran   ] È®ï¿½ï¿½ï¿½Ú¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ê½ï¿½ï¿½Ï´ï¿½.  %s\n",pFileinfo->cfups4003.file_name2);		
 					#endif
 					
-					infLOG(ERROR, "MyDiskFileDataTran ER] È®ÀåÀÚ¸¦ °¡Áö°í ÀÖÁö ¾Ê½À´Ï´Ù.\n"); 
+					infLOG(ERROR, "MyDiskFileDataTran ER] È®ï¿½ï¿½ï¿½Ú¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ê½ï¿½ï¿½Ï´ï¿½.\n"); 
 					
 				}
 				else		
@@ -649,7 +650,7 @@ int MyDiskFileDataTransfer(int& Socket,char *pRecvHead, char *pRecvData, char* &
 				strcat(szFullName,szFilename);
 				strcat(szFullName,szFileType);
 				
-				//// ÀÌ¸§ ÀúÀå ////
+				//// ï¿½Ì¸ï¿½ ï¿½ï¿½ï¿½ï¿½ ////
 				memcpy(pFileinfo->cfups4003.file_name1,pFileinfo->szFileName,sizeof(pFileinfo->szFileName));	
 				strcpy(pFileinfo->cfups4003.file_path,pFileinfo->szDownPath);//,sizeof(pFileinfo->szDownPath));
 										
@@ -658,17 +659,17 @@ int MyDiskFileDataTransfer(int& Socket,char *pRecvHead, char *pRecvData, char* &
 
 				stat = stat64(szFullName,&statbuf); 
 				
-				infLOG(ALWAY, "MyDiskFileDataTran   ] File È®ÀÎ  ( %s ) ( %s ) (%d)\n",pFileinfo->szDownPath,szFullName,stat); 
+				infLOG(ALWAY, "MyDiskFileDataTran   ] File È®ï¿½ï¿½  ( %s ) ( %s ) (%d)\n",pFileinfo->szDownPath,szFullName,stat); 
 				
-				if(stat != 0) //ÆÄÀÏÀÌ ¾øÀ¸¸é Æú´õ ¸¸µé±â.
+				if(stat != 0) //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½.
 				{
 
-					//if(errno == ENOENT) //ÆÄÀÏÀÌ³ª ÆÐ½º°¡ ¾øÀ½
+					//if(errno == ENOENT) //ï¿½ï¿½ï¿½ï¿½ï¿½Ì³ï¿½ ï¿½Ð½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 					{
 						MakeFolder(pFileinfo->szDownPath) ;
 						#ifdef __DEBUG
 					//			01234567890123456789]
-						printf("MyDiskFileDataTran   ] Æú´õ »ý¼º  %s\n",pFileinfo->szDownPath);
+						printf("MyDiskFileDataTran   ] ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½  %s\n",pFileinfo->szDownPath);
 						#endif
 					}		
 					bResult = true;	
@@ -677,26 +678,26 @@ int MyDiskFileDataTransfer(int& Socket,char *pRecvHead, char *pRecvData, char* &
 				{
 					#ifdef __DEBUG
 				//			01234567890123456789]
-					printf("MyDiskFileDataTran   ] Æú´õ °¡ ÀÖÀ½  %s\n",szFullName);
+					printf("MyDiskFileDataTran   ] ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½  %s\n",szFullName);
 					#endif
 					
 					bResult = false;
 				}
 					
 
-				//9105 ÆÄÀÏ					
+				//9105 ï¿½ï¿½ï¿½ï¿½					
 				memset(&com9105_r,0x00,sizeof(CCOM9105_R));
 			
 				com9105_r.id = pFileinfo->cfups4003.id;  
-				memcpy(&com9105_r.user_id ,pHeader->szUserID,sizeof(pHeader->szUserID)); // »ç¿ëÀÚ
+				memcpy(&com9105_r.user_id ,pHeader->szUserID,sizeof(pHeader->szUserID)); // ï¿½ï¿½ï¿½ï¿½ï¿½
 				strcpy(com9105_r.server_id ,pFileinfo->szServerID);
 				strcpy(com9105_r.sfile_path ,pFileinfo->cfups4003.file_path);
 				strcpy(com9105_r.sfile_name ,pFileinfo->cfups4003.file_name1);
 				
-				com9105(com9105_r);
+				com9105(com9105_r, g_szDcmdIP, g_nDcmdPort);
 										
 			}
-			else if(pFileinfo->nType == FT_FOLDER) //Àü¼Û ¹ÞÀ» ÆÄÀÏÀÌ Æú´õ ÀÏ°æ¿ì 
+			else if(pFileinfo->nType == FT_FOLDER) //ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ï°ï¿½ï¿½ 
 			{	
 
 
@@ -706,25 +707,25 @@ int MyDiskFileDataTransfer(int& Socket,char *pRecvHead, char *pRecvData, char* &
 		
 				//////////////////////////////////////////////////////////////////////////
 					
-				strcpy(szFullName,pFileinfo->szDownPath); //szDownPath Àº ./raid
+				strcpy(szFullName,pFileinfo->szDownPath); //szDownPath ï¿½ï¿½ ./raid
 				strcat(szFullName,"/");
-				strcat(szFullName,pFileinfo->szFileName); //szfilename Àº a.txt
-		    	///// ÆÄÀÏ Á¤º¸¸¦ ¾ò±â À§ÇÑ ±¸Á¶Ã¼  ////
+				strcat(szFullName,pFileinfo->szFileName); //szfilename ï¿½ï¿½ a.txt
+		    	///// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ã¼  ////
 		    	
    				#ifdef __DEBUG
 				printf("MyDiskFileDataTran   ] full path ( %s ) full name ( %s )\n",strFullPath,szFullName);
 				#endif	
 
 				int stat = stat64(szFullName,&statbuf); 
-				if(stat != 0) //ÆÄÀÏÀÌ ¾øÀ¸¸é Æú´õ ¸¸µé±â.
+				if(stat != 0) //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½.
 				{
 
-					//if(errno == ENOENT) //ÆÄÀÏÀÌ³ª ÆÐ½º°¡ ¾øÀ½
+					//if(errno == ENOENT) //ï¿½ï¿½ï¿½ï¿½ï¿½Ì³ï¿½ ï¿½Ð½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 					{
 						MakeFolder(pFileinfo->szDownPath) ;
 						#ifdef __DEBUG
 					//			01234567890123456789]
-						printf("MyDiskFileDataTran   ] Æú´õ »ý¼º  %s\n",pFileinfo->szDownPath);
+						printf("MyDiskFileDataTran   ] ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½  %s\n",pFileinfo->szDownPath);
 						#endif
 					}		
 				}
@@ -732,7 +733,7 @@ int MyDiskFileDataTransfer(int& Socket,char *pRecvHead, char *pRecvData, char* &
 				{
 					#ifdef __DEBUG
 					//			01234567890123456789]
-					printf("MyDiskFileDataTran   ] Æú´õ °¡ ÀÖÀ½  %s\n",szFullName);
+					printf("MyDiskFileDataTran   ] ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½  %s\n",szFullName);
 					#endif
 					
 					bFOpenAppendMode = true;	 
@@ -744,7 +745,7 @@ int MyDiskFileDataTransfer(int& Socket,char *pRecvHead, char *pRecvData, char* &
 					
 	//		}
 	
-		headers.nCmd = RS_FILE_DATA_SIGN_CHECK; //ÆÄÀÏ Àü¼Û
+		headers.nCmd = RS_FILE_DATA_SIGN_CHECK; //ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	
 		int nSRet = -1;
 		if( pFileinfo->nType == FT_FILE )
@@ -790,13 +791,13 @@ int MyDiskFileDataTransfer(int& Socket,char *pRecvHead, char *pRecvData, char* &
 	    
 	    
 	
-	    //// Àü¼ÛÇÏ±âÀü¿¡ ¸Þ¼¼Áö¸¦ ¾Ë¸²...
+	    //// ï¿½ï¿½ï¿½ï¿½ï¿½Ï±ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Þ¼ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ë¸ï¿½...
 //	    if(SendData(Socket,(char*)&headers,sizeof(struct _HEADER))<0)  //struct _PACKET == PACKET
 		if( nSRet <= 0)
 		{
-			infLOG(ERROR, "MyDiskFileDataTran ER] send ¿¡·¯ 1: <client Á×À½>\n"); 
+			infLOG(ERROR, "MyDiskFileDataTran ER] send ï¿½ï¿½ï¿½ï¿½ 1: <client ï¿½ï¿½ï¿½ï¿½>\n"); 
 			#ifdef __DEBUG
-			printf("MyDiskFileDataTran ER] send ¿¡·¯ 1 : <client Á×À½>\n");
+			printf("MyDiskFileDataTran ER] send ï¿½ï¿½ï¿½ï¿½ 1 : <client ï¿½ï¿½ï¿½ï¿½>\n");
 			#endif
 			if( pFileinfo->nType == FT_FILE )			
 			{
@@ -805,9 +806,9 @@ int MyDiskFileDataTransfer(int& Socket,char *pRecvHead, char *pRecvData, char* &
 			}
 				
 			///////////////////////////////////////////////
-			// temp »èÁ¦									 //
-			// ¼­¹ö ¿ë·® (upload_size) ¾÷µ¥ÀÌÆ® rollback  //
-			// ÆÄÀÏ »èÁ¦ 								 //
+			// temp ï¿½ï¿½ï¿½ï¿½									 //
+			// ï¿½ï¿½ï¿½ï¿½ ï¿½ë·® (upload_size) ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® rollback  //
+			// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ 								 //
 			///////////////////////////////////////////////
 			
 			memset(&pcom9104_r,0x00,sizeof(CCOM9104_R));
@@ -815,17 +816,17 @@ int MyDiskFileDataTransfer(int& Socket,char *pRecvHead, char *pRecvData, char* &
 			
 			
 			pcom9104_r.proc_flag  =  2;   // 1=wedisk 2=mydata
-			pcom9104_r.id         = pFileinfo->cfups4003.id;        // ÄÁÅ×Ã÷ID(T_CONTENTS_TEMP.id)
-			memcpy(pcom9104_r.user_id ,pHeader->szUserID,sizeof(pHeader->szUserID)); // »ç¿ëÀÚ
+			pcom9104_r.id         = pFileinfo->cfups4003.id;        // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ID(T_CONTENTS_TEMP.id)
+			memcpy(pcom9104_r.user_id ,pHeader->szUserID,sizeof(pHeader->szUserID)); // ï¿½ï¿½ï¿½ï¿½ï¿½
 			pcom9104_r.file_size = pFileinfo->cfups4003.file_size;
-			if(com9104(pcom9104_r) < 0)
+			if(com9104(pcom9104_r, g_szDcmdIP, g_nDcmdPort) < 0)
 			{
-				infLOG(ERROR, "MyDiskFileDataTran ER] ³»ÀÚ·á½Ç rollback ¿À·ù (com9104)\n"); 	
+				infLOG(ERROR, "MyDiskFileDataTran ER] ï¿½ï¿½ï¿½Ú·ï¿½ï¿½ rollback ï¿½ï¿½ï¿½ï¿½ (com9104)\n"); 	
 			}						
 		
 			
-			com9101 ( com9101_r);
-			// ¹Þ´ø ÆÄÀÏ »èÁ¦
+			com9101 ( com9101_r, g_szDcmdIP, g_nDcmdPort);
+			// ï¿½Þ´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 			
 			return 0;
 		}
@@ -835,16 +836,16 @@ int MyDiskFileDataTransfer(int& Socket,char *pRecvHead, char *pRecvData, char* &
 		
 		if(	RecvData(Socket,(char*)&headers,sizeof(struct _HEADER))<0)  //struct _PACKET == PACKET
 		{
-			infLOG(ERROR, "MyDiskFileDataTran ER] recv ¿¡·¯ 1: <client Á×À½>\n"); 
+			infLOG(ERROR, "MyDiskFileDataTran ER] recv ï¿½ï¿½ï¿½ï¿½ 1: <client ï¿½ï¿½ï¿½ï¿½>\n"); 
 			#ifdef __DEBUG
-			printf("MyDiskFileDataTran ER] recv ¿¡·¯ 1 : <client Á×À½>\n");
+			printf("MyDiskFileDataTran ER] recv ï¿½ï¿½ï¿½ï¿½ 1 : <client ï¿½ï¿½ï¿½ï¿½>\n");
 			#endif
 			
 			
 			///////////////////////////////////////////////
-			// temp »èÁ¦									 //
-			// ¼­¹ö ¿ë·® (upload_size) ¾÷µ¥ÀÌÆ® rollback  //
-			// ÆÄÀÏ »èÁ¦ 								 //
+			// temp ï¿½ï¿½ï¿½ï¿½									 //
+			// ï¿½ï¿½ï¿½ï¿½ ï¿½ë·® (upload_size) ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® rollback  //
+			// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ 								 //
 			///////////////////////////////////////////////
 			
 			memset(&pcom9104_r,0x00,sizeof(CCOM9104_R));
@@ -852,18 +853,18 @@ int MyDiskFileDataTransfer(int& Socket,char *pRecvHead, char *pRecvData, char* &
 			
 			
 			pcom9104_r.proc_flag  =  2;   // 1=wedisk 2=mydata
-			pcom9104_r.id         = pFileinfo->cfups4003.id;        // ÄÁÅ×Ã÷ID(T_CONTENTS_TEMP.id)
-			memcpy(pcom9104_r.user_id ,pHeader->szUserID,sizeof(pHeader->szUserID)); // »ç¿ëÀÚ
+			pcom9104_r.id         = pFileinfo->cfups4003.id;        // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ID(T_CONTENTS_TEMP.id)
+			memcpy(pcom9104_r.user_id ,pHeader->szUserID,sizeof(pHeader->szUserID)); // ï¿½ï¿½ï¿½ï¿½ï¿½
 			pcom9104_r.file_size = pFileinfo->cfups4003.file_size;
-			if(com9104(pcom9104_r) < 0)
+			if(com9104(pcom9104_r, g_szDcmdIP, g_nDcmdPort) < 0)
 			{
-				infLOG(ERROR, "MyDiskFileDataTran ER]  ³»ÀÚ·á½Ç rollback ¿À·ù (com9104)\n"); 	
+				infLOG(ERROR, "MyDiskFileDataTran ER]  ï¿½ï¿½ï¿½Ú·ï¿½ï¿½ rollback ï¿½ï¿½ï¿½ï¿½ (com9104)\n"); 	
 			}						
 		
 		
 			
-			com9101 ( com9101_r);	
-			// ¹Þ´ø ÆÄÀÏ »èÁ¦
+			com9101 ( com9101_r, g_szDcmdIP, g_nDcmdPort);	
+			// ï¿½Þ´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 			return 0;
 		}
 		
@@ -886,9 +887,9 @@ int MyDiskFileDataTransfer(int& Socket,char *pRecvHead, char *pRecvData, char* &
 			
 			
 			///////////////////////////////////////////////
-			// temp »èÁ¦									 //
-			// ¼­¹ö ¿ë·® (upload_size) ¾÷µ¥ÀÌÆ® rollback  //
-			// ÆÄÀÏ »èÁ¦ 								 //
+			// temp ï¿½ï¿½ï¿½ï¿½									 //
+			// ï¿½ï¿½ï¿½ï¿½ ï¿½ë·® (upload_size) ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® rollback  //
+			// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ 								 //
 			///////////////////////////////////////////////
 			
 			memset(&pcom9104_r,0x00,sizeof(CCOM9104_R));
@@ -896,19 +897,19 @@ int MyDiskFileDataTransfer(int& Socket,char *pRecvHead, char *pRecvData, char* &
 			
 			
 			pcom9104_r.proc_flag  =  2;   // 1=wedisk 2=mydata
-			pcom9104_r.id         = pFileinfo->cfups4003.id;        // ÄÁÅ×Ã÷ID(T_CONTENTS_TEMP.id)
-			memcpy(pcom9104_r.user_id ,pHeader->szUserID,sizeof(pHeader->szUserID)); // »ç¿ëÀÚ
+			pcom9104_r.id         = pFileinfo->cfups4003.id;        // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ID(T_CONTENTS_TEMP.id)
+			memcpy(pcom9104_r.user_id ,pHeader->szUserID,sizeof(pHeader->szUserID)); // ï¿½ï¿½ï¿½ï¿½ï¿½
 			pcom9104_r.file_size = pFileinfo->cfups4003.file_size;
-			if(com9104(pcom9104_r) < 0)
+			if(com9104(pcom9104_r, g_szDcmdIP, g_nDcmdPort) < 0)
 			{
-				infLOG(ERROR, "MyDiskFileDataTran ER]  ³»ÀÚ·á½Ç rollback ¿À·ù (com9104)\n"); 	
+				infLOG(ERROR, "MyDiskFileDataTran ER]  ï¿½ï¿½ï¿½Ú·ï¿½ï¿½ rollback ï¿½ï¿½ï¿½ï¿½ (com9104)\n"); 	
 			}						
 		
 		
 			
-			com9101 ( com9101_r);	
+			com9101 ( com9101_r, g_szDcmdIP, g_nDcmdPort);	
 
-			// ¹Þ´ø ÆÄÀÏ »èÁ¦
+			// ï¿½Þ´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 				
 			return END;
 		}
@@ -919,16 +920,16 @@ int MyDiskFileDataTransfer(int& Socket,char *pRecvHead, char *pRecvData, char* &
 			#endif
 		}
 		
-		////////////////////±âº» Á¤º¸ ¿Ï·á////////////////////////////////////////////////
+		////////////////////ï¿½âº» ï¿½ï¿½ï¿½ï¿½ ï¿½Ï·ï¿½////////////////////////////////////////////////
 		
 	
 		
 		
 		
-		// ÆÄÀÏ Á¦¾î ¹× Àü¼Û
-		FILE* DownloadFile; //ÆÄÀÏ Æ÷ÀÎÅÍ
+		// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+		FILE* DownloadFile; //ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 		DownloadFile = NULL;
-		//// ÆÄÀÏ openÇü½Ä °áÁ¤////
+		//// ï¿½ï¿½ï¿½ï¿½ openï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½////
 		#ifdef __DEBUG
 		printf("MyDiskFileDataTran   ] open file : %s\n",szFullName);
 		#endif
@@ -951,7 +952,7 @@ int MyDiskFileDataTransfer(int& Socket,char *pRecvHead, char *pRecvData, char* &
 
 		infLOG(ALWAY, "MyDiskFileDataTran   ] UploaddFile ( %s )\n",szFullName);	
 				
-		if(DownloadFile == NULL) //ÆÄÀÏÀ» ¿­¼ö ¾øÀ¸¸é
+		if(DownloadFile == NULL) //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 		{
 			#ifdef __DEBUG
 			char szErrMsg[1024];
@@ -962,24 +963,24 @@ int MyDiskFileDataTransfer(int& Socket,char *pRecvHead, char *pRecvData, char* &
 			       "MyDiskFileDataTran ER]  file error : %s \n ",szErrMsg);
 			       
 			#endif
-			infLOG(ERROR, "MyDiskFileDataTran ER] DownloadFile == NULL : <¸Þ¼¼Áö Àü´Þ>\n"); 
+			infLOG(ERROR, "MyDiskFileDataTran ER] DownloadFile == NULL : <ï¿½Þ¼ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½>\n"); 
 			#ifdef __DEBUG
-			printf("MyDiskFileDataTran ER] DownloadFile == %s : <¸Þ¼¼Áö Àü´Þ>\n",szFullName);
+			printf("MyDiskFileDataTran ER] DownloadFile == %s : <ï¿½Þ¼ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½>\n",szFullName);
 			#endif
 			pSendData = new char[sizeof(ERR_HEADER)];
 			memset(pSendData,0x00,sizeof(ERR_HEADER));
 			errheader.header.nCmd = RS_ERR;
 			errheader.header.nErrorCode = -RS_MYDISK_FILE_DATA_TRANSFER;
-			strcat(errheader.errmsg,"¼­¹ö ¿¡¼­ ÆÄÀÏ ¸¸µé±â ½ÇÆÐ ÇÏ¿´½À´Ï´Ù.");
+			strcat(errheader.errmsg,"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ï¿ï¿½ï¿½ï¿½ï¿½Ï´ï¿½.");
 			
 			memcpy(pSendData, &errheader, sizeof(ERR_HEADER));
 		
 			pHeader->nCmd = RS_ERR;
 			
 			///////////////////////////////////////////////
-			// temp »èÁ¦									 //
-			// ¼­¹ö ¿ë·® (upload_size) ¾÷µ¥ÀÌÆ® rollback  //
-			// ÆÄÀÏ »èÁ¦ 								 //
+			// temp ï¿½ï¿½ï¿½ï¿½									 //
+			// ï¿½ï¿½ï¿½ï¿½ ï¿½ë·® (upload_size) ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® rollback  //
+			// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ 								 //
 			///////////////////////////////////////////////
 			
 			memset(&pcom9104_r,0x00,sizeof(CCOM9104_R));
@@ -987,26 +988,26 @@ int MyDiskFileDataTransfer(int& Socket,char *pRecvHead, char *pRecvData, char* &
 			
 			
 			pcom9104_r.proc_flag  =  2;   // 1=wedisk 2=mydata
-			pcom9104_r.id         = pFileinfo->cfups4003.id;        // ÄÁÅ×Ã÷ID(T_CONTENTS_TEMP.id)
-			memcpy(pcom9104_r.user_id ,pHeader->szUserID,sizeof(pHeader->szUserID)); // »ç¿ëÀÚ
+			pcom9104_r.id         = pFileinfo->cfups4003.id;        // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ID(T_CONTENTS_TEMP.id)
+			memcpy(pcom9104_r.user_id ,pHeader->szUserID,sizeof(pHeader->szUserID)); // ï¿½ï¿½ï¿½ï¿½ï¿½
 			pcom9104_r.file_size = pFileinfo->cfups4003.file_size;
-			if(com9104(pcom9104_r) < 0)
+			if(com9104(pcom9104_r, g_szDcmdIP, g_nDcmdPort) < 0)
 			{
-				infLOG(ERROR, "MyDiskFileDataTran ER]  ³»ÀÚ·á½Ç rollback ¿À·ù (com9104)\n"); 	
+				infLOG(ERROR, "MyDiskFileDataTran ER]  ï¿½ï¿½ï¿½Ú·ï¿½ï¿½ rollback ï¿½ï¿½ï¿½ï¿½ (com9104)\n"); 	
 			}						
 		
 		
 			
-			com9101 ( com9101_r);	
+			com9101 ( com9101_r, g_szDcmdIP, g_nDcmdPort);	
 
-			// ¹Þ´ø ÆÄÀÏ »èÁ¦			
+			// ï¿½Þ´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½			
 			return -RS_MYDISK_FILE_DATA_TRANSFER;
 		}
 		
 		
-		//// ÀÌ¾î ¿Ã¸®±â¸¦ À§ÇÑ ÆÄÀÏ ÇØ´õ ±¸Á¶Ã¼ »ý¼º ////
+		//// ï¿½Ì¾ï¿½ ï¿½Ã¸ï¿½ï¿½â¸¦ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ø´ï¿½ ï¿½ï¿½ï¿½ï¿½Ã¼ ï¿½ï¿½ï¿½ï¿½ ////
 	
-		//// ÆÄÀÏ ³»ºÎ Æ÷ÀÎÅÍ¸¦ ³¡À¸·Î ÀÌµ¿////
+		//// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Í¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ìµï¿½////
 	
 	//	if(fseek(DownloadFile,0l,SEEK_END)!=0) //err
 		if(fseeko64(DownloadFile,0l,SEEK_END))
@@ -1015,16 +1016,16 @@ int MyDiskFileDataTransfer(int& Socket,char *pRecvHead, char *pRecvData, char* &
 			memset(pSendData,0x00,sizeof(ERR_HEADER));
 			errheader.header.nCmd = RS_ERR;
 			errheader.header.nErrorCode = -RS_MYDISK_FILE_DATA_TRANSFER;
-			strcat(errheader.errmsg,"¼­¹ö ÆÄÀÏ ¼½ÅÍ ÀÌµ¿ ½ÇÆÐ ÇÏ¿´½À´Ï´Ù.");
+			strcat(errheader.errmsg,"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ìµï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ï¿ï¿½ï¿½ï¿½ï¿½Ï´ï¿½.");
 			
 			memcpy(pSendData, &errheader, sizeof(ERR_HEADER));
 		
 			pHeader->nCmd = RS_ERR;
 			
 			///////////////////////////////////////////////
-			// temp »èÁ¦									 //
-			// ¼­¹ö ¿ë·® (upload_size) ¾÷µ¥ÀÌÆ® rollback  //
-			// ÆÄÀÏ »èÁ¦ 								 //
+			// temp ï¿½ï¿½ï¿½ï¿½									 //
+			// ï¿½ï¿½ï¿½ï¿½ ï¿½ë·® (upload_size) ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® rollback  //
+			// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ 								 //
 			///////////////////////////////////////////////
 			
 			memset(&pcom9104_r,0x00,sizeof(CCOM9104_R));
@@ -1032,19 +1033,19 @@ int MyDiskFileDataTransfer(int& Socket,char *pRecvHead, char *pRecvData, char* &
 			
 			
 			pcom9104_r.proc_flag  =  2;   // 1=wedisk 2=mydata
-			pcom9104_r.id         = pFileinfo->cfups4003.id;        // ÄÁÅ×Ã÷ID(T_CONTENTS_TEMP.id)
-			memcpy(pcom9104_r.user_id ,pHeader->szUserID,sizeof(pHeader->szUserID)); // »ç¿ëÀÚ
+			pcom9104_r.id         = pFileinfo->cfups4003.id;        // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ID(T_CONTENTS_TEMP.id)
+			memcpy(pcom9104_r.user_id ,pHeader->szUserID,sizeof(pHeader->szUserID)); // ï¿½ï¿½ï¿½ï¿½ï¿½
 			pcom9104_r.file_size = pFileinfo->cfups4003.file_size;
-			if(com9104(pcom9104_r) < 0)
+			if(com9104(pcom9104_r, g_szDcmdIP, g_nDcmdPort) < 0)
 			{
-				infLOG(ERROR, "MyDiskFileDataTran ER] ³»ÀÚ·á½Ç rollback ¿À·ù (com9104)\n"); 	
+				infLOG(ERROR, "MyDiskFileDataTran ER] ï¿½ï¿½ï¿½Ú·ï¿½ï¿½ rollback ï¿½ï¿½ï¿½ï¿½ (com9104)\n"); 	
 			}						
 		
 		
 			
-			com9101 ( com9101_r);	
+			com9101 ( com9101_r, g_szDcmdIP, g_nDcmdPort);	
 
-			// ¹Þ´ø ÆÄÀÏ »èÁ¦
+			// ï¿½Þ´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 			return -RS_MYDISK_FILE_DATA_TRANSFER;
 		}
 
@@ -1052,11 +1053,11 @@ int MyDiskFileDataTransfer(int& Socket,char *pRecvHead, char *pRecvData, char* &
 		memset(pFileHead,0x00,sizeof(FILEHEAD));
 		
 		
-		//double dCurrentLen = (double)ftello64 (DownloadFile); // ÆÄÀÏÀÌ ¾îµð±îÁö ÀÖ´ÂÁö °áÁ¤
+		//double dCurrentLen = (double)ftello64 (DownloadFile); // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 		
 		double dCurrentLen = 0;
 	//			dCurrentLen = (double)statbuf.st_size;
-		dCurrentLen = (double)ftello64 (DownloadFile); // ÆÄÀÏÀÌ ¾îµð±îÁö ÀÖ´ÂÁö °áÁ¤
+		dCurrentLen = (double)ftello64 (DownloadFile); // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 
 		
 		
@@ -1065,17 +1066,17 @@ int MyDiskFileDataTransfer(int& Socket,char *pRecvHead, char *pRecvData, char* &
 		if(dCurrentLen < 0)
 			dCurrentLen = 0;
 			
-		pFileHead->dCurrentSize = dCurrentLen; //ÇØµå¿¡ Çö ÆÄÀÏ ±æÀÌ ÀúÀå		
+		pFileHead->dCurrentSize = dCurrentLen; //ï¿½Øµå¿¡ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½		
 		#ifdef __DEBUG
 		printf("MyDiskFileDataTran   ] dCurrentLen : %15.0f\n",dCurrentLen);
 		#endif
 	
 		
-		// head ÀÛ¼º
+		// head ï¿½Û¼ï¿½
 		memset(&headers,0x00,sizeof(HEADER));
 	
 		//key
-		headers.nCmd = RS_MYDISK_FILE_DATA_TRANSFER ; // µ¥ÀÌÅÍ Àü¼Û		
+		headers.nCmd = RS_MYDISK_FILE_DATA_TRANSFER ; // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½		
 		headers.nDataCnt = 1;
 		headers.nDataSize = sizeof(FILEHEAD);
 		headers.nErrorCode = 0;
@@ -1086,14 +1087,14 @@ int MyDiskFileDataTransfer(int& Socket,char *pRecvHead, char *pRecvData, char* &
 		
 		memcpy(pSendData + HEADER_SIZE,pFileHead, headers.nDataCnt*headers.nDataSize);
 		
-		//// body ÀÛ¼º////
+		//// body ï¿½Û¼ï¿½////
 		if(SendData(Socket,pSendData,HEADER_SIZE + headers.nDataCnt*headers.nDataSize)<0)  //struct _PACKET == PACKET
 		{
 			delete pFileHead;
 			///////////////////////////////////////////////
-			// temp »èÁ¦									 //
-			// ¼­¹ö ¿ë·® (upload_size) ¾÷µ¥ÀÌÆ® rollback  //
-			// ÆÄÀÏ »èÁ¦ 								 //
+			// temp ï¿½ï¿½ï¿½ï¿½									 //
+			// ï¿½ï¿½ï¿½ï¿½ ï¿½ë·® (upload_size) ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® rollback  //
+			// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ 								 //
 			///////////////////////////////////////////////
 			
 			memset(&pcom9104_r,0x00,sizeof(CCOM9104_R));
@@ -1101,19 +1102,19 @@ int MyDiskFileDataTransfer(int& Socket,char *pRecvHead, char *pRecvData, char* &
 			
 			
 			pcom9104_r.proc_flag  =  2;   // 1=wedisk 2=mydata
-			pcom9104_r.id         = pFileinfo->cfups4003.id;        // ÄÁÅ×Ã÷ID(T_CONTENTS_TEMP.id)
-			memcpy(pcom9104_r.user_id ,pHeader->szUserID,sizeof(pHeader->szUserID)); // »ç¿ëÀÚ
+			pcom9104_r.id         = pFileinfo->cfups4003.id;        // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ID(T_CONTENTS_TEMP.id)
+			memcpy(pcom9104_r.user_id ,pHeader->szUserID,sizeof(pHeader->szUserID)); // ï¿½ï¿½ï¿½ï¿½ï¿½
 			pcom9104_r.file_size = pFileinfo->cfups4003.file_size;
-			if(com9104(pcom9104_r) < 0)
+			if(com9104(pcom9104_r, g_szDcmdIP, g_nDcmdPort) < 0)
 			{
-				infLOG(ERROR, "MyDiskFileDataTran ER]  ³»ÀÚ·á½Ç rollback ¿À·ù (com9104)\n"); 	
+				infLOG(ERROR, "MyDiskFileDataTran ER]  ï¿½ï¿½ï¿½Ú·ï¿½ï¿½ rollback ï¿½ï¿½ï¿½ï¿½ (com9104)\n"); 	
 			}						
 		
 		
 			
-			com9101 ( com9101_r);	
+			com9101 ( com9101_r, g_szDcmdIP, g_nDcmdPort);	
 
-			// ¹Þ´ø ÆÄÀÏ »èÁ¦
+			// ï¿½Þ´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 
 			
 			return 0;
@@ -1127,8 +1128,8 @@ int MyDiskFileDataTransfer(int& Socket,char *pRecvHead, char *pRecvData, char* &
 		printf("MyDiskFileDataTran   ] file Head  send ok..%d\n",headers.nCmd);
 		#endif
 		
-		dTotalRecvLen = 0; //ÃÑ ¹ÞÀº ±æÀÌ
-		dTotalLen = pFileinfo->dFileSize - dCurrentLen; // downµÉ ÆÄÀÏÀÇ ÃÑ ±æÀÌ
+		dTotalRecvLen = 0; //ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+		dTotalLen = pFileinfo->dFileSize - dCurrentLen; // downï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 		#ifdef __DEBUG
 		printf("MyDiskFileDataTran   ] dCurrentLen : %15.0f = %15.0f - %15.0f\n",dTotalLen,pFileinfo->dFileSize,dCurrentLen);
 		#endif
@@ -1143,10 +1144,10 @@ int MyDiskFileDataTransfer(int& Socket,char *pRecvHead, char *pRecvData, char* &
 		
 		
 		#ifdef __DEBUG
-		printf("MyDiskFileDataTran   ] Checking File (%s) : ÆÄÀÏ ÀüÃ¼ ±æÀÌ (%15.0f ) = %15.0f\n ",pFileinfo->cfups4003.file_name2 , dTotalLen ,pFileinfo->dFileSize );
+		printf("MyDiskFileDataTran   ] Checking File (%s) : ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ã¼ ï¿½ï¿½ï¿½ï¿½ (%15.0f ) = %15.0f\n ",pFileinfo->cfups4003.file_name2 , dTotalLen ,pFileinfo->dFileSize );
 		#endif
 				
-		infLOG(ALWAY,"MyDiskFileDataTran   ] Checking File (%s) : ÆÄÀÏ ÀüÃ¼ ±æÀÌ (%15.0f ) =  %15.0f \n",pFileinfo->cfups4003.file_name2 , dTotalLen ,pFileinfo->dFileSize );
+		infLOG(ALWAY,"MyDiskFileDataTran   ] Checking File (%s) : ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ã¼ ï¿½ï¿½ï¿½ï¿½ (%15.0f ) =  %15.0f \n",pFileinfo->cfups4003.file_name2 , dTotalLen ,pFileinfo->dFileSize );
 		
 			
 		int fno = fileno(DownloadFile);	
@@ -1155,7 +1156,7 @@ int MyDiskFileDataTransfer(int& Socket,char *pRecvHead, char *pRecvData, char* &
 		{   	
 			memset(szRecvBuffer,0x00,RECVBUF);	
 			
-			///// ÆÄÀÏ¹Þ±â ///// ///// ³» ÀÚ·á´Â ÅëÇÕ Ã³¸® ¾ÈÇÔ.
+			///// ï¿½ï¿½ï¿½Ï¹Þ±ï¿½ ///// ///// ï¿½ï¿½ ï¿½Ú·ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Ã³ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½.
 			nRecvLen =  RecvFileData(Socket, szRecvBuffer, RECVBUF, dTotalLen);
 	        
 	        
@@ -1172,20 +1173,20 @@ int MyDiskFileDataTransfer(int& Socket,char *pRecvHead, char *pRecvData, char* &
         		if(nWriteLen == 0)
         		{
         			#ifdef __DEBUG
-        			printf("MyDiskFileDataTran   ] fileÀÇ ³¡\n");
+        			printf("MyDiskFileDataTran   ] fileï¿½ï¿½ ï¿½ï¿½\n");
         			#endif
-        			infLOG(ALWAY,"MyDiskFileDataTran   ] Write File End (%s) : ÆÄÀÏ ÀüÃ¼ ±æÀÌ (%15.0f ) =  %15.0f \n",pFileinfo->cfups4003.file_name2 , dTotalLen ,pFileinfo->dFileSize );
+        			infLOG(ALWAY,"MyDiskFileDataTran   ] Write File End (%s) : ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ã¼ ï¿½ï¿½ï¿½ï¿½ (%15.0f ) =  %15.0f \n",pFileinfo->cfups4003.file_name2 , dTotalLen ,pFileinfo->dFileSize );
         			
         		}
         		else	
         		{
-        			infLOG(ERROR,"MyDiskFileDataTran   ] Write File ERROR (%s) : ÆÄÀÏ ÀüÃ¼ ±æÀÌ (%15.0f ) =  %15.0f \n",pFileinfo->cfups4003.file_name2 , dTotalLen ,pFileinfo->dFileSize );
+        			infLOG(ERROR,"MyDiskFileDataTran   ] Write File ERROR (%s) : ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ã¼ ï¿½ï¿½ï¿½ï¿½ (%15.0f ) =  %15.0f \n",pFileinfo->cfups4003.file_name2 , dTotalLen ,pFileinfo->dFileSize );
         			nRecvLen = -1;
         		}
         	}
 
 
-	        if(nRecvLen <= 0 && dTotalLen != 0)	//¹Þ´Ù°¡ ¿À·ù°¡ ³µÀ»½Ã...DBÃ³¸®
+	        if(nRecvLen <= 0 && dTotalLen != 0)	//ï¿½Þ´Ù°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½...DBÃ³ï¿½ï¿½
 	        {
 			   	if(szRecvBuffer)
 					delete[] szRecvBuffer;	        	
@@ -1208,10 +1209,10 @@ int MyDiskFileDataTransfer(int& Socket,char *pRecvHead, char *pRecvData, char* &
 					memset(szErrMsg,0x00,sizeof(szErrMsg));
 					GetErrMsg(-nRecvLen,szErrMsg);
 						        		
-	        		infLOG(ERROR, " MyDiskFileDataTran ER] RecvSocket Error ( Á¢¼ÓÀ» ²÷¾ú½À´Ï´Ù. ) (%s)\n",szErrMsg); 
+	        		infLOG(ERROR, " MyDiskFileDataTran ER] RecvSocket Error ( ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½. ) (%s)\n",szErrMsg); 
 					
 					#ifdef __DEBUG
-					printf("MyDiskFileDataTran ER] RecvSocket Error ( Á¢¼ÓÀ» ²÷¾ú½À´Ï´Ù. ) (%s)\n",szErrMsg); 
+					printf("MyDiskFileDataTran ER] RecvSocket Error ( ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½. ) (%s)\n",szErrMsg); 
 					#endif
 	        	}       	
 				#ifdef __DEBUG
@@ -1223,7 +1224,7 @@ int MyDiskFileDataTransfer(int& Socket,char *pRecvHead, char *pRecvData, char* &
 		
 
 	
-			// temp ¿¡ ÀúÀåÇÏ±â
+			// temp ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï±ï¿½
 
 							
 				
@@ -1231,15 +1232,15 @@ int MyDiskFileDataTransfer(int& Socket,char *pRecvHead, char *pRecvData, char* &
 
 				///////////////////////////////////////////////
 					
-				infLOG(ERROR,"MyDiskFileDataTran ER] ³» ÀÚ·á½Ç ÆÄÀÏ ¹Þ±â Ãë¼Ò (%s) RecvLen (%d) dTotalRecvLen(%15.0f) TotalLen(%15.0f)\n"
+				infLOG(ERROR,"MyDiskFileDataTran ER] ï¿½ï¿½ ï¿½Ú·ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Þ±ï¿½ ï¿½ï¿½ï¿½ (%s) RecvLen (%d) dTotalRecvLen(%15.0f) TotalLen(%15.0f)\n"
 				, pFileinfo->cfups4003.file_name2,nRecvLen  ,dTotalRecvLen,dTotalLen);  		
 				
 
 				//////////////////////////////////////////
 				///////////////////////////////////////////////
-				// temp »èÁ¦									 //
-				// ¼­¹ö ¿ë·® (upload_size) ¾÷µ¥ÀÌÆ® rollback  //
-				// ÆÄÀÏ »èÁ¦ 								 //
+				// temp ï¿½ï¿½ï¿½ï¿½									 //
+				// ï¿½ï¿½ï¿½ï¿½ ï¿½ë·® (upload_size) ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® rollback  //
+				// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ 								 //
 				///////////////////////////////////////////////
 				
 				memset(&pcom9104_r,0x00,sizeof(CCOM9104_R));
@@ -1247,26 +1248,26 @@ int MyDiskFileDataTransfer(int& Socket,char *pRecvHead, char *pRecvData, char* &
 				
 				
 				pcom9104_r.proc_flag  =  2;   // 1=wedisk 2=mydata
-				pcom9104_r.id         = pFileinfo->cfups4003.id;        // ÄÁÅ×Ã÷ID(T_CONTENTS_TEMP.id)
-				memcpy(pcom9104_r.user_id ,pHeader->szUserID,sizeof(pHeader->szUserID)); // »ç¿ëÀÚ
+				pcom9104_r.id         = pFileinfo->cfups4003.id;        // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ID(T_CONTENTS_TEMP.id)
+				memcpy(pcom9104_r.user_id ,pHeader->szUserID,sizeof(pHeader->szUserID)); // ï¿½ï¿½ï¿½ï¿½ï¿½
 				pcom9104_r.file_size = pFileinfo->cfups4003.file_size;
-				if(com9104(pcom9104_r) < 0)
+				if(com9104(pcom9104_r, g_szDcmdIP, g_nDcmdPort) < 0)
 				{
-					infLOG(ERROR, "MyDiskFileDataTran ER]  ³»ÀÚ·á½Ç rollback ¿À·ù (com9104)\n"); 	
+					infLOG(ERROR, "MyDiskFileDataTran ER]  ï¿½ï¿½ï¿½Ú·ï¿½ï¿½ rollback ï¿½ï¿½ï¿½ï¿½ (com9104)\n"); 	
 				}						
 			
 			
 				
-				com9101 ( com9101_r);	
+				com9101 ( com9101_r, g_szDcmdIP, g_nDcmdPort);	
 	
-				// ¹Þ´ø ÆÄÀÏ »èÁ¦
+				// ï¿½Þ´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 				
 				//return END;
 				return 0;
         	
         	}        
-	        dTotalLen = dTotalLen - (double)nRecvLen;  //ÃÑ±æÀÌ¿¡¼­  ¹ÞÀº ±æÀÌ Á¦°Å
-	    	dTotalRecvLen = dTotalRecvLen + (double)nRecvLen; //¹ÞÀº ±æÀÌ ¸¸Å­ ´õÇÔ
+	        dTotalLen = dTotalLen - (double)nRecvLen;  //ï¿½Ñ±ï¿½ï¿½Ì¿ï¿½ï¿½ï¿½  ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	    	dTotalRecvLen = dTotalRecvLen + (double)nRecvLen; //ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å­ ï¿½ï¿½ï¿½ï¿½
 
         
 	    	
@@ -1289,8 +1290,8 @@ int MyDiskFileDataTransfer(int& Socket,char *pRecvHead, char *pRecvData, char* &
 		printf("MyDiskFileDataTran   ] file close success\n");
 		#endif
 		///////////////////////////////////////////////
-		//ÆÄÀÏ ÀÌ¸§ ¹Ù²Ù±â
-		// DB ³Ö±â..
+		//ï¿½ï¿½ï¿½ï¿½ ï¿½Ì¸ï¿½ ï¿½Ù²Ù±ï¿½
+		// DB ï¿½Ö±ï¿½..
 	
 	
 	
@@ -1298,10 +1299,10 @@ int MyDiskFileDataTransfer(int& Socket,char *pRecvHead, char *pRecvData, char* &
 		printf("MyDiskFileDataTran   ] contents number : (%s) ( %lu ) (%lu)\n",pFileinfo->cfups4003.file_name2, pFileinfo->nNumber,pFileinfo->cfups4003.id);
 		#endif
 			
-		infLOG(ALWAY,"MyDiskFileDataTran   ] My µð½ºÅ© Temp ¹øÈ£ (%s) (%lu) (%lu)\n",pFileinfo->cfups4003.file_name2, pFileinfo->nNumber,pFileinfo->cfups4003.id); 
+		infLOG(ALWAY,"MyDiskFileDataTran   ] My ï¿½ï¿½Å© Temp ï¿½ï¿½È£ (%s) (%lu) (%lu)\n",pFileinfo->cfups4003.file_name2, pFileinfo->nNumber,pFileinfo->cfups4003.id); 
 	
 	
-	//¿©±â¼­ ºÎÅÍ ¹Þ±â ½ÃÀÛ
+	//ï¿½ï¿½ï¿½â¼­ ï¿½ï¿½ï¿½ï¿½ ï¿½Þ±ï¿½ ï¿½ï¿½ï¿½ï¿½
 			
 		memset(&headers,0x00,sizeof(HEADER));
 		if(RecvData(Socket,(char*)&headers,HEADER_SIZE ) <= 0)
@@ -1310,13 +1311,13 @@ int MyDiskFileDataTransfer(int& Socket,char *pRecvHead, char *pRecvData, char* &
 			infLOG(ERROR, "MyDiskFileDataTran ER] FileTransfer Recv Head Error\n");			
 			
 			#ifdef __DEBUG
-			printf("MyDiskFileDataTran ER] WaitForRequst : ÀÀ´ä ´ë±âÁß ¿¡·¯ 1: <client Á×À½>\n");
+			printf("MyDiskFileDataTran ER] WaitForRequst : ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ 1: <client ï¿½ï¿½ï¿½ï¿½>\n");
 			#endif
 			
 			///////////////////////////////////////////////
-			// temp »èÁ¦									 //
-			// ¼­¹ö ¿ë·® (upload_size) ¾÷µ¥ÀÌÆ® rollback  //
-			// ÆÄÀÏ »èÁ¦ 								 //
+			// temp ï¿½ï¿½ï¿½ï¿½									 //
+			// ï¿½ï¿½ï¿½ï¿½ ï¿½ë·® (upload_size) ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® rollback  //
+			// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ 								 //
 			///////////////////////////////////////////////
 			
 			memset(&pcom9104_r,0x00,sizeof(CCOM9104_R));
@@ -1324,19 +1325,19 @@ int MyDiskFileDataTransfer(int& Socket,char *pRecvHead, char *pRecvData, char* &
 			
 			
 			pcom9104_r.proc_flag  =  2;   // 1=wedisk 2=mydata
-			pcom9104_r.id         = pFileinfo->cfups4003.id;        // ÄÁÅ×Ã÷ID(T_CONTENTS_TEMP.id)
-			memcpy(pcom9104_r.user_id ,pHeader->szUserID,sizeof(pHeader->szUserID)); // »ç¿ëÀÚ
+			pcom9104_r.id         = pFileinfo->cfups4003.id;        // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ID(T_CONTENTS_TEMP.id)
+			memcpy(pcom9104_r.user_id ,pHeader->szUserID,sizeof(pHeader->szUserID)); // ï¿½ï¿½ï¿½ï¿½ï¿½
 			pcom9104_r.file_size = pFileinfo->cfups4003.file_size;
-			if(com9104(pcom9104_r) < 0)
+			if(com9104(pcom9104_r, g_szDcmdIP, g_nDcmdPort) < 0)
 			{
-				infLOG(ERROR, "MyDiskFileDataTran ER]  ³»ÀÚ·á½Ç rollback ¿À·ù (com9104)\n"); 	
+				infLOG(ERROR, "MyDiskFileDataTran ER]  ï¿½ï¿½ï¿½Ú·ï¿½ï¿½ rollback ï¿½ï¿½ï¿½ï¿½ (com9104)\n"); 	
 			}						
 		
 		
 			
-			com9101 ( com9101_r);	
+			com9101 ( com9101_r, g_szDcmdIP, g_nDcmdPort);	
 
-			// ¹Þ´ø ÆÄÀÏ »èÁ¦
+			// ï¿½Þ´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 			return 0;
 		}
 	
@@ -1348,7 +1349,7 @@ int MyDiskFileDataTransfer(int& Socket,char *pRecvHead, char *pRecvData, char* &
 			#endif
 			memset(&headers,0x00,HEADER_SIZE);
 			
-			headers.nCmd = RS_MYDISK_FILE_REQUEST_NEXT_FILEINFO; //ÆÄÀÏ Á¤º¸ ¿äÃ»
+			headers.nCmd = RS_MYDISK_FILE_REQUEST_NEXT_FILEINFO; //ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ã»
 			headers.nDataCnt = 0;
 			headers.nDataSize = 0;
 			
@@ -1360,9 +1361,9 @@ int MyDiskFileDataTransfer(int& Socket,char *pRecvHead, char *pRecvData, char* &
 				#endif
 		
 				///////////////////////////////////////////////
-				// temp »èÁ¦									 //
-				// ¼­¹ö ¿ë·® (upload_size) ¾÷µ¥ÀÌÆ® rollback  //
-				// ÆÄÀÏ »èÁ¦ 								 //
+				// temp ï¿½ï¿½ï¿½ï¿½									 //
+				// ï¿½ï¿½ï¿½ï¿½ ï¿½ë·® (upload_size) ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® rollback  //
+				// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ 								 //
 				///////////////////////////////////////////////
 				
 				memset(&pcom9104_r,0x00,sizeof(CCOM9104_R));
@@ -1370,19 +1371,19 @@ int MyDiskFileDataTransfer(int& Socket,char *pRecvHead, char *pRecvData, char* &
 				
 				
 				pcom9104_r.proc_flag  =  2;   // 1=wedisk 2=mydata
-				pcom9104_r.id         = pFileinfo->cfups4003.id;        // ÄÁÅ×Ã÷ID(T_CONTENTS_TEMP.id)
-				memcpy(pcom9104_r.user_id ,pHeader->szUserID,sizeof(pHeader->szUserID)); // »ç¿ëÀÚ
+				pcom9104_r.id         = pFileinfo->cfups4003.id;        // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ID(T_CONTENTS_TEMP.id)
+				memcpy(pcom9104_r.user_id ,pHeader->szUserID,sizeof(pHeader->szUserID)); // ï¿½ï¿½ï¿½ï¿½ï¿½
 				pcom9104_r.file_size = pFileinfo->cfups4003.file_size;
-				if(com9104(pcom9104_r) < 0)
+				if(com9104(pcom9104_r, g_szDcmdIP, g_nDcmdPort) < 0)
 				{
-					infLOG(ERROR, "MyDiskFileDataTran ER] ³»ÀÚ·á½Ç rollback ¿À·ù (com9104)\n"); 	
+					infLOG(ERROR, "MyDiskFileDataTran ER] ï¿½ï¿½ï¿½Ú·ï¿½ï¿½ rollback ï¿½ï¿½ï¿½ï¿½ (com9104)\n"); 	
 				}						
 			
 			
 				
-				com9101 ( com9101_r);	
+				com9101 ( com9101_r, g_szDcmdIP, g_nDcmdPort);	
 	
-				// ¹Þ´ø ÆÄÀÏ »èÁ¦
+				// ï¿½Þ´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 				
 				return 0;
 				
@@ -1396,13 +1397,13 @@ int MyDiskFileDataTransfer(int& Socket,char *pRecvHead, char *pRecvData, char* &
 				infLOG(ERROR, "MyDiskFileDataTran ER] second FileTransfer Recv Head Error\n");			
 				
 				#ifdef __DEBUG
-				printf("MyDiskFileDataTran ER]  WaitForRequst : ÀÀ´ä ´ë±âÁß ¿¡·¯ 1: <client Á×À½>\n");
+				printf("MyDiskFileDataTran ER]  WaitForRequst : ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ 1: <client ï¿½ï¿½ï¿½ï¿½>\n");
 				#endif
 			
 				///////////////////////////////////////////////
-				// temp »èÁ¦									 //
-				// ¼­¹ö ¿ë·® (upload_size) ¾÷µ¥ÀÌÆ® rollback  //
-				// ÆÄÀÏ »èÁ¦ 								 //
+				// temp ï¿½ï¿½ï¿½ï¿½									 //
+				// ï¿½ï¿½ï¿½ï¿½ ï¿½ë·® (upload_size) ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® rollback  //
+				// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ 								 //
 				///////////////////////////////////////////////
 				
 				memset(&pcom9104_r,0x00,sizeof(CCOM9104_R));
@@ -1410,24 +1411,24 @@ int MyDiskFileDataTransfer(int& Socket,char *pRecvHead, char *pRecvData, char* &
 				
 				
 				pcom9104_r.proc_flag  =  2;   // 1=wedisk 2=mydata
-				pcom9104_r.id         = pFileinfo->cfups4003.id;        // ÄÁÅ×Ã÷ID(T_CONTENTS_TEMP.id)
-				memcpy(pcom9104_r.user_id ,pHeader->szUserID,sizeof(pHeader->szUserID)); // »ç¿ëÀÚ
+				pcom9104_r.id         = pFileinfo->cfups4003.id;        // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ID(T_CONTENTS_TEMP.id)
+				memcpy(pcom9104_r.user_id ,pHeader->szUserID,sizeof(pHeader->szUserID)); // ï¿½ï¿½ï¿½ï¿½ï¿½
 				pcom9104_r.file_size = pFileinfo->cfups4003.file_size;
-				if(com9104(pcom9104_r) < 0)
+				if(com9104(pcom9104_r, g_szDcmdIP, g_nDcmdPort) < 0)
 				{
-					infLOG(ERROR, "MyDiskFileDataTran ER] ³»ÀÚ·á½Ç rollback ¿À·ù (com9104)\n"); 	
+					infLOG(ERROR, "MyDiskFileDataTran ER] ï¿½ï¿½ï¿½Ú·ï¿½ï¿½ rollback ï¿½ï¿½ï¿½ï¿½ (com9104)\n"); 	
 				}						
 			
 			
 				
-				com9101 ( com9101_r);	
+				com9101 ( com9101_r, g_szDcmdIP, g_nDcmdPort);	
 	
-				// ¹Þ´ø ÆÄÀÏ »èÁ¦
+				// ï¿½Þ´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 				
 				return 0;					
 				
 			}
-		/*	 ÄÚµå Ãß°¡ 
+		/*	 ï¿½Úµï¿½ ï¿½ß°ï¿½ 
 			if( headers.nCmd == RS_EOL)
 			{
 					HEADER headers;
@@ -1457,9 +1458,9 @@ int MyDiskFileDataTransfer(int& Socket,char *pRecvHead, char *pRecvData, char* &
 
 	
 				///////////////////////////////////////////////
-				// temp »èÁ¦									 //
-				// ¼­¹ö ¿ë·® (upload_size) ¾÷µ¥ÀÌÆ® rollback  //
-				// ÆÄÀÏ »èÁ¦ 								 //
+				// temp ï¿½ï¿½ï¿½ï¿½									 //
+				// ï¿½ï¿½ï¿½ï¿½ ï¿½ë·® (upload_size) ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® rollback  //
+				// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ 								 //
 				///////////////////////////////////////////////
 				
 				memset(&pcom9104_r,0x00,sizeof(CCOM9104_R));
@@ -1467,19 +1468,19 @@ int MyDiskFileDataTransfer(int& Socket,char *pRecvHead, char *pRecvData, char* &
 				
 				
 				pcom9104_r.proc_flag  =  2;   // 1=wedisk 2=mydata
-				pcom9104_r.id         = pFileinfo->cfups4003.id;        // ÄÁÅ×Ã÷ID(T_CONTENTS_TEMP.id)
-				memcpy(pcom9104_r.user_id ,pHeader->szUserID,sizeof(pHeader->szUserID)); // »ç¿ëÀÚ
+				pcom9104_r.id         = pFileinfo->cfups4003.id;        // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ID(T_CONTENTS_TEMP.id)
+				memcpy(pcom9104_r.user_id ,pHeader->szUserID,sizeof(pHeader->szUserID)); // ï¿½ï¿½ï¿½ï¿½ï¿½
 				pcom9104_r.file_size = pFileinfo->cfups4003.file_size;
-				if(com9104(pcom9104_r) < 0)
+				if(com9104(pcom9104_r, g_szDcmdIP, g_nDcmdPort) < 0)
 				{
-					infLOG(ERROR, "MyDiskFileDataTran ER] ³»ÀÚ·á½Ç rollback ¿À·ù (com9104)\n"); 	
+					infLOG(ERROR, "MyDiskFileDataTran ER] ï¿½ï¿½ï¿½Ú·ï¿½ï¿½ rollback ï¿½ï¿½ï¿½ï¿½ (com9104)\n"); 	
 				}						
 			
 			
 				
-				com9101 ( com9101_r);	
+				com9101 ( com9101_r, g_szDcmdIP, g_nDcmdPort);	
 	
-				// ¹Þ´ø ÆÄÀÏ »èÁ¦
+				// ï¿½Þ´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 				
 				return 0;		
 			}
@@ -1490,34 +1491,34 @@ int MyDiskFileDataTransfer(int& Socket,char *pRecvHead, char *pRecvData, char* &
 		else if(headers.nCmd == RS_EOL)
 		{
 			
-			if(pFileinfo->nTypeDisk == FT_MYDISK && pFileinfo->nNumber > 0 ) //ÄÁÅÙÃ÷ µî·Ï
+			if(pFileinfo->nTypeDisk == FT_MYDISK && pFileinfo->nNumber > 0 ) //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
 			{
 				#ifdef __DEBUG
-				printf("MyDiskFileDataTran ER] ÄÁÅÙÃ÷ µî·Ï\n");
+				printf("MyDiskFileDataTran ER] ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½\n");
 				#endif
 				if( dTotalLen == 0)
 				{
 					#ifdef __DEBUG
-					printf("MyDiskFileDataTran ER] My µð½ºÅ© ÆÄÀÏ µî·Ï (%s)\n",pFileinfo->cfups4003.file_name2);
+					printf("MyDiskFileDataTran ER] My ï¿½ï¿½Å© ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ (%s)\n",pFileinfo->cfups4003.file_name2);
 					#endif			
-					infLOG(ALWAY,"MyDiskFileDataTran ER] My µð½ºÅ© ÆÄÀÏ µî·Ï (%s)\n",pFileinfo->cfups4003.file_name2); 
+					infLOG(ALWAY,"MyDiskFileDataTran ER] My ï¿½ï¿½Å© ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ (%s)\n",pFileinfo->cfups4003.file_name2); 
 				
 							
 						
 					if( fups4003(pFileinfo->cfups4003) == -1)//pFileinfo->cfups4001) == -1)
 					{
 						#ifdef __DEBUG
-						printf("MyDiskFileDataTran ER] ³»ÀÚ·á½Ç µî·Ï ¿À·ù\n");
+						printf("MyDiskFileDataTran ER] ï¿½ï¿½ï¿½Ú·ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½\n");
 						#endif
-						infLOG(ERROR,"MyDiskFileDataTran ER]  ³»ÀÚ·á½Ç µî·Ï ¿À·ù \n"); 	
+						infLOG(ERROR,"MyDiskFileDataTran ER]  ï¿½ï¿½ï¿½Ú·ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ \n"); 	
 										
 						memset(&headers,0x00,sizeof(HEADER));
 						
 								
 						///////////////////////////////////////////////
-						// temp »èÁ¦									 //
-						// ¼­¹ö ¿ë·® (upload_size) ¾÷µ¥ÀÌÆ® rollback  //
-						// ÆÄÀÏ »èÁ¦ 								 //
+						// temp ï¿½ï¿½ï¿½ï¿½									 //
+						// ï¿½ï¿½ï¿½ï¿½ ï¿½ë·® (upload_size) ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® rollback  //
+						// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ 								 //
 						///////////////////////////////////////////////
 						
 						memset(&pcom9104_r,0x00,sizeof(CCOM9104_R));
@@ -1525,22 +1526,22 @@ int MyDiskFileDataTransfer(int& Socket,char *pRecvHead, char *pRecvData, char* &
 						
 						
 						pcom9104_r.proc_flag  =  2;   // 1=wedisk 2=mydata
-						pcom9104_r.id         = pFileinfo->cfups4003.id;        // ÄÁÅ×Ã÷ID(T_CONTENTS_TEMP.id)
-						memcpy(pcom9104_r.user_id ,pHeader->szUserID,sizeof(pHeader->szUserID)); // »ç¿ëÀÚ
+						pcom9104_r.id         = pFileinfo->cfups4003.id;        // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ID(T_CONTENTS_TEMP.id)
+						memcpy(pcom9104_r.user_id ,pHeader->szUserID,sizeof(pHeader->szUserID)); // ï¿½ï¿½ï¿½ï¿½ï¿½
 						pcom9104_r.file_size = pFileinfo->cfups4003.file_size;
-						if(com9104(pcom9104_r) < 0)
+						if(com9104(pcom9104_r, g_szDcmdIP, g_nDcmdPort) < 0)
 						{
-							infLOG(ERROR, "MyDiskFileDataTran ER] ³»ÀÚ·á½Ç rollback ¿À·ù (com9104)\n"); 	
+							infLOG(ERROR, "MyDiskFileDataTran ER] ï¿½ï¿½ï¿½Ú·ï¿½ï¿½ rollback ï¿½ï¿½ï¿½ï¿½ (com9104)\n"); 	
 						}						
 					
 					
 						
-						com9101 ( com9101_r);	
-						// ¹Þ´ø ÆÄÀÏ »èÁ¦
+						com9101 ( com9101_r, g_szDcmdIP, g_nDcmdPort);	
+						// ï¿½Þ´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 						
 										
-						infLOG(ERROR, "MyDiskFileDataTran ER] ================== ³» µð½ºÅ© µî·Ï ¿À·ù ===================\n"
-									  "MyDiskFileDataTran ER] ¼­¹ö ¾ÆµðÀÌ( %s ) ÆÄÀÏ°æ·Î ( %s )                         \n"
+						infLOG(ERROR, "MyDiskFileDataTran ER] ================== ï¿½ï¿½ ï¿½ï¿½Å© ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ===================\n"
+									  "MyDiskFileDataTran ER] ï¿½ï¿½ï¿½ï¿½ ï¿½Æµï¿½ï¿½ï¿½( %s ) ï¿½ï¿½ï¿½Ï°ï¿½ï¿½ ( %s )                         \n"
 									  "MyDiskFileDataTran ER] =========================================================\n" ,pFileinfo->cfups4003.server_id ,strFullPath); 
 			
 		//////////////////////////////////////////
@@ -1561,10 +1562,10 @@ int MyDiskFileDataTransfer(int& Socket,char *pRecvHead, char *pRecvData, char* &
 							printf("MyDiskFileDataTran ER] SendData (RS_MYDISK_FILE_END_FAIL)\n");
 							#endif
 
-							com9101 ( com9101_r);
+							com9101 ( com9101_r, g_szDcmdIP, g_nDcmdPort);
 							return 0;
 						}
-						com9101 ( com9101_r);
+						com9101 ( com9101_r, g_szDcmdIP, g_nDcmdPort);
 						return 1;
 						 
 						
@@ -1589,9 +1590,9 @@ int MyDiskFileDataTransfer(int& Socket,char *pRecvHead, char *pRecvData, char* &
 		
 		
 					///////////////////////////////////////////////
-					// temp »èÁ¦									 //
-					// ¼­¹ö ¿ë·® (upload_size) ¾÷µ¥ÀÌÆ® rollback  //
-					// ÆÄÀÏ »èÁ¦ 								 //
+					// temp ï¿½ï¿½ï¿½ï¿½									 //
+					// ï¿½ï¿½ï¿½ï¿½ ï¿½ë·® (upload_size) ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® rollback  //
+					// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ 								 //
 					///////////////////////////////////////////////
 					
 					memset(&pcom9104_r,0x00,sizeof(CCOM9104_R));
@@ -1599,19 +1600,19 @@ int MyDiskFileDataTransfer(int& Socket,char *pRecvHead, char *pRecvData, char* &
 					
 					
 					pcom9104_r.proc_flag  =  2;   // 1=wedisk 2=mydata
-					pcom9104_r.id         = pFileinfo->cfups4003.id;        // ÄÁÅ×Ã÷ID(T_CONTENTS_TEMP.id)
-					memcpy(pcom9104_r.user_id ,pHeader->szUserID,sizeof(pHeader->szUserID)); // »ç¿ëÀÚ
+					pcom9104_r.id         = pFileinfo->cfups4003.id;        // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ID(T_CONTENTS_TEMP.id)
+					memcpy(pcom9104_r.user_id ,pHeader->szUserID,sizeof(pHeader->szUserID)); // ï¿½ï¿½ï¿½ï¿½ï¿½
 					pcom9104_r.file_size = pFileinfo->cfups4003.file_size;
-					if(com9104(pcom9104_r) < 0)
+					if(com9104(pcom9104_r, g_szDcmdIP, g_nDcmdPort) < 0)
 					{
-						infLOG(ERROR, "MyDiskFileDataTran ER]  ³»ÀÚ·á½Ç rollback ¿À·ù (com9104)\n"); 	
+						infLOG(ERROR, "MyDiskFileDataTran ER]  ï¿½ï¿½ï¿½Ú·ï¿½ï¿½ rollback ï¿½ï¿½ï¿½ï¿½ (com9104)\n"); 	
 					}						
 				
 				
 					
-					com9101 ( com9101_r);	
+					com9101 ( com9101_r, g_szDcmdIP, g_nDcmdPort);	
 		
-					// ¹Þ´ø ÆÄÀÏ »èÁ¦
+					// ï¿½Þ´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 					
 					
 					if(	SendData(Socket,(char*)&headers,HEADER_SIZE)<0)  //struct _PACKET == PACKET
@@ -1620,10 +1621,10 @@ int MyDiskFileDataTransfer(int& Socket,char *pRecvHead, char *pRecvData, char* &
 						#ifdef __DEBUG
 						printf("MyDiskFileDataTran ER] send \n");
 						#endif
-						com9101 ( com9101_r);
+						com9101 ( com9101_r, g_szDcmdIP, g_nDcmdPort);
 						return 0;
 					}
-					com9101 ( com9101_r);
+					com9101 ( com9101_r, g_szDcmdIP, g_nDcmdPort);
 					return 1;
 				}
 				
@@ -1639,17 +1640,17 @@ int MyDiskFileDataTransfer(int& Socket,char *pRecvHead, char *pRecvData, char* &
 			memset(&headers,0x00,HEADER_SIZE);
 			
 			
-			headers.nCmd = RS_EOL; //ÆÄÀÏ Á¤º¸ ¿äÃ»
+			headers.nCmd = RS_EOL; //ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ã»
 			headers.nDataCnt = 0;
 			headers.nDataSize = 0;
 			
 			if(	SendData(Socket,(char*)&headers,HEADER_SIZE )<0)  //struct _PACKET == PACKET
 			{
 				infLOG(ERROR, "MyDiskFileDataTran ER]  SendData \n"); 
-				com9101 ( com9101_r);
+				com9101 ( com9101_r, g_szDcmdIP, g_nDcmdPort);
 				return 0;
 			}
-			com9101 ( com9101_r);
+			com9101 ( com9101_r, g_szDcmdIP, g_nDcmdPort);
 			return 0;
 			
 		}
@@ -1663,9 +1664,9 @@ int MyDiskFileDataTransfer(int& Socket,char *pRecvHead, char *pRecvData, char* &
 			
 
 			///////////////////////////////////////////////
-			// temp »èÁ¦									 //
-			// ¼­¹ö ¿ë·® (upload_size) ¾÷µ¥ÀÌÆ® rollback  //
-			// ÆÄÀÏ »èÁ¦ 								 //
+			// temp ï¿½ï¿½ï¿½ï¿½									 //
+			// ï¿½ï¿½ï¿½ï¿½ ï¿½ë·® (upload_size) ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® rollback  //
+			// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ 								 //
 			///////////////////////////////////////////////
 			
 			memset(&pcom9104_r,0x00,sizeof(CCOM9104_R));
@@ -1673,26 +1674,26 @@ int MyDiskFileDataTransfer(int& Socket,char *pRecvHead, char *pRecvData, char* &
 			
 			
 			pcom9104_r.proc_flag  =  2;   // 1=wedisk 2=mydata
-			pcom9104_r.id         = pFileinfo->cfups4003.id;        // ÄÁÅ×Ã÷ID(T_CONTENTS_TEMP.id)
-			memcpy(pcom9104_r.user_id ,pHeader->szUserID,sizeof(pHeader->szUserID)); // »ç¿ëÀÚ
+			pcom9104_r.id         = pFileinfo->cfups4003.id;        // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ID(T_CONTENTS_TEMP.id)
+			memcpy(pcom9104_r.user_id ,pHeader->szUserID,sizeof(pHeader->szUserID)); // ï¿½ï¿½ï¿½ï¿½ï¿½
 			pcom9104_r.file_size = pFileinfo->cfups4003.file_size;
-			if(com9104(pcom9104_r) < 0)
+			if(com9104(pcom9104_r, g_szDcmdIP, g_nDcmdPort) < 0)
 			{
-				infLOG(ERROR, "MyDiskFileDataTran ER]  ³»ÀÚ·á½Ç rollback ¿À·ù (com9104)\n"); 	
+				infLOG(ERROR, "MyDiskFileDataTran ER]  ï¿½ï¿½ï¿½Ú·ï¿½ï¿½ rollback ï¿½ï¿½ï¿½ï¿½ (com9104)\n"); 	
 			}						
 		
 		
 			
-			com9101 ( com9101_r);	
+			com9101 ( com9101_r, g_szDcmdIP, g_nDcmdPort);	
 
-			// ¹Þ´ø ÆÄÀÏ »èÁ¦
+			// ï¿½Þ´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 			return 0;
 		}
 		
 				
 	}while( 1 );
 	
-	com9101 ( com9101_r);
+		com9101 ( com9101_r, g_szDcmdIP, g_nDcmdPort);
 	return 0;	
 	
 }

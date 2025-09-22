@@ -1,11 +1,11 @@
 /******************************************************************************
- *   ¼­ºê½Ã½ºÅÛ : file upload ¼­¹ö
- *   ÇÁ·Î±×·¥¸í : fupmain.h
- *         ±â´É : cmdmainÀÇ ¸ÞÀÎ Çì´õ
- *         ¼³¸í :
- *       ÀÛ¼ºÀÚ : LEE
- *       ÀÛ¼ºÀÏ : 2004/02/16
- *     ¼öÁ¤ÀÌ·Â :
+ *   ï¿½ï¿½ï¿½ï¿½Ã½ï¿½ï¿½ï¿½ : file upload ï¿½ï¿½ï¿½ï¿½
+ *   ï¿½ï¿½ï¿½Î±×·ï¿½ï¿½ï¿½ : fupmain.h
+ *         ï¿½ï¿½ï¿½ : cmdmainï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
+ *         ï¿½ï¿½ï¿½ï¿½ :
+ *       ï¿½Û¼ï¿½ï¿½ï¿½ : LEE
+ *       ï¿½Û¼ï¿½ï¿½ï¿½ : 2004/02/16
+ *     ï¿½ï¿½ï¿½ï¿½ï¿½Ì·ï¿½ :
 ********************************************************************************
 1         2         3         4         5         6         7         8
 12345678901234567890123456789012345678901234567890123456789012345678901234567890
@@ -30,6 +30,11 @@ extern multimap<int,USERINFO>m_UserList;
 extern pthread_cond_t async_cond ;
 extern pthread_mutex_t mutex_lock ;
 extern pthread_mutex_t async_mutex ;
+
+extern char g_szDcmdIP[20];
+extern int g_nDcmdPort;
+extern char g_szSUB_DcmdIP[20];
+extern int g_nSUB_DcmdPort;
 
 
 #endif

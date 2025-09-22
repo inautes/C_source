@@ -5,17 +5,18 @@
 #include "fupweproc.h"
 #include "fupcomlib.h"
 #include "comhead.h"
-#include "com9001.h" //»ç¿ëÀÚ¼ö Áõ°¡
-#include "com9004.h" //¼ºÀÎ¹° ÄÁÅÙÃ÷ µî·Ï Á¦¾î
-#include "com9101.h" //»ç¿ëÀÚ¼ö °¨¼Ò
-#include "com9104.h" //¾÷·Îµå ¿À·ù Ã³¸®
-#include "com9103.h" //ÇÊ·Î±× ÀÚ·á½Ç ¾÷·Îµå ¿ë·® È®ÀÎ
-#include "com9105.h" //T_CONTENTS_TEMP ¿¡ ÆÄÀÏ ÀúÀå
-#include "com9106.h" // Áßº¹ÆÄÀÏ Ã¼Å©
+#include "com9001.h" //ï¿½ï¿½ï¿½ï¿½Ú¼ï¿½ ï¿½ï¿½ï¿½ï¿½
+#include "com9004.h" //ï¿½ï¿½ï¿½Î¹ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+#include "com9101.h" //ï¿½ï¿½ï¿½ï¿½Ú¼ï¿½ ï¿½ï¿½ï¿½ï¿½
+#include "com9104.h" //ï¿½ï¿½ï¿½Îµï¿½ ï¿½ï¿½ï¿½ï¿½ Ã³ï¿½ï¿½
+#include "com9103.h" //ï¿½Ê·Î±ï¿½ ï¿½Ú·ï¿½ï¿½ ï¿½ï¿½ï¿½Îµï¿½ ï¿½ë·® È®ï¿½ï¿½
+#include "com9105.h" //T_CONTENTS_TEMP ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+#include "com9106.h" // ï¿½ßºï¿½ï¿½ï¿½ï¿½ï¿½ Ã¼Å©
 #include "fups40010.h"
 #include "fups4005.h"
 #include "fups4006.h"
 #include "cmd5.h"
+#include "fupmain.h"
 
 #include <stdio.h>
 #include <string.h>     /* for memset() */
@@ -29,7 +30,7 @@
 
 extern multimap<int,USERINFO>m_UserList;
 
-// ´ÙÀ½ ÆÄÀÏ ¿ä±¸
+// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ä±¸
 int FileRequestNextFile(int& Socket,char *pRecvHead, char *pRecvData, char* &pSendData)
 {
 	infLOG(ALWAY,"CMD > FileRequestNextFile\n");
@@ -40,7 +41,7 @@ int FileRequestNextFile(int& Socket,char *pRecvHead, char *pRecvData, char* &pSe
 	pSendData = new char[sizeof(HEADER)];
 	memset(pSendData,0x00,sizeof(HEADER));
 
-	headers.nCmd = RS_FILE_REQUEST_NEXT_FILEINFO; //ÆÄÀÏ Á¤º¸ ¿äÃ»
+	headers.nCmd = RS_FILE_REQUEST_NEXT_FILEINFO; //ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ã»
 	headers.nDataCnt = 0;
 	headers.nDataSize = 0;
 
@@ -49,7 +50,7 @@ int FileRequestNextFile(int& Socket,char *pRecvHead, char *pRecvData, char* &pSe
 	return (HEADER_SIZE + (headers.nDataCnt * headers.nDataSize));//return 1;
 }
 
-// ÆÄÀÏ Á¤º¸ ¿ä±¸
+// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ä±¸
 int FileRequestFile(int& Socket,char *pRecvHead, char *pRecvData, char* &pSendData)
 {
 	infLOG(ALWAY,"CMD > FileRequestFile\n");
@@ -59,7 +60,7 @@ int FileRequestFile(int& Socket,char *pRecvHead, char *pRecvData, char* &pSendDa
 	pSendData = new char[sizeof(HEADER)];
 	memset(pSendData,0x00,sizeof(HEADER));
 
-	headers.nCmd = RS_FILE_REQUEST_FILE_FILINFO; //ÆÄÀÏ Á¤º¸ ¿äÃ»
+	headers.nCmd = RS_FILE_REQUEST_FILE_FILINFO; //ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ã»
 	headers.nDataCnt = 0;
 	headers.nDataSize = 0;
 
@@ -68,10 +69,10 @@ int FileRequestFile(int& Socket,char *pRecvHead, char *pRecvData, char* &pSendDa
 	return (HEADER_SIZE + (headers.nDataCnt * headers.nDataSize));//return 1;
 }
 
-//ÆÄÀÏ ¸ñ·Ï( MY_DISK ¿¡¼­ Æú´õ ÀÏ¶§ ÇÊ¿ä -> ´Ù¸¥ »ç¶÷¿¡°Ô °øÀ¯ ÇÒ µð½ºÅ©  )
-//³»ÀÚ·á½ÇÀÏ¶§ Ãß°¡
+//ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½( MY_DISK ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ï¶ï¿½ ï¿½Ê¿ï¿½ -> ï¿½Ù¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½Å©  )
+//ï¿½ï¿½ï¿½Ú·ï¿½ï¿½ï¿½Ï¶ï¿½ ï¿½ß°ï¿½
 
-// ÆÄÀÏ ¸®½ºÆ® ¿ä±¸
+// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ä±¸
 int FileRequestList(int& Socket,char *pRecvHead, char *pRecvData, char* &pSendData)
 {
 	infLOG(ALWAY,"CMD > FileRequestList\n");
@@ -104,7 +105,7 @@ int FileRequestList(int& Socket,char *pRecvHead, char *pRecvData, char* &pSendDa
 
 	localtime_r(&curtime, stm);
 
-	//pFileinfo->szDownPath ´Â root_path = /raid/fdata/wedisk
+	//pFileinfo->szDownPath ï¿½ï¿½ root_path = /raid/fdata/wedisk
 	sprintf(szFullName,"%s/%04d/%02d/%02d/%02d"
 									, pFileinfo->szDownPath
 									,  stm->tm_year+1900
@@ -122,7 +123,7 @@ int FileRequestList(int& Socket,char *pRecvHead, char *pRecvData, char* &pSendDa
 
 	int stat = lstat64(szCheckName,&statbuf);
 
-	if(stat != 0) //ÆÄÀÏÀÌ ¾øÀ¸¸é Æú´õ ¸¸µé±â.
+	if(stat != 0) //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½.
 	{
 		infLOG(ALWAY,"Make Folder [ %s ]\n",szCheckName );
 
@@ -146,9 +147,9 @@ int FileRequestList(int& Socket,char *pRecvHead, char *pRecvData, char* &pSendDa
 
 	strcpy(FolderInfo.szDownPath,szFullName);
 
-	memcpy(FolderInfo.cfups4001.file_path,szFullName,sizeof(szFullName)); //¼­¹öÃø ÆÐ½º
-	memcpy(FolderInfo.cfups4001.file_name2,pFileinfo->szFolderName,sizeof(pFileinfo->szFolderName)); //·ÎÄÃÆÄÀÏ ÀÌ¸§
-	memcpy(FolderInfo.cfups4001.file_name1,szFolderName,sizeof(szFolderName));			 //¼­¹öÆÄÀÏ
+	memcpy(FolderInfo.cfups4001.file_path,szFullName,sizeof(szFullName)); //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ð½ï¿½
+	memcpy(FolderInfo.cfups4001.file_name2,pFileinfo->szFolderName,sizeof(pFileinfo->szFolderName)); //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ì¸ï¿½
+	memcpy(FolderInfo.cfups4001.file_name1,szFolderName,sizeof(szFolderName));			 //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 
 	pSendData = new char[sizeof(HEADER) + headers.nDataCnt * headers.nDataSize];
 	memset(pSendData,0x00,sizeof(HEADER) + headers.nDataCnt * headers.nDataSize);
@@ -159,7 +160,7 @@ int FileRequestList(int& Socket,char *pRecvHead, char *pRecvData, char* &pSendDa
 	return (HEADER_SIZE + (headers.nDataCnt * headers.nDataSize));
 }
 
-//ÄÁÅÙÃ÷ ÆÄÀÏ Àü¼Û
+//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 int FileDataTransfer(int& Socket,char *pRecvHead, char *pRecvData, char* &pSendData)
 {
 	infLOG(ALWAY, "FileDataTransfer\n");
@@ -180,11 +181,11 @@ int FileDataTransfer(int& Socket,char *pRecvHead, char *pRecvData, char* &pSendD
 
 	infLOG(ALWAY,"============ pFileinfo->cfups4001.copyright_yn [ %s ] \n",pFileinfo->cfups4001.copyright_yn);
 
-	//¼ºÀÎ¹° µî·Ï Á¦ÇÑ 9004
+	//ï¿½ï¿½ï¿½Î¹ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ 9004
 	COM9004D com9004Result;
 	memset(&com9004Result,0x00,sizeof(COM9004D));
 
-	com9004Result = com9004(pHeader->szUserID, pFileinfo->cfups4001.id , pFileinfo->cfups4001.file_size, pFileinfo->cfups4001.descript/*no.767*/);
+	com9004Result = com9004(pHeader->szUserID, pFileinfo->cfups4001.id , pFileinfo->cfups4001.file_size, pFileinfo->cfups4001.descript/*no.767*/, g_szDcmdIP, g_nDcmdPort);
 	int nCType = com9004Result.temp_id;
 
 	infLOG(ALWAY,"Check 9004 Packet : \n"
@@ -195,11 +196,11 @@ int FileDataTransfer(int& Socket,char *pRecvHead, char *pRecvData, char* &pSendD
 				,	com9004Result.temp_id ,com9004Result.file_size	,com9004Result.user_id , com9004Result.auth_num );
 
 
-	infLOG(ALWAY,"Check nCType[µî·ÏÅ¸ÀÔ] \ncom9004 result [ %d ] \n[ -90042 ÆÄÀÏ Á¤º¸ Á¶È¸ ¿À·ù ]\n[ -4 :ÇÊ·Î±× ] \n[ -3 : ÆÄÀÏº¯°æ ] \n[ -2 : ÇÏ·ç¿¡ ÇÑ°Ç ] \n[ -1 : µî·ÏÇÑ ÆÄÀÏÁ¤º¸¸¦ Ã£À» ¼ö ¾ø½À´Ï´Ù.] \n[ -5 : ¾÷·Îµå ¸ðµâ º¯°æ ] \n[ 1 : À§µð½ºÅ© ]  \n",nCType );
+	infLOG(ALWAY,"Check nCType[ï¿½ï¿½ï¿½Å¸ï¿½ï¿½] \ncom9004 result [ %d ] \n[ -90042 ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È¸ ï¿½ï¿½ï¿½ï¿½ ]\n[ -4 :ï¿½Ê·Î±ï¿½ ] \n[ -3 : ï¿½ï¿½ï¿½Ïºï¿½ï¿½ï¿½ ] \n[ -2 : ï¿½Ï·ç¿¡ ï¿½Ñ°ï¿½ ] \n[ -1 : ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Ã£ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½.] \n[ -5 : ï¿½ï¿½ï¿½Îµï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ] \n[ 1 : ï¿½ï¿½ï¿½ï¿½Å© ]  \n",nCType );
 
 	bool bHaveCopyright = false;
 	bool bHaveCompany = false;
-	bool bGhostMode = false; //ÆÄÀÏÀ» »ý¼ºÇÏÁö ¾Ê°í ³×Æ®¿÷¸¸ ¹Þ´Â ¸ðµå ¿©ºÎ
+	bool bGhostMode = false; //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê°ï¿½ ï¿½ï¿½Æ®ï¿½ï¿½ï¿½ï¿½ ï¿½Þ´ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	int nTotalRecvFileCnt = 0;
 
 	char szSubFilePath[512];
@@ -211,7 +212,7 @@ int FileDataTransfer(int& Socket,char *pRecvHead, char *pRecvData, char* &pSendD
 	memset(szFolderFullPath,0x00,sizeof(szFolderFullPath));
 
 
-	//change upload module - ÇöÀç »ç¿ë¾ÈÇÏ´Â ¹öÀü
+	//change upload module - ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½ï¿½
 	if( nCType == -5)  //no.767
 	{
 		pSendData = new char[sizeof(ERR_HEADER)];
@@ -219,7 +220,7 @@ int FileDataTransfer(int& Socket,char *pRecvHead, char *pRecvData, char* &pSendD
 		errheader.header.nCmd = RS_ERR;
 		errheader.header.nErrorCode = -RS_FILE_DATA_TRANSFER;
 
-		strcat(errheader.errmsg,"À§µð½ºÅ© ÇÁ·Î±×·¥À» »èÁ¦ ÈÄ ÃÖ½Å ¹öÀüÀ¸·Î ¾÷µ¥ÀÌÆ® ÇØÁÖ¼¼¿ä.");
+		strcat(errheader.errmsg,"ï¿½ï¿½ï¿½ï¿½Å© ï¿½ï¿½ï¿½Î±×·ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Ö½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½Ö¼ï¿½ï¿½ï¿½.");
 
 		memcpy(pSendData, &errheader, sizeof(ERR_HEADER));
 
@@ -229,17 +230,17 @@ int FileDataTransfer(int& Socket,char *pRecvHead, char *pRecvData, char* &pSendD
 		return -RS_FILE_DATA_TRANSFER;
 
 	}
-	else if( nCType == -4)  //ÇÊ·Î±× ÀÚ·á½Ç
+	else if( nCType == -4)  //ï¿½Ê·Î±ï¿½ ï¿½Ú·ï¿½ï¿½
 	{
 		infLOG(ALWAY, "Start Send Filog Data \n");
 
-		//9001 È£Ãâ // »ç¿ëÀÚ¼ö Áõ°¡
-		//9101 È£Ãâ //»ç¿ëÀÚ¼ö °¨¼Ò
+		//9001 È£ï¿½ï¿½ // ï¿½ï¿½ï¿½ï¿½Ú¼ï¿½ ï¿½ï¿½ï¿½ï¿½
+		//9101 È£ï¿½ï¿½ //ï¿½ï¿½ï¿½ï¿½Ú¼ï¿½ ï¿½ï¿½ï¿½ï¿½
 
 		CCOM9001_R com9001_r ;
 		memset(&com9001_r,0x00,sizeof(CCOM9001_R));
 
-		multimap<int,USERINFO>::iterator mi; //IP Á¶È¸
+		multimap<int,USERINFO>::iterator mi; //IP ï¿½ï¿½È¸
 		mi = m_UserList.find(Socket); 		//mi = m_UserList.begin();
 		if(mi != m_UserList.end())
 			strcpy(com9001_r.conn_ip ,mi->second.thread.userIP);
@@ -247,20 +248,20 @@ int FileDataTransfer(int& Socket,char *pRecvHead, char *pRecvData, char* &pSendD
 		strcpy(com9001_r.cont_gu ,"FD");
 		strcpy(com9001_r.server_id , pFileinfo->szServerID);
 		com9001_r.temp_id =  pFileinfo->cfups4001.id;
-		memcpy(com9001_r.user_id ,pHeader->szUserID,sizeof(pHeader->szUserID)); // »ç¿ëÀÚ
+		memcpy(com9001_r.user_id ,pHeader->szUserID,sizeof(pHeader->szUserID)); // ï¿½ï¿½ï¿½ï¿½ï¿½
 		com9001_r.upload_size = pFileinfo->cfups4001.file_size;
-		com9001 ( com9001_r);
+		com9001 ( com9001_r, g_szDcmdIP, g_nDcmdPort);
 
 		CCOM9101_R com9101_r ;
 		memset(&com9101_r,0x00,sizeof(CCOM9101_R));
 		strcpy(com9101_r.conn_ip , com9001_r.conn_ip);
 		strcpy(com9101_r.server_id , com9001_r.server_id);
 		com9101_r.temp_id =  com9001_r.temp_id;
-		strcpy(com9101_r.user_id ,com9001_r.user_id); // »ç¿ëÀÚ
+		strcpy(com9101_r.user_id ,com9001_r.user_id); // ï¿½ï¿½ï¿½ï¿½ï¿½
 		com9101_r.upload_size = com9001_r.upload_size;
 
-		infLOG(ALWAY,"Á¦¸ñ °Ë»ç [ %s ] \n",pFileinfo->cfups4001.title);
-		infLOG(ALWAY,"ÆÄÀÏ °Ë»ç [ %s ]\n",pFileinfo->cfups4001.file_path);
+		infLOG(ALWAY,"ï¿½ï¿½ï¿½ï¿½ ï¿½Ë»ï¿½ [ %s ] \n",pFileinfo->cfups4001.title);
+		infLOG(ALWAY,"ï¿½ï¿½ï¿½ï¿½ ï¿½Ë»ï¿½ [ %s ]\n",pFileinfo->cfups4001.file_path);
 
 		char szFullPath[768];
 		memset(szFullPath,0x00,sizeof(szFullPath));
@@ -268,20 +269,20 @@ int FileDataTransfer(int& Socket,char *pRecvHead, char *pRecvData, char* &pSendD
 		char szFullName[768];
 		memset(szFullName,0x00,sizeof(szFullName));
 
-		int stat = -1;                 // ÆÄÀÏ »óÅÂ °áÁ¤
-		bool bFOpenAppendMode = false; // ÆÄÀÏ append ¸ðµå °áÁ¤
+		int stat = -1;                 // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+		bool bFOpenAppendMode = false; // ï¿½ï¿½ï¿½ï¿½ append ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 
-		CCOM9104_R pcom9104_r; // ¹Þ´ø ÆÄÀÏ Ãë¼Ò½Ã DB µ¹¸®±â ( T_CONTENTS_TEMP »èÁ¦ )
+		CCOM9104_R pcom9104_r; // ï¿½Þ´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ò½ï¿½ DB ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ( T_CONTENTS_TEMP ï¿½ï¿½ï¿½ï¿½ )
 
 		FILEINFO rFileInfo;
 
-		double dTotalRecvLen = 0; //ÃÑ ¹ÞÀº ±æÀÌ
-		double dTotalLen = 0; // downµÉ ÆÄÀÏÀÇ ÃÑ ±æÀÌ
-		int nWriteLen=0;      // ÆÄÀÏ¿¡ write ÇÑ Å©±â
-		int nRecvLen=0;       // ¼ÒÄÏÀ¸·Î recv ÇÑ Å©±â
-		int nCheckStop = 0; //while ·çÇÁ Á¦¾î
+		double dTotalRecvLen = 0; //ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+		double dTotalLen = 0; // downï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+		int nWriteLen=0;      // ï¿½ï¿½ï¿½Ï¿ï¿½ write ï¿½ï¿½ Å©ï¿½ï¿½
+		int nRecvLen=0;       // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ recv ï¿½ï¿½ Å©ï¿½ï¿½
+		int nCheckStop = 0; //while ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 
-		CCOM9103_R pcom9103_r; // ÇÊ·Î±× ¿ë·® Á¦¾î
+		CCOM9103_R pcom9103_r; // ï¿½Ê·Î±ï¿½ ï¿½ë·® ï¿½ï¿½ï¿½ï¿½
 		memset(&pcom9103_r,0x00,sizeof(CCOM9103_R));
 
 		pcom9103_r.proc_flag  =  4;   //1=wedisk, 2=mydisk, 3=mydata 4=filog disk
@@ -290,69 +291,69 @@ int FileDataTransfer(int& Socket,char *pRecvHead, char *pRecvData, char* &pSendD
 
 		memset(szErrMsg,0x00,sizeof(szErrMsg));
 
-		if(com9103(pcom9103_r,szErrMsg)< 0)
+		if(com9103(pcom9103_r, szErrMsg, g_szDcmdIP, g_nDcmdPort)< 0)
 		{
-			infLOG(ALWAY, "ÇÊ·Î±× ÀÚ·á½ÇÀÇ ¿ë·®À» ¾÷µ¥ÀÌÆ® ÇÒ ¼ö ¾ø½À´Ï´Ù. [ com9013 - T_PERM_UPLOAD_AUTH Å×ÀÌºíÀ» È®ÀÎÇÏ¼¼¿ä ]\n");
+			infLOG(ALWAY, "ï¿½Ê·Î±ï¿½ ï¿½Ú·ï¿½ï¿½ï¿½ï¿½ ï¿½ë·®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½. [ com9013 - T_PERM_UPLOAD_AUTH ï¿½ï¿½ï¿½Ìºï¿½ï¿½ï¿½ È®ï¿½ï¿½ï¿½Ï¼ï¿½ï¿½ï¿½ ]\n");
 			pSendData = new char[sizeof(ERR_HEADER)];
 			memset(pSendData,0x00,sizeof(ERR_HEADER));
 			errheader.header.nCmd = RS_ERR;
 			errheader.header.nErrorCode = -RS_FILE_DATA_TRANSFER;
-			strcat(errheader.errmsg,"ÇÊ·Î±× ÀÚ·á½Ç ¿ë·® ¾÷µ¥ÀÌÆ® ¿À·ù ÀÔ´Ï´Ù.");
+			strcat(errheader.errmsg,"ï¿½Ê·Î±ï¿½ ï¿½Ú·ï¿½ï¿½ ï¿½ë·® ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ ï¿½Ô´Ï´ï¿½.");
 			memcpy(pSendData, &errheader, sizeof(ERR_HEADER));
 			pHeader->nCmd = RS_ERR;
 
-			com9101 ( com9101_r);
+			com9101 ( com9101_r, g_szDcmdIP, g_nDcmdPort);
 
 			return -RS_FILE_DATA_TRANSFER;
 		}
 
-		CCOM9105_R com9105_r;		// temp ¿¡ ÆÄÀÏ Á¤º¸ ÀúÀå.
+		CCOM9105_R com9105_r;		// temp ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½.
 		memset(&com9105_r,0x00,sizeof(CCOM9105_R));
 
 		if(pFileinfo->nType == FT_FOLDER)
 		{
-			infLOG(ALWAY, "Æú´õ ¾÷·ÎµåÀÔ´Ï´Ù.\n");
+			infLOG(ALWAY, "ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Îµï¿½ï¿½Ô´Ï´ï¿½.\n");
 
-			//9105 Æú´õ	¸ñ·Ï Á¶È¸
+			//9105 ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ ï¿½ï¿½È¸
 			memset(&com9105_r,0x00,sizeof(CCOM9105_R));
 			com9105_r.id = pFileinfo->cfups4001.id;
-			memcpy(&com9105_r.user_id ,pHeader->szUserID,sizeof(pHeader->szUserID)); // »ç¿ëÀÚ
+			memcpy(&com9105_r.user_id ,pHeader->szUserID,sizeof(pHeader->szUserID)); // ï¿½ï¿½ï¿½ï¿½ï¿½
 			strcpy(com9105_r.server_id ,pFileinfo->szServerID);
 			strcpy(com9105_r.sfile_path ,pFileinfo->cfups4001.file_path);
 			strcpy(com9105_r.sfile_name ,pFileinfo->cfups4001.file_name1);
-			com9105(com9105_r);
+			com9105(com9105_r, g_szDcmdIP, g_nDcmdPort);
 		}
 
 		do
 		{
-			nCheckStop++; //¿¹¿ÜÃ³¸®
+			nCheckStop++; //ï¿½ï¿½ï¿½ï¿½Ã³ï¿½ï¿½
 			if(nCheckStop >= 1100)
 			{
 
 
 				memset(&pcom9104_r,0x00,sizeof(CCOM9104_R));
 				pcom9104_r.proc_flag  =  4;   //1=wedisk, 2=mydisk, 3=mydata 	4=filog disk
-				pcom9104_r.id         = pFileinfo->cfups4001.id;        // ÄÁÅ×Ã÷ID(T_CONTENTS_TEMP.id)
+				pcom9104_r.id         = pFileinfo->cfups4001.id;        // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ID(T_CONTENTS_TEMP.id)
 				pcom9104_r.file_size = pFileinfo->cfups4001.file_size;
-				memcpy(pcom9104_r.user_id ,pHeader->szUserID,sizeof(pHeader->szUserID)); // »ç¿ëÀÚ
+				memcpy(pcom9104_r.user_id ,pHeader->szUserID,sizeof(pHeader->szUserID)); // ï¿½ï¿½ï¿½ï¿½ï¿½
 
-				//ÇÊ·Î±× ¿ë·®À» º¹±¸ ½ÃÅ²´Ù.
-				infLOG(ERROR, "ÇÊ·Î±×ÀÇ ¾÷·Î±× °¹¼ö¸¦ ÃÊ°ú ÇÏ¿´½À´Ï´Ù.\ntemp_id [ %lu ]file count = %d , rollback size = %.0f [ com9104 ]\n",pFileinfo->cfups4001.id,nCheckStop , pcom9104_r.file_size);
+				//ï¿½Ê·Î±ï¿½ ï¿½ë·®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å²ï¿½ï¿½.
+				infLOG(ERROR, "ï¿½Ê·Î±ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Î±ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê°ï¿½ ï¿½Ï¿ï¿½ï¿½ï¿½ï¿½Ï´ï¿½.\ntemp_id [ %lu ]file count = %d , rollback size = %.0f [ com9104 ]\n",pFileinfo->cfups4001.id,nCheckStop , pcom9104_r.file_size);
 
-				if(com9104(pcom9104_r) < 0)
+				if(com9104(pcom9104_r, g_szDcmdIP, g_nDcmdPort) < 0)
 				{
-					infLOG(ERROR, "ÇÊ·Î±× ¿ë·® º¹±¸ Áß ¿À·ù°¡ ¹ß»ýÇÏ¿´½À´Ï¤¿´Ù.[com9104]\n");
+					infLOG(ERROR, "ï¿½Ê·Î±ï¿½ ï¿½ë·® ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ß»ï¿½ï¿½Ï¿ï¿½ï¿½ï¿½ï¿½Ï¤ï¿½ï¿½ï¿½.[com9104]\n");
 				}
-				com9101 ( com9101_r);
+				com9101 ( com9101_r, g_szDcmdIP, g_nDcmdPort);
 				return 0;
 
 			}
-	    	infLOG(ALWAY,"ÀÌ¾î ¿Ã¸®±â Flag[ %d ] >> [ 1 , 2 ´Â Àç½Ãµµ 0 Àº ÀÏ¹Ý ] \n",pFileinfo->nReUploadFlag);
+	    	infLOG(ALWAY,"ï¿½Ì¾ï¿½ ï¿½Ã¸ï¿½ï¿½ï¿½ Flag[ %d ] >> [ 1 , 2 ï¿½ï¿½ ï¿½ï¿½Ãµï¿½ 0 ï¿½ï¿½ ï¿½Ï¹ï¿½ ] \n",pFileinfo->nReUploadFlag);
 
-		    headers.nCmd  = RS_FILE_DATA_SIGN_CHECK; // ÆÄÀÏ Àü¼Û ¸Þ¼¼Áö
+		    headers.nCmd  = RS_FILE_DATA_SIGN_CHECK; // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Þ¼ï¿½ï¿½ï¿½
 
 			if(pFileinfo->nReUploadFlag == RECONNECT_UPLOAD || pFileinfo->nReUploadFlag == RE_UPLOAD)
-			{// ÀÌ¾î ¿Ã¸®±â
+			{// ï¿½Ì¾ï¿½ ï¿½Ã¸ï¿½ï¿½ï¿½
 				if( pFileinfo->nType == FT_FOLDER)
 				{
 					strcpy(szFullPath, pFileinfo->cfups4001.file_path); //./2004/02/18/16/raid
@@ -361,18 +362,18 @@ int FileDataTransfer(int& Socket,char *pRecvHead, char *pRecvData, char* &pSendD
 					memset(szFolderFullPath,0x00,sizeof(szFolderFullPath));
 					strcpy(szFolderFullPath, szFullPath); //./2004/02/18/16/raid
 
-					strcat(szFullPath,pFileinfo->cfups4001.file_name1);//<- ¿ä°Å °ª Àß¸ø µé¾î¿È
+					strcat(szFullPath,pFileinfo->cfups4001.file_name1);//<- ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ß¸ï¿½ ï¿½ï¿½ï¿½ï¿½
 
-					strcpy(szFullName,pFileinfo->szDownPath); //szDownPath Àº ./raid
+					strcpy(szFullName,pFileinfo->szDownPath); //szDownPath ï¿½ï¿½ ./raid
 	    			strcat(szFullName,"/");
-	    			strcat(szFullName,pFileinfo->szFileName); //szfilename Àº a.txt
+	    			strcat(szFullName,pFileinfo->szFileName); //szfilename ï¿½ï¿½ a.txt
 
-					infLOG(ALWAY, "Æú´õ ÀÌ¾î ¿Ã¸®±â - À§Ä¡ [ %s ] ÃÖÁ¾ À§Ä¡ [ %s ]\n",szFullPath,szFullName);
+					infLOG(ALWAY, "ï¿½ï¿½ï¿½ï¿½ ï¿½Ì¾ï¿½ ï¿½Ã¸ï¿½ï¿½ï¿½ - ï¿½ï¿½Ä¡ [ %s ] ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ä¡ [ %s ]\n",szFullPath,szFullName);
 				}
 				else
 				{
 			    	strcpy(szFullName,pFileinfo->szDownPath);
-					strcat(szFullName,"/"); //./2004/02/18/16/raid/   <-- '/' Ãß°¡
+					strcat(szFullName,"/"); //./2004/02/18/16/raid/   <-- '/' ï¿½ß°ï¿½
 					strcat(szFullName,pFileinfo->szFileName);
 
 					strcpy(szFullPath, pFileinfo->cfups4001.file_path); //./2004/02/18/16/raid
@@ -380,43 +381,43 @@ int FileDataTransfer(int& Socket,char *pRecvHead, char *pRecvData, char* &pSendD
 					strcat(szFullPath,pFileinfo->cfups4001.file_name1);//
 
 
-					infLOG(ALWAY, "ÆÄÀÏ ÀÌ¾î ¿Ã¸®±â - À§Ä¡ [ %s ] ÃÖÁ¾ À§Ä¡ [ %s ]\n",szFullPath,szFullName);
+					infLOG(ALWAY, "ï¿½ï¿½ï¿½ï¿½ ï¿½Ì¾ï¿½ ï¿½Ã¸ï¿½ï¿½ï¿½ - ï¿½ï¿½Ä¡ [ %s ] ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ä¡ [ %s ]\n",szFullPath,szFullName);
 
-					//9105 ÆÄÀÏ
+					//9105 ï¿½ï¿½ï¿½ï¿½
 					memset(&com9105_r,0x00,sizeof(CCOM9105_R));
 
 					com9105_r.id = pFileinfo->cfups4001.id;
-					memcpy(&com9105_r.user_id ,pHeader->szUserID,sizeof(pHeader->szUserID)); // »ç¿ëÀÚ
+					memcpy(&com9105_r.user_id ,pHeader->szUserID,sizeof(pHeader->szUserID)); // ï¿½ï¿½ï¿½ï¿½ï¿½
 					strcpy(com9105_r.server_id ,pFileinfo->szServerID);
 					strcpy(com9105_r.sfile_path ,pFileinfo->szDownPath);
 					strcpy(com9105_r.sfile_name ,pFileinfo->szFileName);
 
-					com9105(com9105_r);
+					com9105(com9105_r, g_szDcmdIP, g_nDcmdPort);
 
 				}
 
 				stat = stat64(szFullName,&statbuf);
-				if(stat != 0) //ÆÄÀÏÀÌ ¾øÀ¸¸é Æú´õ ¸¸µé±â.
+				if(stat != 0) //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½.
 				{
-					infLOG(ALWAY,"ÆÄÀÏÀÌ ¾øÀ½À¸·Î Æú´õ¸¦ »ý¼ºÇÕ´Ï´Ù. ÆÄÀÏ [ %s ] Æú´õ [ %s ] \n",pFileinfo->szDownPath,szFullName);
+					infLOG(ALWAY,"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Õ´Ï´ï¿½. ï¿½ï¿½ï¿½ï¿½ [ %s ] ï¿½ï¿½ï¿½ï¿½ [ %s ] \n",pFileinfo->szDownPath,szFullName);
 					MakeFolder(pFileinfo->szDownPath) ;
 
 				}
 				else
 				{
-					infLOG(ALWAY,"ÆÄÀÏÀÌ ÀÌ¹Ì Á¸Àç ÇÕ´Ï´Ù. Append ¸ðµå·Î ÆÄÀÏÀ» Á¦°øÇÕ´Ï´Ù. ÆÄÀÏ [ %s ] Æú´õ [ %s ] \n",pFileinfo->szDownPath,szFullName);
+					infLOG(ALWAY,"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ì¹ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Õ´Ï´ï¿½. Append ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Õ´Ï´ï¿½. ï¿½ï¿½ï¿½ï¿½ [ %s ] ï¿½ï¿½ï¿½ï¿½ [ %s ] \n",pFileinfo->szDownPath,szFullName);
 					bFOpenAppendMode = true;
 
 				}
 
 			}
 			else
-			{ //ÀÌ¾î ¿Ã¸®±â ¾Æ´Ô.
-		    	infLOG(ALWAY,"ÀÏ¹Ý ¾÷·Îµå ¸ðµå ÀÔ´Ï´Ù.\n" );
+			{ //ï¿½Ì¾ï¿½ ï¿½Ã¸ï¿½ï¿½ï¿½ ï¿½Æ´ï¿½.
+		    	infLOG(ALWAY,"ï¿½Ï¹ï¿½ ï¿½ï¿½ï¿½Îµï¿½ ï¿½ï¿½ï¿½ ï¿½Ô´Ï´ï¿½.\n" );
 
-		    	srand((unsigned int)time(NULL))	; //random ÀÌ¸§À» À§ÇÔ ½Ãµå ÁöÁ¤
+		    	srand((unsigned int)time(NULL))	; //random ï¿½Ì¸ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ãµï¿½ ï¿½ï¿½ï¿½ï¿½
 
-				///// ³¯Â¥ ½Ã°£ »ý¼º ////
+				///// ï¿½ï¿½Â¥ ï¿½Ã°ï¿½ ï¿½ï¿½ï¿½ï¿½ ////
 				time_t			curtime;
 				struct tm		*stm;
 				time( &curtime );
@@ -427,9 +428,9 @@ int FileDataTransfer(int& Socket,char *pRecvHead, char *pRecvData, char* &pSendD
 
 		  		if( pFileinfo->nType == FT_FILE)
 		  		{
-		  			infLOG(ALWAY,"ÆÄÀÏ ¾÷·Îµå ÀÔ´Ï´Ù.\n");
+		  			infLOG(ALWAY,"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Îµï¿½ ï¿½Ô´Ï´ï¿½.\n");
 
-		  			infLOG(ALWAY,"ÆÄÀÏ Root Path ´Â [ %s ] ÀÔ´Ï´Ù.\n",pFileinfo->szDownPath);
+		  			infLOG(ALWAY,"ï¿½ï¿½ï¿½ï¿½ Root Path ï¿½ï¿½ [ %s ] ï¿½Ô´Ï´ï¿½.\n",pFileinfo->szDownPath);
 
 					sprintf(pFileinfo->szDownPath,"%s/%04d/%02d/%02d/%02d",  pFileinfo->szDownPath
 										,  stm->tm_year+1900
@@ -437,14 +438,14 @@ int FileDataTransfer(int& Socket,char *pRecvHead, char *pRecvData, char* &pSendD
 										,  stm->tm_mday
 										,  stm->tm_hour);//./2004/02/18/16
 
-		  			infLOG(ALWAY,"ÆÄÀÏ Root Path ¸¦ ¼³Á¤ÇÕ´Ï´Ù. [ %s ]\n",pFileinfo->szDownPath);
+		  			infLOG(ALWAY,"ï¿½ï¿½ï¿½ï¿½ Root Path ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Õ´Ï´ï¿½. [ %s ]\n",pFileinfo->szDownPath);
 
 					memset(szFullName,0x00,sizeof(szFullName));
 
 			    	strcpy(szFullName,pFileinfo->szDownPath);
-					strcat(szFullName,"/"); //./2004/02/18/16/raid/   <-- '/' Ãß°¡
+					strcat(szFullName,"/"); //./2004/02/18/16/raid/   <-- '/' ï¿½ß°ï¿½
 
-			    	//file name ¾ò±â
+			    	//file name ï¿½ï¿½ï¿½
 
 			    	char szFilename[50];
 			    	char szFileType[10];
@@ -453,18 +454,18 @@ int FileDataTransfer(int& Socket,char *pRecvHead, char *pRecvData, char* &pSendD
 
 
 					sprintf(szFilename,"temp%lu",pFileinfo->cfups4001.id);
-			    	//local ÆÄÀÏÀÌ¸§À¸·Î ºÎÅÍ È®ÀåÀÚ ¾ò±â.
+			    	//local ï¿½ï¿½ï¿½ï¿½ï¿½Ì¸ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ È®ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½.
 			    	int nLen = GetReverseIndex(pFileinfo->cfups4001.file_name2 , '.');
-					//	nLen = nLen - 1; // a.txt -> for .txt ÇÏ±â À§ÇØ nLen -1 ÇØÁÜ
+					//	nLen = nLen - 1; // a.txt -> for .txt ï¿½Ï±ï¿½ ï¿½ï¿½ï¿½ï¿½ nLen -1 ï¿½ï¿½ï¿½ï¿½
 					//	nLen = nLen - 1; // ./raid/ -> ,./raid   , '/' delete
-					infLOG(ALWAY, "ÆÄÀÏ ÀÌ¸§ °Ë»ç [ %s ] \n",pFileinfo->cfups4001.file_name2);
+					infLOG(ALWAY, "ï¿½ï¿½ï¿½ï¿½ ï¿½Ì¸ï¿½ ï¿½Ë»ï¿½ [ %s ] \n",pFileinfo->cfups4001.file_name2);
 
 					if(nLen < 0)
-						infLOG(ALWAY, "ÆÄÀÏ ÀÌ¸§ÀÇ È®ÀåÀÚ°¡ ¾ø½À´Ï´Ù. [ ¹«½Ã ]\n");
+						infLOG(ALWAY, "ï¿½ï¿½ï¿½ï¿½ ï¿½Ì¸ï¿½ï¿½ï¿½ È®ï¿½ï¿½ï¿½Ú°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½. [ ï¿½ï¿½ï¿½ï¿½ ]\n");
 					else
 					{
 					    GetRightString(pFileinfo->cfups4001.file_name2,strlen(pFileinfo->cfups4001.file_name2)-nLen,szFileType);
-					    infLOG(ALWAY, "ÆÄÀÏ È®ÀåÀÚ °Ë»ç [ %s ] \n",szFileType);
+					    infLOG(ALWAY, "ï¿½ï¿½ï¿½ï¿½ È®ï¿½ï¿½ï¿½ï¿½ ï¿½Ë»ï¿½ [ %s ] \n",szFileType);
 					}
 
 					strcpy(pFileinfo->cfups4001.file_name2,pFileinfo->szFileName);
@@ -475,38 +476,38 @@ int FileDataTransfer(int& Socket,char *pRecvHead, char *pRecvData, char* &pSendD
 					strcat(szFullName,szFilename);
 					strcat(szFullName,szFileType);
 
-					//// ÀÌ¸§ ÀúÀå ////
+					//// ï¿½Ì¸ï¿½ ï¿½ï¿½ï¿½ï¿½ ////
 					memcpy(pFileinfo->cfups4001.file_name1,pFileinfo->szFileName,sizeof(pFileinfo->szFileName));
 					strcpy(pFileinfo->cfups4001.file_path,pFileinfo->szDownPath);//,sizeof(pFileinfo->szDownPath));
 
 					stat = stat64(szFullName,&statbuf);
 
-					if(stat != 0) //ÆÄÀÏÀÌ ¾øÀ¸¸é Æú´õ ¸¸µé±â.
+					if(stat != 0) //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½.
 					{
 						MakeFolder(pFileinfo->szDownPath) ;
-						infLOG(ALWAY,"Æú´õ°¡ ¾øÀ½À¸·Î Æú´õ¸¦ »ý¼ºÇÕ´Ï´Ù. [ %s ] \n",pFileinfo->szDownPath);
+						infLOG(ALWAY,"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Õ´Ï´ï¿½. [ %s ] \n",pFileinfo->szDownPath);
 					}
 					else
 					{
-						infLOG(ALWAY,"Æú´õ°¡ ÀÌ¹Ì Á¸Àç ÇÕ´Ï´Ù. Append ¸ðµå·Î ÆÄÀÏÀ» Á¦°øÇÕ´Ï´Ù. [ %s ] \n",szFullName);
+						infLOG(ALWAY,"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ì¹ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Õ´Ï´ï¿½. Append ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Õ´Ï´ï¿½. [ %s ] \n",szFullName);
 						bFOpenAppendMode = true;
 					}
 
-					//9105 ÆÄÀÏ
+					//9105 ï¿½ï¿½ï¿½ï¿½
 					memset(&com9105_r,0x00,sizeof(CCOM9105_R));
 
 					com9105_r.id = pFileinfo->cfups4001.id;
-					memcpy(&com9105_r.user_id ,pHeader->szUserID,sizeof(pHeader->szUserID)); // »ç¿ëÀÚ
+					memcpy(&com9105_r.user_id ,pHeader->szUserID,sizeof(pHeader->szUserID)); // ï¿½ï¿½ï¿½ï¿½ï¿½
 					strcpy(com9105_r.server_id ,pFileinfo->szServerID);
 					strcpy(com9105_r.sfile_path ,pFileinfo->cfups4001.file_path);
 					strcpy(com9105_r.sfile_name ,pFileinfo->cfups4001.file_name1);
 
-					com9105(com9105_r);
+					com9105(com9105_r, g_szDcmdIP, g_nDcmdPort);
 
 				}
-				else if(pFileinfo->nType == FT_FOLDER)//Àü¼Û ¹ÞÀ» ÆÄÀÏÀÌ Æú´õ ÀÏ°æ¿ì
+				else if(pFileinfo->nType == FT_FOLDER)//ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ï°ï¿½ï¿½
 				{
-					infLOG(ALWAY,"Æú´õ ¾÷·Îµå ÀÔ´Ï´Ù.\n");
+					infLOG(ALWAY,"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Îµï¿½ ï¿½Ô´Ï´ï¿½.\n");
 
 					strcpy(szFullPath, pFileinfo->cfups4001.file_path); //./2004/02/18/16/raid
 					strcat(szFullPath,"/");
@@ -518,21 +519,21 @@ int FileDataTransfer(int& Socket,char *pRecvHead, char *pRecvData, char* &pSendD
 
 					//////////////////////////////////////////////////////////////////////////
 
-					strcpy(szFullName,pFileinfo->szDownPath); //szDownPath Àº ./raid
+					strcpy(szFullName,pFileinfo->szDownPath); //szDownPath ï¿½ï¿½ ./raid
 	    			strcat(szFullName,"/");
-	    			strcat(szFullName,pFileinfo->szFileName); //szfilename Àº a.txt
+	    			strcat(szFullName,pFileinfo->szFileName); //szfilename ï¿½ï¿½ a.txt
 
 					stat = stat64(szFullName,&statbuf);
 
 
-					if(stat != 0) //ÆÄÀÏÀÌ ¾øÀ¸¸é Æú´õ ¸¸µé±â.
+					if(stat != 0) //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½.
 					{
 						MakeFolder(pFileinfo->szDownPath) ;
-						infLOG(ALWAY,"Æú´õ°¡ ¾øÀ½À¸·Î Æú´õ¸¦ »ý¼ºÇÕ´Ï´Ù. [ %s ] \n",pFileinfo->szDownPath);
+						infLOG(ALWAY,"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Õ´Ï´ï¿½. [ %s ] \n",pFileinfo->szDownPath);
 					}
 					else
 					{
-						infLOG(ALWAY,"Æú´õ°¡ ÀÌ¹Ì Á¸Àç ÇÕ´Ï´Ù. Append ¸ðµå·Î ÆÄÀÏÀ» Á¦°øÇÕ´Ï´Ù. [ %s ] \n",szFullName);
+						infLOG(ALWAY,"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ì¹ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Õ´Ï´ï¿½. Append ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Õ´Ï´ï¿½. [ %s ] \n",szFullName);
 						bFOpenAppendMode = true;
 					}
 				}
@@ -540,7 +541,7 @@ int FileDataTransfer(int& Socket,char *pRecvHead, char *pRecvData, char* &pSendD
 
 
 
-			headers.nCmd = RS_FILE_DATA_SIGN_CHECK; //ÆÄÀÏ Àü¼Û
+			headers.nCmd = RS_FILE_DATA_SIGN_CHECK; //ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 			int nSRet = 0;
 
 			if( pFileinfo->nType == FT_FILE )
@@ -568,28 +569,28 @@ int FileDataTransfer(int& Socket,char *pRecvHead, char *pRecvData, char* &pSendD
 				nSRet = SendData(Socket,(char*)&headers,sizeof(struct _HEADER));
 			}
 
-		    //// Àü¼ÛÇÏ±âÀü¿¡ ¸Þ¼¼Áö¸¦ ¾Ë¸²...
+		    //// ï¿½ï¿½ï¿½ï¿½ï¿½Ï±ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Þ¼ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ë¸ï¿½...
 		    if(	nSRet <=0 )
 			{
-				infLOG(ERROR, "RS_FILE_DATA_SIGN_CHECK Àü¼Û ¿À·ù.\n");
+				infLOG(ERROR, "RS_FILE_DATA_SIGN_CHECK ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½.\n");
 
-				// ¹Þ´ø ÆÄÀÏ »èÁ¦
+				// ï¿½Þ´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 				///////////////////////////////////////////////
-				// temp »èÁ¦									 //
+				// temp ï¿½ï¿½ï¿½ï¿½									 //
 				///////////////////////////////////////////////
 
 				memset(&pcom9104_r,0x00,sizeof(CCOM9104_R));
 				pcom9104_r.proc_flag  =  4;   //1=wedisk, 2=mydisk, 3=mydata 	4=filog disk
-				pcom9104_r.id         = pFileinfo->cfups4001.id;        // ÄÁÅ×Ã÷ID(T_CONTENTS_TEMP.id)
+				pcom9104_r.id         = pFileinfo->cfups4001.id;        // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ID(T_CONTENTS_TEMP.id)
 				pcom9104_r.file_size = pFileinfo->cfups4001.file_size;
-				memcpy(pcom9104_r.user_id ,pHeader->szUserID,sizeof(pHeader->szUserID)); // »ç¿ëÀÚ
+				memcpy(pcom9104_r.user_id ,pHeader->szUserID,sizeof(pHeader->szUserID)); // ï¿½ï¿½ï¿½ï¿½ï¿½
 
-				infLOG(ERROR, "ÇÊ·Î±× ¿ë·®À» º¹±¸ ÇÕ´Ï´Ù. File Size [ %.0f ]\n",pcom9104_r.file_size);
-				if(com9104(pcom9104_r) < 0)
+				infLOG(ERROR, "ï¿½Ê·Î±ï¿½ ï¿½ë·®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Õ´Ï´ï¿½. File Size [ %.0f ]\n",pcom9104_r.file_size);
+				if(com9104(pcom9104_r, g_szDcmdIP, g_nDcmdPort) < 0)
 				{
-					infLOG(ERROR, "ÇÊ·Î±× ¿ë·® º¹±¸ Áß ¿À·ù°¡ ¹ß»ýÇÏ¿´½À´Ï¤¿´Ù.[com9104]\n");
+					infLOG(ERROR, "ï¿½Ê·Î±ï¿½ ï¿½ë·® ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ß»ï¿½ï¿½Ï¿ï¿½ï¿½ï¿½ï¿½Ï¤ï¿½ï¿½ï¿½.[com9104]\n");
 				}
-				com9101 ( com9101_r);
+				com9101 ( com9101_r, g_szDcmdIP, g_nDcmdPort);
 				return 0;
 			}
 
@@ -597,30 +598,30 @@ int FileDataTransfer(int& Socket,char *pRecvHead, char *pRecvData, char* &pSendD
 
 			if(	RecvData(Socket,(char*)&headers,sizeof(struct _HEADER))<=0)  //struct _PACKET == PACKET
 			{
-				infLOG(ERROR, "RS_FILE_DATA_SIGN_CHECK °á°ú ¹Þ±â ¿À·ù\n");
-				// ¹Þ´ø ÆÄÀÏ »èÁ¦
+				infLOG(ERROR, "RS_FILE_DATA_SIGN_CHECK ï¿½ï¿½ï¿½ ï¿½Þ±ï¿½ ï¿½ï¿½ï¿½ï¿½\n");
+				// ï¿½Þ´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 				///////////////////////////////////////////////
-				// temp »èÁ¦									 //
+				// temp ï¿½ï¿½ï¿½ï¿½									 //
 				///////////////////////////////////////////////
 
 				memset(&pcom9104_r,0x00,sizeof(CCOM9104_R));
 				pcom9104_r.proc_flag  =  4;   //1=wedisk, 2=mydisk, 3=mydata 	4=filog disk
-				pcom9104_r.id         = pFileinfo->cfups4001.id;        // ÄÁÅ×Ã÷ID(T_CONTENTS_TEMP.id)
+				pcom9104_r.id         = pFileinfo->cfups4001.id;        // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ID(T_CONTENTS_TEMP.id)
 				pcom9104_r.file_size = pFileinfo->cfups4001.file_size;
-				memcpy(pcom9104_r.user_id ,pHeader->szUserID,sizeof(pHeader->szUserID)); // »ç¿ëÀÚ
+				memcpy(pcom9104_r.user_id ,pHeader->szUserID,sizeof(pHeader->szUserID)); // ï¿½ï¿½ï¿½ï¿½ï¿½
 
-				infLOG(ERROR, "ÇÊ·Î±× ¿ë·®À» º¹±¸ ÇÕ´Ï´Ù. File Size [ %.0f ]\n",pcom9104_r.file_size);
-				if(com9104(pcom9104_r) < 0)
+				infLOG(ERROR, "ï¿½Ê·Î±ï¿½ ï¿½ë·®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Õ´Ï´ï¿½. File Size [ %.0f ]\n",pcom9104_r.file_size);
+				if(com9104(pcom9104_r, g_szDcmdIP, g_nDcmdPort) < 0)
 				{
-					infLOG(ERROR, "ÇÊ·Î±× ¿ë·® º¹±¸ Áß ¿À·ù°¡ ¹ß»ýÇÏ¿´½À´Ï¤¿´Ù.[com9104]\n");
+					infLOG(ERROR, "ï¿½Ê·Î±ï¿½ ï¿½ë·® ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ß»ï¿½ï¿½Ï¿ï¿½ï¿½ï¿½ï¿½Ï¤ï¿½ï¿½ï¿½.[com9104]\n");
 				}
-				com9101 ( com9101_r);
+				com9101 ( com9101_r, g_szDcmdIP, g_nDcmdPort);
 				return 0;
 			}
 
 			if(headers.nCmd == RS_EOL)
 			{
-				infLOG(ALWAY, "RS_FILE_DATA_SIGN_CHECK °á°ú ¹Þ±â - RS_EROL \n");
+				infLOG(ALWAY, "RS_FILE_DATA_SIGN_CHECK ï¿½ï¿½ï¿½ ï¿½Þ±ï¿½ - RS_EROL \n");
 
 				pSendData = new char[sizeof(HEADER)];
 				memset(pSendData,0x00,sizeof(HEADER));
@@ -632,37 +633,37 @@ int FileDataTransfer(int& Socket,char *pRecvHead, char *pRecvData, char* &pSendD
 
 				memcpy(pSendData, &headers, sizeof(HEADER));
 
-				// ¹Þ´ø ÆÄÀÏ »èÁ¦
+				// ï¿½Þ´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 				///////////////////////////////////////////////
-				// temp »èÁ¦									 //
+				// temp ï¿½ï¿½ï¿½ï¿½									 //
 				///////////////////////////////////////////////
 
 				memset(&pcom9104_r,0x00,sizeof(CCOM9104_R));
 				pcom9104_r.proc_flag  =  4;   //1=wedisk, 2=mydisk, 3=mydata 	4=filog disk
-				pcom9104_r.id         = pFileinfo->cfups4001.id;        // ÄÁÅ×Ã÷ID(T_CONTENTS_TEMP.id)
+				pcom9104_r.id         = pFileinfo->cfups4001.id;        // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ID(T_CONTENTS_TEMP.id)
 				pcom9104_r.file_size = pFileinfo->cfups4001.file_size;
-				memcpy(pcom9104_r.user_id ,pHeader->szUserID,sizeof(pHeader->szUserID)); // »ç¿ëÀÚ
+				memcpy(pcom9104_r.user_id ,pHeader->szUserID,sizeof(pHeader->szUserID)); // ï¿½ï¿½ï¿½ï¿½ï¿½
 
-				infLOG(ERROR, "ÇÊ·Î±× ¿ë·®À» º¹±¸ ÇÕ´Ï´Ù. File Size [ %.0f ]\n",pcom9104_r.file_size);
-				if(com9104(pcom9104_r) < 0)
+				infLOG(ERROR, "ï¿½Ê·Î±ï¿½ ï¿½ë·®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Õ´Ï´ï¿½. File Size [ %.0f ]\n",pcom9104_r.file_size);
+				if(com9104(pcom9104_r, g_szDcmdIP, g_nDcmdPort) < 0)
 				{
-					infLOG(ERROR, "ÇÊ·Î±× ¿ë·® º¹±¸ Áß ¿À·ù°¡ ¹ß»ýÇÏ¿´½À´Ï¤¿´Ù.[com9104]\n");
+					infLOG(ERROR, "ï¿½Ê·Î±ï¿½ ï¿½ë·® ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ß»ï¿½ï¿½Ï¿ï¿½ï¿½ï¿½ï¿½Ï¤ï¿½ï¿½ï¿½.[com9104]\n");
 				}
-				com9101 ( com9101_r);
+				com9101 ( com9101_r, g_szDcmdIP, g_nDcmdPort);
 				return END;
 			}
 			else if(headers.nCmd == RS_OK)
 			{
-				infLOG(ALWAY, "RS_FILE_DATA_SIGN_CHECK °á°ú ¹Þ±â - RS_OK \n");
+				infLOG(ALWAY, "RS_FILE_DATA_SIGN_CHECK ï¿½ï¿½ï¿½ ï¿½Þ±ï¿½ - RS_OK \n");
 
 			}
 
-			//2009/09/09(ÇÊ·Î±× ÇÊÅÍ¸µ ¿¬µ¿) ¹Â·¹Ä« Á¤º¸ ¹Þ±â.
+			//2009/09/09(ï¿½Ê·Î±ï¿½ ï¿½ï¿½ï¿½Í¸ï¿½ ï¿½ï¿½ï¿½ï¿½) ï¿½Â·ï¿½Ä« ï¿½ï¿½ï¿½ï¿½ ï¿½Þ±ï¿½.
 			int nMurekaCnt = headers.nDataCnt;
 
 			LPMUREKA_VINFO pMurekaVInfo = NULL;
 
-			infLOG(ALWAY, "ÇÊÅÍ¸µ °á°ú ÆÄÀÏ È®ÀÎ - °¹¼ö [ %d ] \n",nMurekaCnt);
+			infLOG(ALWAY, "ï¿½ï¿½ï¿½Í¸ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ È®ï¿½ï¿½ - ï¿½ï¿½ï¿½ï¿½ [ %d ] \n",nMurekaCnt);
 
 			if(nMurekaCnt > 0)
 			{
@@ -670,32 +671,32 @@ int FileDataTransfer(int& Socket,char *pRecvHead, char *pRecvData, char* &pSendD
 				if(	RecvData(Socket,(char*)pMurekaVInfo,sizeof(MUREKA_VINFO)*nMurekaCnt)<=0)  //struct _PACKET == PACKET
 				{
 
-					infLOG(ERROR,"ÇÊ·Î±× ¹Â·¹Ä« °á°ú ¹Þ±â ¿À·ù size : (%d) nMurekaCnt : (%d) \n", sizeof(MUREKA_VINFO)*nMurekaCnt, nMurekaCnt);
+					infLOG(ERROR,"ï¿½Ê·Î±ï¿½ ï¿½Â·ï¿½Ä« ï¿½ï¿½ï¿½ ï¿½Þ±ï¿½ ï¿½ï¿½ï¿½ï¿½ size : (%d) nMurekaCnt : (%d) \n", sizeof(MUREKA_VINFO)*nMurekaCnt, nMurekaCnt);
 
-					// ¹Þ´ø ÆÄÀÏ »èÁ¦
+					// ï¿½Þ´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 					///////////////////////////////////////////////
-					// temp »èÁ¦									 //
+					// temp ï¿½ï¿½ï¿½ï¿½									 //
 					///////////////////////////////////////////////
 					memset(&pcom9104_r,0x00,sizeof(CCOM9104_R));
 					pcom9104_r.proc_flag  =  4;   //1=wedisk, 2=mydisk, 3=mydata 	4=filog disk
-					pcom9104_r.id         = pFileinfo->cfups4001.id;        // ÄÁÅ×Ã÷ID(T_CONTENTS_TEMP.id)
+					pcom9104_r.id         = pFileinfo->cfups4001.id;        // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ID(T_CONTENTS_TEMP.id)
 					pcom9104_r.file_size = pFileinfo->cfups4001.file_size;
-					memcpy(pcom9104_r.user_id ,pHeader->szUserID,sizeof(pHeader->szUserID)); // »ç¿ëÀÚ
+					memcpy(pcom9104_r.user_id ,pHeader->szUserID,sizeof(pHeader->szUserID)); // ï¿½ï¿½ï¿½ï¿½ï¿½
 
-					infLOG(ERROR, "ÇÊ·Î±× ¿ë·®À» º¹±¸ ÇÕ´Ï´Ù. File Size [ %.0f ]\n",pcom9104_r.file_size);
-					if(com9104(pcom9104_r) < 0)
+					infLOG(ERROR, "ï¿½Ê·Î±ï¿½ ï¿½ë·®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Õ´Ï´ï¿½. File Size [ %.0f ]\n",pcom9104_r.file_size);
+					if(com9104(pcom9104_r, g_szDcmdIP, g_nDcmdPort) < 0)
 					{
-						infLOG(ERROR, "ÇÊ·Î±× ¿ë·® º¹±¸ Áß ¿À·ù°¡ ¹ß»ýÇÏ¿´½À´Ï¤¿´Ù.[com9104]\n");
+						infLOG(ERROR, "ï¿½Ê·Î±ï¿½ ï¿½ë·® ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ß»ï¿½ï¿½Ï¿ï¿½ï¿½ï¿½ï¿½Ï¤ï¿½ï¿½ï¿½.[com9104]\n");
 					}
 
-					com9101 ( com9101_r);
+					com9101 ( com9101_r, g_szDcmdIP, g_nDcmdPort);
 					return 0;
 				}
 
 				#ifdef __DEBUG
 				for(int i=0; i < nMurekaCnt; i++)
 				{
-					printf("ÇÊ·Î±× ¹Â·¹Ä« Á¤º¸ È®ÀÎ(%d).\n", i);
+					printf("ï¿½Ê·Î±ï¿½ ï¿½Â·ï¿½Ä« ï¿½ï¿½ï¿½ï¿½ È®ï¿½ï¿½(%d).\n", i);
 					printf("video_status : %d\n",pMurekaVInfo[i].nResultCode);
 					printf("video_status : %s\n",pMurekaVInfo[i].filename);
 					printf("video_status : %s\n",pMurekaVInfo[i].mureka_hash);
@@ -713,13 +714,13 @@ int FileDataTransfer(int& Socket,char *pRecvHead, char *pRecvData, char* &pSendD
 
 			}
 
-			////////////////////±âº» Á¤º¸ ¿Ï·á////////////////////////////////////////////////
+			////////////////////ï¿½âº» ï¿½ï¿½ï¿½ï¿½ ï¿½Ï·ï¿½////////////////////////////////////////////////
 
-			//2009/09/09(ÇÊ·Î±× ÇÊÅÍ¸µ ¿¬µ¿) ÀÏ¹Ý ÄÁÅ×Ã÷ ¾÷·Îµå ·ÎÁ÷ÀÇ 4005, 4006ºÎºÐ Ãß°¡ÇØ¾ßÇÔ.
+			//2009/09/09(ï¿½Ê·Î±ï¿½ ï¿½ï¿½ï¿½Í¸ï¿½ ï¿½ï¿½ï¿½ï¿½) ï¿½Ï¹ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Îµï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ 4005, 4006ï¿½Îºï¿½ ï¿½ß°ï¿½ï¿½Ø¾ï¿½ï¿½ï¿½.
 
 			if( strcmp(pFileinfo->szCopyright_yn ,"P") == 0 )
 			{
-				infLOG(ALWAY,"ÀúÀÛ±Ç flag Àç¼ºÁ¤ : P -> N \n");
+				infLOG(ALWAY,"ï¿½ï¿½ï¿½Û±ï¿½ flag ï¿½ç¼ºï¿½ï¿½ : P -> N \n");
 				strcpy(pFileinfo->szCopyright_yn ,"N") ;
 			}
 
@@ -754,7 +755,7 @@ int FileDataTransfer(int& Socket,char *pRecvHead, char *pRecvData, char* &pSendD
 			strcpy(Fups4005.copyright_yn , pFileinfo->szCopyright_yn );
 			strcpy(Fups4005.mureka_yn , pFileinfo->szMureka_yn );
 
-			//2009/06/14 ¹Â·¹Ä« Á¶È¸ °¹¼ö.
+			//2009/06/14 ï¿½Â·ï¿½Ä« ï¿½ï¿½È¸ ï¿½ï¿½ï¿½ï¿½.
 			Fups4005.mureka_cnt = nMurekaCnt;
 
 
@@ -815,8 +816,8 @@ int FileDataTransfer(int& Socket,char *pRecvHead, char *pRecvData, char* &pSendD
 			}
 			Fups4005.depth = depth;
 
-			//ÀúÀÛ±Ç Á¤º¸ Àç¼öÁ¤
-			infLOG(ALWAY,"ÇÊ·Î±× ÀúÀÛ±Ç Á¤º¸ È®ÀÎ 1 : tpye [ %d ] == [ %d ] : sect_code [ %s ] : copyright [ %s ] \n", pFileinfo->nType , FT_FOLDER , pFileinfo->cfups4001.sect_code , pFileinfo->szCopyright_yn);
+			//ï¿½ï¿½ï¿½Û±ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½
+			infLOG(ALWAY,"ï¿½Ê·Î±ï¿½ ï¿½ï¿½ï¿½Û±ï¿½ ï¿½ï¿½ï¿½ï¿½ È®ï¿½ï¿½ 1 : tpye [ %d ] == [ %d ] : sect_code [ %s ] : copyright [ %s ] \n", pFileinfo->nType , FT_FOLDER , pFileinfo->cfups4001.sect_code , pFileinfo->szCopyright_yn);
 
 			#ifdef __DEBUG
 			printf("fups4005 ] : id       		[ %d ]     \n",Fups4005.id       		);
@@ -837,7 +838,7 @@ int FileDataTransfer(int& Socket,char *pRecvHead, char *pRecvData, char* &pSendD
 			printf("fups4005 ] : cont_gu      [ %s ] 	\n",Fups4005.cont_gu  );
 			#endif
 
-			infLOG(ALWAY,"fups4005 µ¥ÀÌÅÍ¸¦ ¾÷µ¥ÀÌÆ® ÁßÀÔ´Ï´Ù.\n"	);
+			infLOG(ALWAY,"fups4005 ï¿½ï¿½ï¿½ï¿½ï¿½Í¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½Ô´Ï´ï¿½.\n"	);
 			infLOG(ALWAY,"fups4005 ] : id       	  [ %d ]     \n",Fups4005.id       		);
 			infLOG(ALWAY,"fups4005 ] : seq_no	      [ %d ]     \n",Fups4005.seq_no	       );
 			infLOG(ALWAY,"fups4005 ] : depth	      [ %d ]     \n",Fups4005.depth	       );
@@ -872,7 +873,7 @@ int FileDataTransfer(int& Socket,char *pRecvHead, char *pRecvData, char* &pSendD
 			strcpy(Fups4006.cont_gu    , Fups4005.cont_gu);
 			strcpy(Fups4006.auth_num    , com9004Result.auth_num );
 
-			//2009/06/14 ¹Â·¹Ä« Á¶È¸ °¹¼ö.
+			//2009/06/14 ï¿½Â·ï¿½Ä« ï¿½ï¿½È¸ ï¿½ï¿½ï¿½ï¿½.
 			Fups4006.mureka_cnt = nMurekaCnt;
 
 
@@ -920,12 +921,12 @@ int FileDataTransfer(int& Socket,char *pRecvHead, char *pRecvData, char* &pSendD
 
 			if( strcmp(com9004Result.auth_num ,"CPR") != 0)
 			{
-				nCopyRight = fupsflog4005(Fups4005, pMurekaVInfo);	//ÀúÀÛ±Ç Á¶È¸
+				nCopyRight = fupsflog4005(Fups4005, pMurekaVInfo);	//ï¿½ï¿½ï¿½Û±ï¿½ ï¿½ï¿½È¸
 			}
-			infLOG(ALWAY,"ÀúÀÛ±Ç Á¶È¸ °á°ú [ %d ] \n\n\n",nCopyRight);
+			infLOG(ALWAY,"ï¿½ï¿½ï¿½Û±ï¿½ ï¿½ï¿½È¸ ï¿½ï¿½ï¿½ [ %d ] \n\n\n",nCopyRight);
 			if( nCopyRight <= 0 )
-				nCompany = fupsflog4006(Fups4006, pMurekaVInfo);	//ÀúÀÛ±Ç¿¡ °É¸®Áö¾Ê´Â ÀÚ·á¶ó¸é À¯·áÄÁÅÙÃ÷¿©ºÎ Á¶È¸.
-			infLOG(ALWAY,"Á¦ÈÞ Á¶È¸ °á°ú   [ %d ] \n\n\n",nCompany  );
+				nCompany = fupsflog4006(Fups4006, pMurekaVInfo);	//ï¿½ï¿½ï¿½Û±Ç¿ï¿½ ï¿½É¸ï¿½ï¿½ï¿½ï¿½Ê´ï¿½ ï¿½Ú·ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È¸.
+			infLOG(ALWAY,"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È¸ ï¿½ï¿½ï¿½   [ %d ] \n\n\n",nCompany  );
 
 
 			if(pMurekaVInfo)
@@ -934,7 +935,7 @@ int FileDataTransfer(int& Socket,char *pRecvHead, char *pRecvData, char* &pSendD
 				pMurekaVInfo = NULL;
 			}
 
-			// 20140523 : º¸·ù Ã³¸®ÇÏ±â
+			// 20140523 : ï¿½ï¿½ï¿½ï¿½ Ã³ï¿½ï¿½ï¿½Ï±ï¿½
 			//infLOG(ALWAY,"============ cfups4001.copyright_yn [ %s ] \n",cfups4001.copyright_yn);
 			//if(strcmp (pFileinfo->cfups4001.copyright_yn ,"B") != 0)
 			//{
@@ -967,49 +968,49 @@ int FileDataTransfer(int& Socket,char *pRecvHead, char *pRecvData, char* &pSendD
 				}
 			//}
 
-			infLOG(ALWAY,"ÇÊ·Î±× ÀÚ·á½Ç È®ÀÎ : sect_code [ %s ] : copyright_yn [ %s ] \n" , pFileinfo->cfups4001.sect_code , pFileinfo->cfups4001.copyright_yn);
+			infLOG(ALWAY,"ï¿½Ê·Î±ï¿½ ï¿½Ú·ï¿½ï¿½ È®ï¿½ï¿½ : sect_code [ %s ] : copyright_yn [ %s ] \n" , pFileinfo->cfups4001.sect_code , pFileinfo->cfups4001.copyright_yn);
 
 			if( nCopyRight < 0 )
 			{
-				infLOG(ERROR, "ÀúÀÛ±Ç Á¶È¸ ¿À·ùÀÔ´Ï´Ù. Error Num [ %d ]\n",nCopyRight);
+				infLOG(ERROR, "ï¿½ï¿½ï¿½Û±ï¿½ ï¿½ï¿½È¸ ï¿½ï¿½ï¿½ï¿½ï¿½Ô´Ï´ï¿½. Error Num [ %d ]\n",nCopyRight);
 
 				pSendData = new char[sizeof(ERR_HEADER)];
 				memset(pSendData,0x00,sizeof(ERR_HEADER));
 				errheader.header.nCmd = RS_ERR;
 				errheader.header.nErrorCode = -RS_FILE_DATA_TRANSFER;
-				strcat(errheader.errmsg,"ÆÄÀÏ Á¤º¸ µî·Ï ¿À·ù ÀÔ´Ï´Ù.");
+				strcat(errheader.errmsg,"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ô´Ï´ï¿½.");
 
 				memcpy(pSendData, &errheader, sizeof(ERR_HEADER));
 
 				pHeader->nCmd = RS_ERR;
 
-				// ¹Þ´ø ÆÄÀÏ »èÁ¦
+				// ï¿½Þ´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 				///////////////////////////////////////////////
-				// temp »èÁ¦									 //
+				// temp ï¿½ï¿½ï¿½ï¿½									 //
 				///////////////////////////////////////////////
 				memset(&pcom9104_r,0x00,sizeof(CCOM9104_R));
 				pcom9104_r.proc_flag  =  4;   //1=wedisk, 2=mydisk, 3=mydata 	4=filog disk
-				pcom9104_r.id         = pFileinfo->cfups4001.id;        // ÄÁÅ×Ã÷ID(T_CONTENTS_TEMP.id)
+				pcom9104_r.id         = pFileinfo->cfups4001.id;        // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ID(T_CONTENTS_TEMP.id)
 				pcom9104_r.file_size = pFileinfo->cfups4001.file_size;
-				memcpy(pcom9104_r.user_id ,pHeader->szUserID,sizeof(pHeader->szUserID)); // »ç¿ëÀÚ
+				memcpy(pcom9104_r.user_id ,pHeader->szUserID,sizeof(pHeader->szUserID)); // ï¿½ï¿½ï¿½ï¿½ï¿½
 
-				infLOG(ERROR, "ÇÊ·Î±× ¿ë·®À» º¹±¸ ÇÕ´Ï´Ù. File Size [ %.0f ]\n",pcom9104_r.file_size);
-				if(com9104(pcom9104_r) < 0)
+				infLOG(ERROR, "ï¿½Ê·Î±ï¿½ ï¿½ë·®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Õ´Ï´ï¿½. File Size [ %.0f ]\n",pcom9104_r.file_size);
+				if(com9104(pcom9104_r, g_szDcmdIP, g_nDcmdPort) < 0)
 				{
-					infLOG(ERROR, "ÇÊ·Î±× ¿ë·® º¹±¸ Áß ¿À·ù°¡ ¹ß»ýÇÏ¿´½À´Ï¤¿´Ù.[com9104]\n");
+					infLOG(ERROR, "ï¿½Ê·Î±ï¿½ ï¿½ë·® ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ß»ï¿½ï¿½Ï¿ï¿½ï¿½ï¿½ï¿½Ï¤ï¿½ï¿½ï¿½.[com9104]\n");
 				}
 
-				com9101 ( com9101_r);
+				com9101 ( com9101_r, g_szDcmdIP, g_nDcmdPort);
 				return -RS_FILE_DATA_TRANSFER;
 			}
 
-			// ÆÄÀÏ Á¦¾î ¹× Àü¼Û
+			// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 
-			FILE* DownloadFile; //ÆÄÀÏ Æ÷ÀÎÅÍ
+			FILE* DownloadFile; //ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 			DownloadFile = NULL;
-			//// ÆÄÀÏ openÇü½Ä °áÁ¤////
+			//// ï¿½ï¿½ï¿½ï¿½ openï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½////
 
-			infLOG(ALWAY,"ÆÄÀÏ¿­±â : [ %s ]\n",szFullName);
+			infLOG(ALWAY,"ï¿½ï¿½ï¿½Ï¿ï¿½ï¿½ï¿½ : [ %s ]\n",szFullName);
 
 			if( bFOpenAppendMode) //append mode
 			{
@@ -1023,81 +1024,81 @@ int FileDataTransfer(int& Socket,char *pRecvHead, char *pRecvData, char* &pSendD
 				infLOG(ALWAY, "write mode ( %s )\n",szFullName);
 			}
 
-			if(DownloadFile == NULL) //ÆÄÀÏÀ» ¿­¼ö ¾øÀ¸¸é
+			if(DownloadFile == NULL) //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 			{
 				memset(szErrMsg,0x00,sizeof(szErrMsg));
 				GetErrMsg(errno,szErrMsg);
 
-				infLOG(ERROR, "ÆÄÀÏ ¿­±â ¿À·ù ÀÔ´Ï´Ù. [ %s ] error num [ %d ] msg [ %s ] \n",szFullName,errno, szErrMsg);
+				infLOG(ERROR, "ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ô´Ï´ï¿½. [ %s ] error num [ %d ] msg [ %s ] \n",szFullName,errno, szErrMsg);
 
 				pSendData = new char[sizeof(ERR_HEADER)];
 				memset(pSendData,0x00,sizeof(ERR_HEADER));
 				errheader.header.nCmd = RS_ERR;
 				errheader.header.nErrorCode = -RS_FILE_DATA_TRANSFER;
-				strcat(errheader.errmsg,"¼­¹ö¿¡¼­ ÆÄÀÏ ¸¸µé±â ½ÇÆÐ ÇÏ¿´½À´Ï´Ù.");
+				strcat(errheader.errmsg,"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ï¿ï¿½ï¿½ï¿½ï¿½Ï´ï¿½.");
 
 				memcpy(pSendData, &errheader, sizeof(ERR_HEADER));
 
 				pHeader->nCmd = RS_ERR;
 
-				// ¹Þ´ø ÆÄÀÏ »èÁ¦
+				// ï¿½Þ´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 				///////////////////////////////////////////////
-				// temp »èÁ¦									 //
+				// temp ï¿½ï¿½ï¿½ï¿½									 //
 				///////////////////////////////////////////////
 
 				memset(&pcom9104_r,0x00,sizeof(CCOM9104_R));
 
 
 				pcom9104_r.proc_flag  =  4;   //1=wedisk, 2=mydisk, 3=mydata 	4=filog disk
-				pcom9104_r.id         = pFileinfo->cfups4001.id;        // ÄÁÅ×Ã÷ID(T_CONTENTS_TEMP.id)
+				pcom9104_r.id         = pFileinfo->cfups4001.id;        // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ID(T_CONTENTS_TEMP.id)
 				pcom9104_r.file_size = pFileinfo->cfups4001.file_size;
-				memcpy(pcom9104_r.user_id ,pHeader->szUserID,sizeof(pHeader->szUserID)); // »ç¿ëÀÚ
+				memcpy(pcom9104_r.user_id ,pHeader->szUserID,sizeof(pHeader->szUserID)); // ï¿½ï¿½ï¿½ï¿½ï¿½
 
 
-				infLOG(ERROR, "ÇÊ·Î±× ¿ë·®À» º¹±¸ ÇÕ´Ï´Ù. File Size [ %.0f ]\n",pcom9104_r.file_size);
-				if(com9104(pcom9104_r) < 0)
+				infLOG(ERROR, "ï¿½Ê·Î±ï¿½ ï¿½ë·®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Õ´Ï´ï¿½. File Size [ %.0f ]\n",pcom9104_r.file_size);
+				if(com9104(pcom9104_r, g_szDcmdIP, g_nDcmdPort) < 0)
 				{
-					infLOG(ERROR, "ÇÊ·Î±× ¿ë·® º¹±¸ Áß ¿À·ù°¡ ¹ß»ýÇÏ¿´½À´Ï¤¿´Ù.[com9104]\n");
+					infLOG(ERROR, "ï¿½Ê·Î±ï¿½ ï¿½ë·® ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ß»ï¿½ï¿½Ï¿ï¿½ï¿½ï¿½ï¿½Ï¤ï¿½ï¿½ï¿½.[com9104]\n");
 				}
 
-				com9101 ( com9101_r);
+				com9101 ( com9101_r, g_szDcmdIP, g_nDcmdPort);
 				return -RS_FILE_DATA_TRANSFER;
 			}
 
-			//// ÀÌ¾î ¹Þ±â¸¦ À§ÇÑ ÆÄÀÏ ÇØ´õ ±¸Á¶Ã¼ »ý¼º ////
-			infLOG(ALWAY,"ÆÄÀÏÀÇ Seek ¸¦ ¸¶Áö¸· À§Ä¡·Î ÀÌµ¿ ÇÕ´Ï´Ù.\n");
+			//// ï¿½Ì¾ï¿½ ï¿½Þ±â¸¦ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ø´ï¿½ ï¿½ï¿½ï¿½ï¿½Ã¼ ï¿½ï¿½ï¿½ï¿½ ////
+			infLOG(ALWAY,"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Seek ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ä¡ï¿½ï¿½ ï¿½Ìµï¿½ ï¿½Õ´Ï´ï¿½.\n");
 			if(fseeko64(DownloadFile,0l,SEEK_END) < 0)
 			{
-				infLOG(ALWAY,"ÆÄÀÏÀÇ Seek ¸¦ ¸¶Áö¸· À§Ä¡·Î ÀÌµ¿ Áß ·ù°¡ ¹ß»ýÇÏ¿´½À´Ï´Ù. errno [ %d ] error msg [ %s ]\n",errno,strerror(errno));
+				infLOG(ALWAY,"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Seek ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ä¡ï¿½ï¿½ ï¿½Ìµï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ß»ï¿½ï¿½Ï¿ï¿½ï¿½ï¿½ï¿½Ï´ï¿½. errno [ %d ] error msg [ %s ]\n",errno,strerror(errno));
 
 				pSendData = new char[sizeof(ERR_HEADER)];
 				memset(pSendData,0x00,sizeof(ERR_HEADER));
 				errheader.header.nCmd = RS_ERR;
 				errheader.header.nErrorCode = -RS_FILE_DATA_TRANSFER;
-				strcat(errheader.errmsg,"¼­¹ö ÆÄÀÏÀÇ ¼½ÅÍ ÀÌµ¿ ½ÇÆÐ ÇÏ¿´½À´Ï´Ù.");
+				strcat(errheader.errmsg,"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ìµï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ï¿ï¿½ï¿½ï¿½ï¿½Ï´ï¿½.");
 
 				memcpy(pSendData, &errheader, sizeof(ERR_HEADER));
 
 				pHeader->nCmd = RS_ERR;
-				// ¹Þ´ø ÆÄÀÏ »èÁ¦
+				// ï¿½Þ´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 				///////////////////////////////////////////////
-				// temp »èÁ¦									 //
+				// temp ï¿½ï¿½ï¿½ï¿½									 //
 				///////////////////////////////////////////////
 
 				memset(&pcom9104_r,0x00,sizeof(CCOM9104_R));
 
 				pcom9104_r.proc_flag  =  4;   //1=wedisk, 2=mydisk, 3=mydata 	4=filog disk
-				pcom9104_r.id         = pFileinfo->cfups4001.id;        // ÄÁÅ×Ã÷ID(T_CONTENTS_TEMP.id)
+				pcom9104_r.id         = pFileinfo->cfups4001.id;        // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ID(T_CONTENTS_TEMP.id)
 				pcom9104_r.file_size = pFileinfo->cfups4001.file_size;
-				memcpy(pcom9104_r.user_id ,pHeader->szUserID,sizeof(pHeader->szUserID)); // »ç¿ëÀÚ
+				memcpy(pcom9104_r.user_id ,pHeader->szUserID,sizeof(pHeader->szUserID)); // ï¿½ï¿½ï¿½ï¿½ï¿½
 
-				infLOG(ERROR, "ÇÊ·Î±× ¿ë·®À» º¹±¸ ÇÕ´Ï´Ù. File Size [ %.0f ]\n",pcom9104_r.file_size);
-				if(com9104(pcom9104_r) < 0)
+				infLOG(ERROR, "ï¿½Ê·Î±ï¿½ ï¿½ë·®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Õ´Ï´ï¿½. File Size [ %.0f ]\n",pcom9104_r.file_size);
+				if(com9104(pcom9104_r, g_szDcmdIP, g_nDcmdPort) < 0)
 				{
-					infLOG(ERROR, "ÇÊ·Î±× ¿ë·® º¹±¸ Áß ¿À·ù°¡ ¹ß»ýÇÏ¿´½À´Ï¤¿´Ù.[com9104]\n");
+					infLOG(ERROR, "ï¿½Ê·Î±ï¿½ ï¿½ë·® ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ß»ï¿½ï¿½Ï¿ï¿½ï¿½ï¿½ï¿½Ï¤ï¿½ï¿½ï¿½.[com9104]\n");
 				}
 
-				com9101 ( com9101_r);
+				com9101 ( com9101_r, g_szDcmdIP, g_nDcmdPort);
 				return -RS_FILE_DATA_TRANSFER;
 			}
 
@@ -1106,21 +1107,21 @@ int FileDataTransfer(int& Socket,char *pRecvHead, char *pRecvData, char* &pSendD
 
 			double dCurrentLen	= 0;
 
-			dCurrentLen = (double)ftello64 (DownloadFile); // ÆÄÀÏÀÌ ¾îµð±îÁö ÀÖ´ÂÁö °áÁ¤
+			dCurrentLen = (double)ftello64 (DownloadFile); // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 
-			infLOG(ALWAY, "ÃÖ±Ù ÀÌµ¿ÇÑ ÆÄÀÏ »çÀÌÁî ( %.0f )\n",dCurrentLen);
+			infLOG(ALWAY, "ï¿½Ö±ï¿½ ï¿½Ìµï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ( %.0f )\n",dCurrentLen);
 
 			if(dCurrentLen < 0)
 				dCurrentLen = 0;
 
-			pFileHead->dCurrentSize = dCurrentLen; //ÇØµå¿¡ Çö ÆÄÀÏ ±æÀÌ ÀúÀå
+			pFileHead->dCurrentSize = dCurrentLen; //ï¿½Øµå¿¡ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 
-			// head ÀÛ¼º
+			// head ï¿½Û¼ï¿½
 			memset(&headers,0x00,sizeof(HEADER));
 
 			infLOG(ALWAY,"Send RS_FILE_DATA_TRANSFER\n");
 
-			headers.nCmd = RS_FILE_DATA_TRANSFER ; // µ¥ÀÌÅÍ Àü¼Û
+			headers.nCmd = RS_FILE_DATA_TRANSFER ; // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 			headers.nDataCnt = 1;
 			headers.nDataSize = sizeof(FILEHEAD);
 			headers.nErrorCode = 0;
@@ -1131,32 +1132,32 @@ int FileDataTransfer(int& Socket,char *pRecvHead, char *pRecvData, char* &pSendD
 
 			memcpy(pSendData + HEADER_SIZE,pFileHead, headers.nDataCnt*headers.nDataSize);
 
-			//// body ÀÛ¼º////
+			//// body ï¿½Û¼ï¿½////
 			if(	SendData(Socket,pSendData,HEADER_SIZE + headers.nDataCnt*headers.nDataSize)<0)  //struct _PACKET == PACKET
 			{
 				infLOG(ERROR,"Send RS_FILE_DATA_TRANSFER ERROR\n");
 				delete pFileHead;
-				// ¿ë·® º¹¿ø ÇÏ±â
-				// ¹Þ´ø ÆÄÀÏ »èÁ¦
+				// ï¿½ë·® ï¿½ï¿½ï¿½ï¿½ ï¿½Ï±ï¿½
+				// ï¿½Þ´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 				///////////////////////////////////////////////
-				// temp »èÁ¦									 //
+				// temp ï¿½ï¿½ï¿½ï¿½									 //
 				///////////////////////////////////////////////
 
 				memset(&pcom9104_r,0x00,sizeof(CCOM9104_R));
 
 				pcom9104_r.proc_flag  =  4;   //1=wedisk, 2=mydisk, 3=mydata 	4=filog disk
-				pcom9104_r.id         = pFileinfo->cfups4001.id;        // ÄÁÅ×Ã÷ID(T_CONTENTS_TEMP.id)
+				pcom9104_r.id         = pFileinfo->cfups4001.id;        // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ID(T_CONTENTS_TEMP.id)
 				pcom9104_r.file_size = pFileinfo->cfups4001.file_size;
-				memcpy(pcom9104_r.user_id ,pHeader->szUserID,sizeof(pHeader->szUserID)); // »ç¿ëÀÚ
+				memcpy(pcom9104_r.user_id ,pHeader->szUserID,sizeof(pHeader->szUserID)); // ï¿½ï¿½ï¿½ï¿½ï¿½
 
-				infLOG(ERROR, "ÇÊ·Î±× ¿ë·®À» º¹±¸ ÇÕ´Ï´Ù. File Size [ %.0f ]\n",pcom9104_r.file_size);
-				if(com9104(pcom9104_r) < 0)
+				infLOG(ERROR, "ï¿½Ê·Î±ï¿½ ï¿½ë·®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Õ´Ï´ï¿½. File Size [ %.0f ]\n",pcom9104_r.file_size);
+				if(com9104(pcom9104_r, g_szDcmdIP, g_nDcmdPort) < 0)
 				{
-					infLOG(ERROR, "ÇÊ·Î±× ¿ë·® º¹±¸ Áß ¿À·ù°¡ ¹ß»ýÇÏ¿´½À´Ï¤¿´Ù.[com9104]\n");
+					infLOG(ERROR, "ï¿½Ê·Î±ï¿½ ï¿½ë·® ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ß»ï¿½ï¿½Ï¿ï¿½ï¿½ï¿½ï¿½Ï¤ï¿½ï¿½ï¿½.[com9104]\n");
 				}
 
 
-				com9101 ( com9101_r);
+				com9101 ( com9101_r, g_szDcmdIP, g_nDcmdPort);
 				return 0;
 			}
 			delete[] pSendData;
@@ -1166,23 +1167,23 @@ int FileDataTransfer(int& Socket,char *pRecvHead, char *pRecvData, char* &pSendD
 
 			infLOG(ALWAY,"Send RS_FILE_DATA_TRANSFER OK \n");
 
-		 ///////////////////////// µ¥ÀÌÅÍ Àü¼Û //////////////////////////////////
+		 ///////////////////////// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ //////////////////////////////////
 
-			dTotalRecvLen = 0; //ÃÑ ¹ÞÀº ±æÀÌ
-			dTotalLen = pFileinfo->dFileSize - dCurrentLen; // downµÉ ÆÄÀÏÀÇ ÃÑ ±æÀÌ
+			dTotalRecvLen = 0; //ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+			dTotalLen = pFileinfo->dFileSize - dCurrentLen; // downï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 			nWriteLen=0;
 			nRecvLen=0;
 
 			char* szRecvBuffer = new char[RECVBUF]; //recv buffer
 
-			infLOG(ALWAY,"ÆÄÀÏ È®ÀÎ [ %s ] : ¹ÞÀ» ÆÄÀÏ ÀüÃ¼ ±æÀÌ [ %.0f ] = [ %.0f (ÀüÃ¼) - %.0f(ÃÖ±ÙÀÌµ¿ÇÑ) ] \n",pFileinfo->cfups4001.file_name2 , dTotalLen ,pFileinfo->dFileSize ,dCurrentLen);
+			infLOG(ALWAY,"ï¿½ï¿½ï¿½ï¿½ È®ï¿½ï¿½ [ %s ] : ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ã¼ ï¿½ï¿½ï¿½ï¿½ [ %.0f ] = [ %.0f (ï¿½ï¿½Ã¼) - %.0f(ï¿½Ö±ï¿½ï¿½Ìµï¿½ï¿½ï¿½) ] \n",pFileinfo->cfups4001.file_name2 , dTotalLen ,pFileinfo->dFileSize ,dCurrentLen);
 
 			int fno = fileno(DownloadFile);
 
 			while(dTotalLen > 0  )
 			{
 				memset(szRecvBuffer,0x00,RECVBUF);
-				///// ÆÄÀÏ¹Þ±â /////
+				///// ï¿½ï¿½ï¿½Ï¹Þ±ï¿½ /////
 
 				nRecvLen =  RecvFileData(Socket, szRecvBuffer, RECVBUF, dTotalLen) ;
 
@@ -1194,7 +1195,7 @@ int FileDataTransfer(int& Socket,char *pRecvHead, char *pRecvData, char* &pSendD
 		        else
 		        	nWriteLen = 0;
 
-		        //	fwrite(szRecvBuffer,1,nRecvLen,DownloadFile); //¹ÞÀº ±æÀÌ ¸¸Å­ file¿¡ ÀúÀå
+		        //	fwrite(szRecvBuffer,1,nRecvLen,DownloadFile); //ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å­ fileï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 
 		    	if(nWriteLen <= 0)
 	        	{
@@ -1203,22 +1204,22 @@ int FileDataTransfer(int& Socket,char *pRecvHead, char *pRecvData, char* &pSendD
 	        		if(nWriteLen == 0)
 	        		{
 	        			#ifdef __DEBUG
-	        			printf(" ] Write File End (%s) : ÆÄÀÏ ÀüÃ¼ ±æÀÌ (%15.0f ) =  %15.0f \n",pFileinfo->cfups4001.file_name2 , dTotalLen ,pFileinfo->dFileSize );
+	        			printf(" ] Write File End (%s) : ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ã¼ ï¿½ï¿½ï¿½ï¿½ (%15.0f ) =  %15.0f \n",pFileinfo->cfups4001.file_name2 , dTotalLen ,pFileinfo->dFileSize );
 	        			#endif
-	        			infLOG(ALWAY,"Write File End (%s) : ÆÄÀÏ ÀüÃ¼ ±æÀÌ (%15.0f ) =  %15.0f \n",pFileinfo->cfups4001.file_name2 , dTotalLen ,pFileinfo->dFileSize );
+	        			infLOG(ALWAY,"Write File End (%s) : ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ã¼ ï¿½ï¿½ï¿½ï¿½ (%15.0f ) =  %15.0f \n",pFileinfo->cfups4001.file_name2 , dTotalLen ,pFileinfo->dFileSize );
 	        		}
 	        		else
 	        		{
 	        			#ifdef __DEBUG
-	        			printf(" ] Write File ERROR (%s) : ÆÄÀÏ ÀüÃ¼ ±æÀÌ (%15.0f ) =  %15.0f \n",pFileinfo->cfups4001.file_name2 , dTotalLen ,pFileinfo->dFileSize );
+	        			printf(" ] Write File ERROR (%s) : ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ã¼ ï¿½ï¿½ï¿½ï¿½ (%15.0f ) =  %15.0f \n",pFileinfo->cfups4001.file_name2 , dTotalLen ,pFileinfo->dFileSize );
 	        			#endif
-	        			infLOG(ERROR," ] Write File ERROR (%s) : ÆÄÀÏ ÀüÃ¼ ±æÀÌ (%15.0f ) =  %15.0f \n",pFileinfo->cfups4001.file_name2 , dTotalLen ,pFileinfo->dFileSize );
+	        			infLOG(ERROR," ] Write File ERROR (%s) : ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ã¼ ï¿½ï¿½ï¿½ï¿½ (%15.0f ) =  %15.0f \n",pFileinfo->cfups4001.file_name2 , dTotalLen ,pFileinfo->dFileSize );
 	        			nRecvLen = -1;
 	        		}
 	        		infLOG(ERROR,"errno [ %d ] error msg [ %s ]\n",errno,strerror(errno));
 	        	}
 
-		        if(nRecvLen <= 0 && dTotalLen != 0)	//¹Þ´Ù°¡ ¿À·ù°¡ ³µÀ»½Ã...DBÃ³¸®
+		        if(nRecvLen <= 0 && dTotalLen != 0)	//ï¿½Þ´Ù°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½...DBÃ³ï¿½ï¿½
 		        {
 
 
@@ -1226,19 +1227,19 @@ int FileDataTransfer(int& Socket,char *pRecvHead, char *pRecvData, char* &pSendD
 		        	{
 						memset(szErrMsg,0x00,sizeof(szErrMsg));
 						GetErrMsg(-nRecvLen,szErrMsg);
-						infLOG(ERROR, "µ¥ÀÌÅÍ¸¦ ¹ßÀ» ¼ö ¾ø½À´Ï´Ù. ( %d )( %s )\n",nRecvLen,szErrMsg);
+						infLOG(ERROR, "ï¿½ï¿½ï¿½ï¿½ï¿½Í¸ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½. ( %d )( %s )\n",nRecvLen,szErrMsg);
 		        	}
 		        	else if(nRecvLen == 0)
 		        	{
 						memset(szErrMsg,0x00,sizeof(szErrMsg));
 						GetErrMsg(-nRecvLen,szErrMsg);
 
-		        		infLOG(ERROR, "Á¢¼ÓÀÌ ²÷¾î Á³½À´Ï´Ù.[ ÀÌ°æ¿ì´Â º¸Åë Å¬¶óÀÌ¾ðÆ®¿¡¼­ µ¥ÀÌÅÍ¸¦ Á¦´ë·Î º¸³»Áö ¸øÇÒ¶§ ¹ß»ýÇÕ´Ï´Ù. ] \n" );
+		        		infLOG(ERROR, "ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½.[ ï¿½Ì°ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Å¬ï¿½ï¿½ï¿½Ì¾ï¿½Æ®ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Í¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ò¶ï¿½ ï¿½ß»ï¿½ï¿½Õ´Ï´ï¿½. ] \n" );
 
 		        	}
 
 
-					infLOG(ERROR,"ÇÊ·Î±× Ãë¼Ò (%s) RecvLen (%d) (%15.0f) TotalLen(%15.0f)\n ",pFileinfo->cfups4001.file_name2,nRecvLen ,dTotalRecvLen,dTotalLen);
+					infLOG(ERROR,"ï¿½Ê·Î±ï¿½ ï¿½ï¿½ï¿½ (%s) RecvLen (%d) (%15.0f) TotalLen(%15.0f)\n ",pFileinfo->cfups4001.file_name2,nRecvLen ,dTotalRecvLen,dTotalLen);
 					infLOG(ERROR,"errno [ %d ] error msg [ %s ]\n",errno,strerror(errno));
 
 					if(DownloadFile)
@@ -1250,14 +1251,14 @@ int FileDataTransfer(int& Socket,char *pRecvHead, char *pRecvData, char* &pSendD
 					memset(&pcom9104_r,0x00,sizeof(CCOM9104_R));
 
 					pcom9104_r.proc_flag  =  4;   //1=wedisk, 2=mydisk, 3=mydata 	4=filog disk
-					pcom9104_r.id         = pFileinfo->cfups4001.id;        // ÄÁÅ×Ã÷ID(T_CONTENTS_TEMP.id)
+					pcom9104_r.id         = pFileinfo->cfups4001.id;        // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ID(T_CONTENTS_TEMP.id)
 					pcom9104_r.file_size = pFileinfo->cfups4001.file_size;
-					memcpy(pcom9104_r.user_id ,pHeader->szUserID,sizeof(pHeader->szUserID)); // »ç¿ëÀÚ
+					memcpy(pcom9104_r.user_id ,pHeader->szUserID,sizeof(pHeader->szUserID)); // ï¿½ï¿½ï¿½ï¿½ï¿½
 
-					infLOG(ERROR, "ÇÊ·Î±× ¿ë·®À» º¹±¸ ÇÕ´Ï´Ù. File Size [ %.0f ]\n",pcom9104_r.file_size);
-					if(com9104(pcom9104_r) < 0)
+					infLOG(ERROR, "ï¿½Ê·Î±ï¿½ ï¿½ë·®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Õ´Ï´ï¿½. File Size [ %.0f ]\n",pcom9104_r.file_size);
+					if(com9104(pcom9104_r, g_szDcmdIP, g_nDcmdPort) < 0)
 					{
-						infLOG(ERROR, "ÇÊ·Î±× ¿ë·® º¹±¸ Áß ¿À·ù°¡ ¹ß»ýÇÏ¿´½À´Ï¤¿´Ù.[com9104]\n");
+						infLOG(ERROR, "ï¿½Ê·Î±ï¿½ ï¿½ë·® ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ß»ï¿½ï¿½Ï¿ï¿½ï¿½ï¿½ï¿½Ï¤ï¿½ï¿½ï¿½.[com9104]\n");
 					}
 
 					////////////////////////////////////////////////
@@ -1265,12 +1266,12 @@ int FileDataTransfer(int& Socket,char *pRecvHead, char *pRecvData, char* &pSendD
 				   	if(szRecvBuffer)
 						delete[] szRecvBuffer;
 
-					com9101 ( com9101_r);
+					com9101 ( com9101_r, g_szDcmdIP, g_nDcmdPort);
 					return 0;
 					//	return END;
 	        	}
-	       		dTotalLen = dTotalLen - (double)nRecvLen;  //ÃÑ±æÀÌ¿¡¼­  ¹ÞÀº ±æÀÌ Á¦°Å
-	        	dTotalRecvLen = dTotalRecvLen + (double)nRecvLen; //¹ÞÀº ±æÀÌ ¸¸Å­ ´õÇÔ
+	       		dTotalLen = dTotalLen - (double)nRecvLen;  //ï¿½Ñ±ï¿½ï¿½Ì¿ï¿½ï¿½ï¿½  ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	        	dTotalRecvLen = dTotalRecvLen + (double)nRecvLen; //ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å­ ï¿½ï¿½ï¿½ï¿½
 			}
 
 			if(DownloadFile)
@@ -1283,168 +1284,168 @@ int FileDataTransfer(int& Socket,char *pRecvHead, char *pRecvData, char* &pSendD
 				delete[] szRecvBuffer;
 
 			///////////////////////////////////////////////
-			//ÆÄÀÏ ÀÌ¸§ ¹Ù²Ù±â
-			// DB ³Ö±â..
+			//ï¿½ï¿½ï¿½ï¿½ ï¿½Ì¸ï¿½ ï¿½Ù²Ù±ï¿½
+			// DB ï¿½Ö±ï¿½..
 
-			infLOG(ALWAY,"ÇÊ·Î±× µ¥ÀÌÅÍ ¹Þ±â ¿Ï·á ¹× È®ÀÎ - ÆÄÀÏÀÌ¸§ (%s) ÀÓ½Ã¹øÈ£ (%lu) ÀÓ½Ã¹øÈ£ (%lu)\n",pFileinfo->cfups4001.file_name2, pFileinfo->nNumber,pFileinfo->cfups4001.id);
+			infLOG(ALWAY,"ï¿½Ê·Î±ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Þ±ï¿½ ï¿½Ï·ï¿½ ï¿½ï¿½ È®ï¿½ï¿½ - ï¿½ï¿½ï¿½ï¿½ï¿½Ì¸ï¿½ (%s) ï¿½Ó½Ã¹ï¿½È£ (%lu) ï¿½Ó½Ã¹ï¿½È£ (%lu)\n",pFileinfo->cfups4001.file_name2, pFileinfo->nNumber,pFileinfo->cfups4001.id);
 
-			//¿©±â¼­ ºÎÅÍ ¹Þ±â ½ÃÀÛ
+			//ï¿½ï¿½ï¿½â¼­ ï¿½ï¿½ï¿½ï¿½ ï¿½Þ±ï¿½ ï¿½ï¿½ï¿½ï¿½
 
-			infLOG(ALWAY,"Àü¼Û ¿Ï·á ÈÄ ÇØ´õ ÀÀ´ä ´ë±â.\n");
+			infLOG(ALWAY,"ï¿½ï¿½ï¿½ï¿½ ï¿½Ï·ï¿½ ï¿½ï¿½ ï¿½Ø´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½.\n");
 			memset(&headers,0x00,sizeof(HEADER));
 			if(RecvData(Socket,(char*)&headers,HEADER_SIZE ) <= 0)
 			{
-				infLOG(ERROR,"Àü¼Û ¿Ï·á ÈÄ ÇØ´õ ÀÀ´ä ´ë±â ¿À·ù.\n");
+				infLOG(ERROR,"ï¿½ï¿½ï¿½ï¿½ ï¿½Ï·ï¿½ ï¿½ï¿½ ï¿½Ø´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½.\n");
 
-				// ¹Þ´ø ÆÄÀÏ »èÁ¦
+				// ï¿½Þ´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 				///////////////////////////////////////////////
-				// temp »èÁ¦									 //
+				// temp ï¿½ï¿½ï¿½ï¿½									 //
 				//////////////////////////////////////////////
 				memset(&pcom9104_r,0x00,sizeof(CCOM9104_R));
 
 				pcom9104_r.proc_flag  =  4;   //1=wedisk, 2=mydisk, 3=mydata 	4=filog disk
-				pcom9104_r.id         = pFileinfo->cfups4001.id;        // ÄÁÅ×Ã÷ID(T_CONTENTS_TEMP.id)
+				pcom9104_r.id         = pFileinfo->cfups4001.id;        // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ID(T_CONTENTS_TEMP.id)
 				pcom9104_r.file_size = pFileinfo->cfups4001.file_size;
-				memcpy(pcom9104_r.user_id ,pHeader->szUserID,sizeof(pHeader->szUserID)); // »ç¿ëÀÚ
+				memcpy(pcom9104_r.user_id ,pHeader->szUserID,sizeof(pHeader->szUserID)); // ï¿½ï¿½ï¿½ï¿½ï¿½
 
-				infLOG(ERROR, "ÇÊ·Î±× ¿ë·®À» º¹±¸ ÇÕ´Ï´Ù. File Size [ %.0f ]\n",pcom9104_r.file_size);
-				if(com9104(pcom9104_r) < 0)
+				infLOG(ERROR, "ï¿½Ê·Î±ï¿½ ï¿½ë·®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Õ´Ï´ï¿½. File Size [ %.0f ]\n",pcom9104_r.file_size);
+				if(com9104(pcom9104_r, g_szDcmdIP, g_nDcmdPort) < 0)
 				{
-					infLOG(ERROR, "ÇÊ·Î±× ¿ë·® º¹±¸ Áß ¿À·ù°¡ ¹ß»ýÇÏ¿´½À´Ï¤¿´Ù.[com9104]\n");
+					infLOG(ERROR, "ï¿½Ê·Î±ï¿½ ï¿½ë·® ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ß»ï¿½ï¿½Ï¿ï¿½ï¿½ï¿½ï¿½Ï¤ï¿½ï¿½ï¿½.[com9104]\n");
 				}
 
-				com9101 ( com9101_r);
+				com9101 ( com9101_r, g_szDcmdIP, g_nDcmdPort);
 
 				return 0;
 			}
-			infLOG(ERROR,"Àü¼Û ¿Ï·á ÈÄ ÇØ´õ ÀÀ´ä ´ë±â °á°ú [ %d ].\n",headers.nCmd);
+			infLOG(ERROR,"ï¿½ï¿½ï¿½ï¿½ ï¿½Ï·ï¿½ ï¿½ï¿½ ï¿½Ø´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ [ %d ].\n",headers.nCmd);
 
 			if(headers.nCmd == RS_FILE_REQUEST_NEXT_FILE )
 			{
 
-				infLOG(ALWAY, "RS_FILE_REQUEST_NEXT_FILE\n´ÙÀ½ ÆÄÀÏÀ» ¹Þ½À´Ï´Ù.\n");
+				infLOG(ALWAY, "RS_FILE_REQUEST_NEXT_FILE\nï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Þ½ï¿½ï¿½Ï´ï¿½.\n");
 
 				memset(&headers,0x00,HEADER_SIZE);
 
-				headers.nCmd = RS_FILE_REQUEST_NEXT_FILEINFO; //ÆÄÀÏ Á¤º¸ ¿äÃ»
+				headers.nCmd = RS_FILE_REQUEST_NEXT_FILEINFO; //ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ã»
 				headers.nDataCnt = 0;
 				headers.nDataSize = 0;
 
 				if(	SendData(Socket,(char*)&headers,HEADER_SIZE )<0)  //struct _PACKET == PACKET
 				{
-					infLOG(ERROR, "RS_FILE_REQUEST_NEXT_FILE Àü¼Û ¿À·ù \n");
+					infLOG(ERROR, "RS_FILE_REQUEST_NEXT_FILE ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ \n");
 
 
-					// ¹Þ´ø ÆÄÀÏ »èÁ¦
+					// ï¿½Þ´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 					///////////////////////////////////////////////
-					// temp »èÁ¦									 //
+					// temp ï¿½ï¿½ï¿½ï¿½									 //
 					///////////////////////////////////////////////
 
 					memset(&pcom9104_r,0x00,sizeof(CCOM9104_R));
 
 					pcom9104_r.proc_flag  =  4;   //1=wedisk, 2=mydisk, 3=mydata 	4=filog disk
-					pcom9104_r.id         = pFileinfo->cfups4001.id;        // ÄÁÅ×Ã÷ID(T_CONTENTS_TEMP.id)
+					pcom9104_r.id         = pFileinfo->cfups4001.id;        // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ID(T_CONTENTS_TEMP.id)
 					pcom9104_r.file_size = pFileinfo->cfups4001.file_size;
-					memcpy(pcom9104_r.user_id ,pHeader->szUserID,sizeof(pHeader->szUserID)); // »ç¿ëÀÚ
+					memcpy(pcom9104_r.user_id ,pHeader->szUserID,sizeof(pHeader->szUserID)); // ï¿½ï¿½ï¿½ï¿½ï¿½
 
-					infLOG(ERROR, "ÇÊ·Î±× ¿ë·®À» º¹±¸ ÇÕ´Ï´Ù. File Size [ %.0f ]\n",pcom9104_r.file_size);
-					if(com9104(pcom9104_r) < 0)
+					infLOG(ERROR, "ï¿½Ê·Î±ï¿½ ï¿½ë·®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Õ´Ï´ï¿½. File Size [ %.0f ]\n",pcom9104_r.file_size);
+					if(com9104(pcom9104_r, g_szDcmdIP, g_nDcmdPort) < 0)
 					{
-						infLOG(ERROR, "ÇÊ·Î±× ¿ë·® º¹±¸ Áß ¿À·ù°¡ ¹ß»ýÇÏ¿´½À´Ï¤¿´Ù.[com9104]\n");
+						infLOG(ERROR, "ï¿½Ê·Î±ï¿½ ï¿½ë·® ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ß»ï¿½ï¿½Ï¿ï¿½ï¿½ï¿½ï¿½Ï¤ï¿½ï¿½ï¿½.[com9104]\n");
 					}
 
 
-					com9101 ( com9101_r);
+					com9101 ( com9101_r, g_szDcmdIP, g_nDcmdPort);
 
 					return 0;
 				}
-				infLOG(ERROR, "RS_FILE_REQUEST_NEXT_FILE ÀÀ´ä ´ë±â Áß \n");
+				infLOG(ERROR, "RS_FILE_REQUEST_NEXT_FILE ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ \n");
 
 				//recv file_transfer
 				memset(&headers,0x00,HEADER_SIZE);
 				if(RecvData(Socket,(char*)&headers,HEADER_SIZE ) <= 0)
 				{
-					infLOG(ERROR, "RS_FILE_REQUEST_NEXT_FILE ÀÀ´ä ´ë±â Áß ¿À·ù [ ÀÌ°æ¿ì´Â º¸Åë Å¬¶óÀÌ¾ðÆ®·ÎºÎÅÍ µ¥ÀÌÅÍ¸¦ ¹ÞÁö ¸øÇÒ ¶§ ¹ß»ýÇÕ´Ï´Ù. \n");
-					// ¹Þ´ø ÆÄÀÏ »èÁ¦
+					infLOG(ERROR, "RS_FILE_REQUEST_NEXT_FILE ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ [ ï¿½Ì°ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Å¬ï¿½ï¿½ï¿½Ì¾ï¿½Æ®ï¿½Îºï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Í¸ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ß»ï¿½ï¿½Õ´Ï´ï¿½. \n");
+					// ï¿½Þ´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 					///////////////////////////////////////////////
-					// temp »èÁ¦									 //
+					// temp ï¿½ï¿½ï¿½ï¿½									 //
 					///////////////////////////////////////////////
 
 					memset(&pcom9104_r,0x00,sizeof(CCOM9104_R));
 
 					pcom9104_r.proc_flag  =  4;   //1=wedisk, 2=mydisk, 3=mydata 	4=filog disk
-					pcom9104_r.id         = pFileinfo->cfups4001.id;        // ÄÁÅ×Ã÷ID(T_CONTENTS_TEMP.id)
+					pcom9104_r.id         = pFileinfo->cfups4001.id;        // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ID(T_CONTENTS_TEMP.id)
 					pcom9104_r.file_size = pFileinfo->cfups4001.file_size;
-					memcpy(pcom9104_r.user_id ,pHeader->szUserID,sizeof(pHeader->szUserID)); // »ç¿ëÀÚ
+					memcpy(pcom9104_r.user_id ,pHeader->szUserID,sizeof(pHeader->szUserID)); // ï¿½ï¿½ï¿½ï¿½ï¿½
 
-					infLOG(ERROR, "ÇÊ·Î±× ¿ë·®À» º¹±¸ ÇÕ´Ï´Ù. File Size [ %.0f ]\n",pcom9104_r.file_size);
-					if(com9104(pcom9104_r) < 0)
+					infLOG(ERROR, "ï¿½Ê·Î±ï¿½ ï¿½ë·®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Õ´Ï´ï¿½. File Size [ %.0f ]\n",pcom9104_r.file_size);
+					if(com9104(pcom9104_r, g_szDcmdIP, g_nDcmdPort) < 0)
 					{
-						infLOG(ERROR, "ÇÊ·Î±× ¿ë·® º¹±¸ Áß ¿À·ù°¡ ¹ß»ýÇÏ¿´½À´Ï¤¿´Ù.[com9104]\n");
+						infLOG(ERROR, "ï¿½Ê·Î±ï¿½ ï¿½ë·® ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ß»ï¿½ï¿½Ï¿ï¿½ï¿½ï¿½ï¿½Ï¤ï¿½ï¿½ï¿½.[com9104]\n");
 					}
 
 
-					com9101 ( com9101_r);
+					com9101 ( com9101_r, g_szDcmdIP, g_nDcmdPort);
 					return 0;
 				}
 
 				memset(&rFileInfo,0x00,sizeof(FILEINFO));
-				infLOG(ERROR, "´ÙÀ½ ÆÄÀÏÁ¤º¸ ¹Þ±â ´ë±â Áß \n");
+				infLOG(ERROR, "ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Þ±ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ \n");
 
 				if( RecvData(Socket,(char*)&rFileInfo,sizeof(FILEINFO) ) <= 0)
 				{
-					infLOG(ERROR, "´ÙÀ½ ÆÄÀÏÁ¤º¸ ¹Þ±â ´ë±â Áß ¿À·ù \n");
+					infLOG(ERROR, "ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Þ±ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ \n");
 
-					// ¹Þ´ø ÆÄÀÏ »èÁ¦
+					// ï¿½Þ´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 					///////////////////////////////////////////////
-					// temp »èÁ¦									 //
+					// temp ï¿½ï¿½ï¿½ï¿½									 //
 					///////////////////////////////////////////////
 
 					memset(&pcom9104_r,0x00,sizeof(CCOM9104_R));
 
 					pcom9104_r.proc_flag  =  4;   //1=wedisk, 2=mydisk, 3=mydata 	4=filog disk
-					pcom9104_r.id         = pFileinfo->cfups4001.id;        // ÄÁÅ×Ã÷ID(T_CONTENTS_TEMP.id)
+					pcom9104_r.id         = pFileinfo->cfups4001.id;        // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ID(T_CONTENTS_TEMP.id)
 					pcom9104_r.file_size = pFileinfo->cfups4001.file_size;
-					memcpy(pcom9104_r.user_id ,pHeader->szUserID,sizeof(pHeader->szUserID)); // »ç¿ëÀÚ
+					memcpy(pcom9104_r.user_id ,pHeader->szUserID,sizeof(pHeader->szUserID)); // ï¿½ï¿½ï¿½ï¿½ï¿½
 
-					infLOG(ERROR, "ÇÊ·Î±× ¿ë·®À» º¹±¸ ÇÕ´Ï´Ù. File Size [ %.0f ]\n",pcom9104_r.file_size);
-					if(com9104(pcom9104_r) < 0)
+					infLOG(ERROR, "ï¿½Ê·Î±ï¿½ ï¿½ë·®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Õ´Ï´ï¿½. File Size [ %.0f ]\n",pcom9104_r.file_size);
+					if(com9104(pcom9104_r, g_szDcmdIP, g_nDcmdPort) < 0)
 					{
-						infLOG(ERROR, "ÇÊ·Î±× ¿ë·® º¹±¸ Áß ¿À·ù°¡ ¹ß»ýÇÏ¿´½À´Ï¤¿´Ù.[com9104]\n");
+						infLOG(ERROR, "ï¿½Ê·Î±ï¿½ ï¿½ë·® ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ß»ï¿½ï¿½Ï¿ï¿½ï¿½ï¿½ï¿½Ï¤ï¿½ï¿½ï¿½.[com9104]\n");
 					}
 
 
-					com9101 ( com9101_r);
+					com9101 ( com9101_r, g_szDcmdIP, g_nDcmdPort);
 					return 0;
 				}
 				pFileinfo = &rFileInfo;
 			}
 			else if(headers.nCmd == RS_EOL)
 			{
-				//µî·Ï
+				//ï¿½ï¿½ï¿½
 
-				infLOG(ALWAY,"RS_EOL\nÇÊ·Î±×ÀÇ ÄÁÅÙÃ÷¸¦ µî·ÏÇÕ´Ï´Ù. ÀÓ½Ã ¹øÈ£ °Ë»ç(T_CONTENTS_TEMP) [ %lu ]\n",pFileinfo->nNumber );
+				infLOG(ALWAY,"RS_EOL\nï¿½Ê·Î±ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Õ´Ï´ï¿½. ï¿½Ó½ï¿½ ï¿½ï¿½È£ ï¿½Ë»ï¿½(T_CONTENTS_TEMP) [ %lu ]\n",pFileinfo->nNumber );
 
-				// µî·ÏÈÄ eol º¸³»±â
-				if(pFileinfo->nTypeDisk == FT_WEDISK && pFileinfo->nNumber > 0 ) //ÄÁÅÙÃ÷ µî·Ï
+				// ï¿½ï¿½ï¿½ï¿½ï¿½ eol ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+				if(pFileinfo->nTypeDisk == FT_WEDISK && pFileinfo->nNumber > 0 ) //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
 				{
 					if( dTotalLen == 0)
 					{
-						infLOG(ALWAY,"ÇÊ·Î±× ÆÄÀÏ µî·Ï - ÀÓ½Ã¹øÈ£ [ %lu ] ÆÄÀÏÀÌ¸§  [ %s ]  \n",pFileinfo->nNumber,pFileinfo->cfups4001.file_name2);
+						infLOG(ALWAY,"ï¿½Ê·Î±ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ - ï¿½Ó½Ã¹ï¿½È£ [ %lu ] ï¿½ï¿½ï¿½ï¿½ï¿½Ì¸ï¿½  [ %s ]  \n",pFileinfo->nNumber,pFileinfo->cfups4001.file_name2);
 
 						int nResult = fups4001(pFileinfo->cfups4001);
-						infLOG(ALWAY,"ÇÊ·Î±× µî·Ï°á°ú(fups4001) Result [ %d ] \n",nResult);
+						infLOG(ALWAY,"ï¿½Ê·Î±ï¿½ ï¿½ï¿½Ï°ï¿½ï¿½(fups4001) Result [ %d ] \n",nResult);
 						if(  nResult < 0 )//pFileinfo->cfups4001) == -1)
 						{
-							// ¹Þ´ø ÆÄÀÏ »èÁ¦
+							// ï¿½Þ´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 							///////////////////////////////////////////////
-							// temp »èÁ¦									 //
+							// temp ï¿½ï¿½ï¿½ï¿½									 //
 							///////////////////////////////////////////////
 
-							//ÇÊ·Î±× µî·ÏÁß ¿À·ù ¹ß»ý ...²À »èÁ¦ ÇØ¾ß ÇÒ ¸ñ·Ïµé
+							//ï¿½Ê·Î±ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ß»ï¿½ ...ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ø¾ï¿½ ï¿½ï¿½ ï¿½ï¿½Ïµï¿½
 
-							infLOG(ERROR, "================== ÇÊ·Î±× µî·Ï ¿À·ù(FilogError) ===================\n"
-										  "ÀÓ½Ã¹øÈ£ ( %lu )¼­¹ö ¾ÆÀÌµð( %s ) ÆÄÀÏ°æ·Î ( %s )                         \n"
+							infLOG(ERROR, "================== ï¿½Ê·Î±ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½(FilogError) ===================\n"
+										  "ï¿½Ó½Ã¹ï¿½È£ ( %lu )ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ìµï¿½( %s ) ï¿½ï¿½ï¿½Ï°ï¿½ï¿½ ( %s )                         \n"
 										  "=========================================================\n" ,pFileinfo->nNumber,pFileinfo->cfups4001.server_id ,szFullPath);
 
 							memset(&headers,0x00,sizeof(HEADER));
@@ -1461,42 +1462,42 @@ int FileDataTransfer(int& Socket,char *pRecvHead, char *pRecvData, char* &pSendD
 
 
 							pcom9104_r.proc_flag  =  4;   //1=wedisk, 2=mydisk, 3=mydata 	4=filog disk
-							pcom9104_r.id         = pFileinfo->cfups4001.id;        // ÄÁÅ×Ã÷ID(T_CONTENTS_TEMP.id)
+							pcom9104_r.id         = pFileinfo->cfups4001.id;        // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ID(T_CONTENTS_TEMP.id)
 							pcom9104_r.file_size = pFileinfo->cfups4001.file_size;
-							memcpy(pcom9104_r.user_id ,pHeader->szUserID,sizeof(pHeader->szUserID)); // »ç¿ëÀÚ
+							memcpy(pcom9104_r.user_id ,pHeader->szUserID,sizeof(pHeader->szUserID)); // ï¿½ï¿½ï¿½ï¿½ï¿½
 
-							infLOG(ALWAY,"RS_FILE_END_FAIL Àü¼Û \n");
+							infLOG(ALWAY,"RS_FILE_END_FAIL ï¿½ï¿½ï¿½ï¿½ \n");
 
 
 							if(	SendData(Socket,(char*)&headers,HEADER_SIZE)<0)  //struct _PACKET == PACKET
 							{
-								infLOG(ERROR, "ÇÊ·Î±× ¿ë·®À» º¹±¸ ÇÕ´Ï´Ù. File Size [ %.0f ]\n",pcom9104_r.file_size);
-								if(com9104(pcom9104_r) < 0)
+								infLOG(ERROR, "ï¿½Ê·Î±ï¿½ ï¿½ë·®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Õ´Ï´ï¿½. File Size [ %.0f ]\n",pcom9104_r.file_size);
+								if(com9104(pcom9104_r, g_szDcmdIP, g_nDcmdPort) < 0)
 								{
-									infLOG(ERROR, "ÇÊ·Î±× ¿ë·® º¹±¸ Áß ¿À·ù°¡ ¹ß»ýÇÏ¿´½À´Ï¤¿´Ù.[com9104]\n");
+									infLOG(ERROR, "ï¿½Ê·Î±ï¿½ ï¿½ë·® ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ß»ï¿½ï¿½Ï¿ï¿½ï¿½ï¿½ï¿½Ï¤ï¿½ï¿½ï¿½.[com9104]\n");
 								}
 
-								com9101 ( com9101_r);
+								com9101 ( com9101_r, g_szDcmdIP, g_nDcmdPort);
 								return 0;
 							}
-							infLOG(ERROR, "ÇÊ·Î±× ¿ë·®À» º¹±¸ ÇÕ´Ï´Ù. File Size [ %.0f ]\n",pcom9104_r.file_size);
-							if(com9104(pcom9104_r) < 0)
+							infLOG(ERROR, "ï¿½Ê·Î±ï¿½ ï¿½ë·®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Õ´Ï´ï¿½. File Size [ %.0f ]\n",pcom9104_r.file_size);
+							if(com9104(pcom9104_r, g_szDcmdIP, g_nDcmdPort) < 0)
 							{
-								infLOG(ERROR, "ÇÊ·Î±× ¿ë·® º¹±¸ Áß ¿À·ù°¡ ¹ß»ýÇÏ¿´½À´Ï¤¿´Ù.[com9104]\n");
+								infLOG(ERROR, "ï¿½Ê·Î±ï¿½ ï¿½ë·® ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ß»ï¿½ï¿½Ï¿ï¿½ï¿½ï¿½ï¿½Ï¤ï¿½ï¿½ï¿½.[com9104]\n");
 							}
 
 
-							com9101 ( com9101_r);
+							com9101 ( com9101_r, g_szDcmdIP, g_nDcmdPort);
 							return 1;
 						}
-						infLOG(ALWAY,"============== ÇÊ·Î±× ÆÄÀÏ µî·Ï ¿Ï·á ===============\n");
+						infLOG(ALWAY,"============== ï¿½Ê·Î±ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½Ï·ï¿½ ===============\n");
 					}
 					else
 					{
-						infLOG(ERROR, "============ ÇÊ·Î±× µî·Ï ¿À·ù - ÆÄÀÏÀ» ¿ÏÀüÈ÷ ¹ÞÁö ¸øÇÏ¿´½À´Ï´Ù. ========== \n");
+						infLOG(ERROR, "============ ï¿½Ê·Î±ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ - ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ï¿ï¿½ï¿½ï¿½ï¿½Ï´ï¿½. ========== \n");
 						memset(&headers,0x00,sizeof(HEADER));
 
-						// ¹Þ´ø ÆÄÀÏ »èÁ¦
+						// ï¿½Þ´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 
 						headers.nCmd = RS_FILE_END_FAIL;
 						headers.nDataCnt = 0;
@@ -1505,85 +1506,85 @@ int FileDataTransfer(int& Socket,char *pRecvHead, char *pRecvData, char* &pSendD
 
 						if(	SendData(Socket,(char*)&headers,HEADER_SIZE)<=0)  //struct _PACKET == PACKET
 						{
-							infLOG(ERROR, "ÇÊ·Î±× ¿ë·®À» º¹±¸ ÇÕ´Ï´Ù. File Size [ %.0f ]\n",pcom9104_r.file_size);
-							if(com9104(pcom9104_r) < 0)
+							infLOG(ERROR, "ï¿½Ê·Î±ï¿½ ï¿½ë·®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Õ´Ï´ï¿½. File Size [ %.0f ]\n",pcom9104_r.file_size);
+							if(com9104(pcom9104_r, g_szDcmdIP, g_nDcmdPort) < 0)
 							{
-								infLOG(ERROR, "ÇÊ·Î±× ¿ë·® º¹±¸ Áß ¿À·ù°¡ ¹ß»ýÇÏ¿´½À´Ï¤¿´Ù.[com9104]\n");
+								infLOG(ERROR, "ï¿½Ê·Î±ï¿½ ï¿½ë·® ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ß»ï¿½ï¿½Ï¿ï¿½ï¿½ï¿½ï¿½Ï¤ï¿½ï¿½ï¿½.[com9104]\n");
 							}
 
-							com9101 ( com9101_r);
+							com9101 ( com9101_r, g_szDcmdIP, g_nDcmdPort);
 							return 0;
 						}
-						infLOG(ERROR, "ÇÊ·Î±× ¿ë·®À» º¹±¸ ÇÕ´Ï´Ù. File Size [ %.0f ]\n",pcom9104_r.file_size);
-						if(com9104(pcom9104_r) < 0)
+						infLOG(ERROR, "ï¿½Ê·Î±ï¿½ ï¿½ë·®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Õ´Ï´ï¿½. File Size [ %.0f ]\n",pcom9104_r.file_size);
+						if(com9104(pcom9104_r, g_szDcmdIP, g_nDcmdPort) < 0)
 						{
-							infLOG(ERROR, "ÇÊ·Î±× ¿ë·® º¹±¸ Áß ¿À·ù°¡ ¹ß»ýÇÏ¿´½À´Ï¤¿´Ù.[com9104]\n");
+							infLOG(ERROR, "ï¿½Ê·Î±ï¿½ ï¿½ë·® ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ß»ï¿½ï¿½Ï¿ï¿½ï¿½ï¿½ï¿½Ï¤ï¿½ï¿½ï¿½.[com9104]\n");
 						}
 
 
-						com9101 ( com9101_r);
+						com9101 ( com9101_r, g_szDcmdIP, g_nDcmdPort);
 						return 1;
 					}
 				}
 
 
-				infLOG(ALWAY, "RS_EROL Àü¼Û\n");
+				infLOG(ALWAY, "RS_EROL ï¿½ï¿½ï¿½ï¿½\n");
 
 				memset(&headers,0x00,HEADER_SIZE);
 
-				headers.nCmd = RS_EOL; //ÆÄÀÏ Á¤º¸ ¿äÃ»
+				headers.nCmd = RS_EOL; //ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ã»
 				headers.nDataCnt = 0;
 				headers.nDataSize = 0;
 
 				if(	SendData(Socket,(char*)&headers,HEADER_SIZE )<0)  //struct _PACKET == PACKET
 				{
-					infLOG(ERROR, "ÇÊ·Î±× ¿ë·®À» º¹±¸ ÇÕ´Ï´Ù. File Size [ %.0f ]\n",pcom9104_r.file_size);
-					if(com9104(pcom9104_r) < 0)
+					infLOG(ERROR, "ï¿½Ê·Î±ï¿½ ï¿½ë·®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Õ´Ï´ï¿½. File Size [ %.0f ]\n",pcom9104_r.file_size);
+					if(com9104(pcom9104_r, g_szDcmdIP, g_nDcmdPort) < 0)
 					{
-						infLOG(ERROR, "ÇÊ·Î±× ¿ë·® º¹±¸ Áß ¿À·ù°¡ ¹ß»ýÇÏ¿´½À´Ï¤¿´Ù.[com9104]\n");
+						infLOG(ERROR, "ï¿½Ê·Î±ï¿½ ï¿½ë·® ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ß»ï¿½ï¿½Ï¿ï¿½ï¿½ï¿½ï¿½Ï¤ï¿½ï¿½ï¿½.[com9104]\n");
 					}
 
-					com9101 ( com9101_r);
+					com9101 ( com9101_r, g_szDcmdIP, g_nDcmdPort);
 					return 0;
 				}
-				com9101 ( com9101_r);
+				com9101 ( com9101_r, g_szDcmdIP, g_nDcmdPort);
 				return 0;
 			}
 			else
 			{
-				infLOG(ERROR,"Àü¼Û ¿Ï·á ÈÄ ÇØ´õ ÀÀ´ä ´ë±â ¿À·ù [ %d ]¸í·É¾î°¡ ¾ø½À´Ï´Ù.\n",headers.nCmd);
+				infLOG(ERROR,"ï¿½ï¿½ï¿½ï¿½ ï¿½Ï·ï¿½ ï¿½ï¿½ ï¿½Ø´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ [ %d ]ï¿½ï¿½ï¿½É¾î°¡ ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½.\n",headers.nCmd);
 
 				memset(&pcom9104_r,0x00,sizeof(CCOM9104_R));
 
 				pcom9104_r.proc_flag  =  4;   //1=wedisk, 2=mydisk, 3=mydata 	4=filog disk
-				pcom9104_r.id         = pFileinfo->cfups4001.id;        // ÄÁÅ×Ã÷ID(T_CONTENTS_TEMP.id)
+				pcom9104_r.id         = pFileinfo->cfups4001.id;        // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ID(T_CONTENTS_TEMP.id)
 				pcom9104_r.file_size = pFileinfo->cfups4001.file_size;
-				memcpy(pcom9104_r.user_id ,pHeader->szUserID,sizeof(pHeader->szUserID)); // »ç¿ëÀÚ
+				memcpy(pcom9104_r.user_id ,pHeader->szUserID,sizeof(pHeader->szUserID)); // ï¿½ï¿½ï¿½ï¿½ï¿½
 
-				infLOG(ERROR, "ÇÊ·Î±× ¿ë·®À» º¹±¸ ÇÕ´Ï´Ù. File Size [ %.0f ]\n",pcom9104_r.file_size);
-				if(com9104(pcom9104_r) < 0)
+				infLOG(ERROR, "ï¿½Ê·Î±ï¿½ ï¿½ë·®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Õ´Ï´ï¿½. File Size [ %.0f ]\n",pcom9104_r.file_size);
+				if(com9104(pcom9104_r, g_szDcmdIP, g_nDcmdPort) < 0)
 				{
-					infLOG(ERROR, "ÇÊ·Î±× ¿ë·® º¹±¸ Áß ¿À·ù°¡ ¹ß»ýÇÏ¿´½À´Ï¤¿´Ù.[com9104]\n");
+					infLOG(ERROR, "ï¿½Ê·Î±ï¿½ ï¿½ë·® ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ß»ï¿½ï¿½Ï¿ï¿½ï¿½ï¿½ï¿½Ï¤ï¿½ï¿½ï¿½.[com9104]\n");
 				}
 
 
-				com9101 ( com9101_r);
+				com9101 ( com9101_r, g_szDcmdIP, g_nDcmdPort);
 				return 0;
 			}
 
 		}while( 1 );
 
-		com9101 ( com9101_r);
+		com9101 ( com9101_r, g_szDcmdIP, g_nDcmdPort);
 	}
-	else if( nCType == -2)  //ÇÏ·ç¿¡ ÇÑ°Ç - ÇöÀç »ç¿ë¾ÈÇÔ
+	else if( nCType == -2)  //ï¿½Ï·ç¿¡ ï¿½Ñ°ï¿½ - ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	{
-		infLOG(ERROR,"¼ºÀÎ¹° ÄÁÅÙÃ÷´Â ÇÏ·ç¿¡ µÎ°Ç¸¸ µî·Ï °¡´É ÇÕ´Ï´Ù.");
+		infLOG(ERROR,"ï¿½ï¿½ï¿½Î¹ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ï·ç¿¡ ï¿½Î°Ç¸ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Õ´Ï´ï¿½.");
 		pSendData = new char[sizeof(ERR_HEADER)];
 		memset(pSendData,0x00,sizeof(ERR_HEADER));
 		errheader.header.nCmd = RS_ERR;
 		errheader.header.nErrorCode = -RS_FILE_DATA_TRANSFER;
 
-		strcat(errheader.errmsg,"¼ºÀÎ¹° ÄÁÅÙÃ÷´Â ÇÏ·ç¿¡ µÎ°Ç¸¸ µî·Ï °¡´É ÇÕ´Ï´Ù.");
+		strcat(errheader.errmsg,"ï¿½ï¿½ï¿½Î¹ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ï·ç¿¡ ï¿½Î°Ç¸ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Õ´Ï´ï¿½.");
 
 		memcpy(pSendData, &errheader, sizeof(ERR_HEADER));
 
@@ -1591,16 +1592,16 @@ int FileDataTransfer(int& Socket,char *pRecvHead, char *pRecvData, char* &pSendD
 
 		return -RS_FILE_DATA_TRANSFER;
 	}
-	else if( nCType == -3)  //ÆÄÀÏ »çÀÌÁî º¯°æµÇ¾úÀ½.
+	else if( nCType == -3)  //ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ç¾ï¿½ï¿½ï¿½.
 	{
-		infLOG(ERROR,"¾÷·Îµå ÆÄÀÏÀÌ º¯°æ µÇ¾ú½À´Ï´Ù.");
+		infLOG(ERROR,"ï¿½ï¿½ï¿½Îµï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ç¾ï¿½ï¿½ï¿½ï¿½Ï´ï¿½.");
 
 		pSendData = new char[sizeof(ERR_HEADER)];
 		memset(pSendData,0x00,sizeof(ERR_HEADER));
 		errheader.header.nCmd = RS_ERR;
 		errheader.header.nErrorCode = -RS_FILE_DATA_TRANSFER;
 
-		strcat(errheader.errmsg,"¾÷·Îµå ÆÄÀÏÀÌ º¯°æ µÇ¾ú½À´Ï´Ù.");
+		strcat(errheader.errmsg,"ï¿½ï¿½ï¿½Îµï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ç¾ï¿½ï¿½ï¿½ï¿½Ï´ï¿½.");
 
 		memcpy(pSendData, &errheader, sizeof(ERR_HEADER));
 
@@ -1608,15 +1609,15 @@ int FileDataTransfer(int& Socket,char *pRecvHead, char *pRecvData, char* &pSendD
 
 		return -RS_FILE_DATA_TRANSFER;
 	}
-	else if( nCType == -90042 ) //ÆÄÀÏ Á¤º¸ Á¶È¸ ¿À·ù
+	else if( nCType == -90042 ) //ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È¸ ï¿½ï¿½ï¿½ï¿½
 	{
-		infLOG(ERROR,"ÆÄÀÏ Á¤º¸ Á¶È¸ Áß ¿À·ù°¡ ¹ß»ýÇÏ¿´½À´Ï´Ù.Àá½Ã ÈÄ Àç½Ãµµ ÇØÁÖ½Ê½Ã¿À.");
+		infLOG(ERROR,"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È¸ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ß»ï¿½ï¿½Ï¿ï¿½ï¿½ï¿½ï¿½Ï´ï¿½.ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½Ãµï¿½ ï¿½ï¿½ï¿½Ö½Ê½Ã¿ï¿½.");
 		pSendData = new char[sizeof(ERR_HEADER)];
 		memset(pSendData,0x00,sizeof(ERR_HEADER));
 		errheader.header.nCmd = RS_ERR;
 		errheader.header.nErrorCode = -RS_FILE_DATA_TRANSFER;
 
-		strcat(errheader.errmsg,"ÆÄÀÏ Á¤º¸ Á¶È¸ Áß ¿À·ù°¡ ¹ß»ýÇÏ¿´½À´Ï´Ù.Àá½Ã ÈÄ Àç½Ãµµ ÇØÁÖ½Ê½Ã¿À.");
+		strcat(errheader.errmsg,"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È¸ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ß»ï¿½ï¿½Ï¿ï¿½ï¿½ï¿½ï¿½Ï´ï¿½.ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½Ãµï¿½ ï¿½ï¿½ï¿½Ö½Ê½Ã¿ï¿½.");
 
 		memcpy(pSendData, &errheader, sizeof(ERR_HEADER));
 
@@ -1627,14 +1628,14 @@ int FileDataTransfer(int& Socket,char *pRecvHead, char *pRecvData, char* &pSendD
 	}
 	else if( nCType == -1 )
 	{
-		infLOG(ERROR,"µî·ÏÇÑ ÆÄÀÏ Á¤º¸¸¦ Ã£À» ¼ö ¾ø½À´Ï´Ù.");
+		infLOG(ERROR,"ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Ã£ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½.");
 
 		pSendData = new char[sizeof(ERR_HEADER)];
 		memset(pSendData,0x00,sizeof(ERR_HEADER));
 		errheader.header.nCmd = RS_ERR;
 		errheader.header.nErrorCode = -RS_FILE_DATA_TRANSFER;
 
-		strcat(errheader.errmsg,"µî·ÏÇÑ ÆÄÀÏ Á¤º¸¸¦ Ã£À» ¼ö ¾ø½À´Ï´Ù.");
+		strcat(errheader.errmsg,"ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Ã£ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½.");
 
 		memcpy(pSendData, &errheader, sizeof(ERR_HEADER));
 
@@ -1643,17 +1644,17 @@ int FileDataTransfer(int& Socket,char *pRecvHead, char *pRecvData, char* &pSendD
 
 		return -RS_FILE_DATA_TRANSFER;
 	}
-	else if( nCType == 1 ) //À§µð½ºÅ©
+	else if( nCType == 1 ) //ï¿½ï¿½ï¿½ï¿½Å©
 	{
 
-		infLOG(ALWAY,"À§µð½ºÅ© µî·Ï ½ÃÀÛ.");
-		//9001 È£Ãâ // »ç¿ëÀÚ¼ö Áõ°¡
-		//9101 È£Ãâ //»ç¿ëÀÚ¼ö °¨¼Ò
+		infLOG(ALWAY,"ï¿½ï¿½ï¿½ï¿½Å© ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½.");
+		//9001 È£ï¿½ï¿½ // ï¿½ï¿½ï¿½ï¿½Ú¼ï¿½ ï¿½ï¿½ï¿½ï¿½
+		//9101 È£ï¿½ï¿½ //ï¿½ï¿½ï¿½ï¿½Ú¼ï¿½ ï¿½ï¿½ï¿½ï¿½
 
 		CCOM9001_R com9001_r ;
 		memset(&com9001_r,0x00,sizeof(CCOM9001_R));
 
-		multimap<int,USERINFO>::iterator mi; //IP Á¶È¸
+		multimap<int,USERINFO>::iterator mi; //IP ï¿½ï¿½È¸
 		//mi = m_UserList.begin();
 		mi = m_UserList.find(Socket);
 		if(mi != m_UserList.end())
@@ -1664,7 +1665,7 @@ int FileDataTransfer(int& Socket,char *pRecvHead, char *pRecvData, char* &pSendD
 		strcpy(com9001_r.cont_gu ,"WE");
 		strcpy(com9001_r.server_id , pFileinfo->szServerID);
 		com9001_r.temp_id =  pFileinfo->cfups4001.id;
-		memcpy(com9001_r.user_id ,pHeader->szUserID,sizeof(pHeader->szUserID)); // »ç¿ëÀÚ
+		memcpy(com9001_r.user_id ,pHeader->szUserID,sizeof(pHeader->szUserID)); // ï¿½ï¿½ï¿½ï¿½ï¿½
 		com9001_r.upload_size = pFileinfo->cfups4001.file_size;
 
 
@@ -1678,7 +1679,7 @@ int FileDataTransfer(int& Socket,char *pRecvHead, char *pRecvData, char* &pSendD
 					, com9001_r.conn_ip,com9001_r.cont_gu,com9001_r.server_id
 					, com9001_r.temp_id , com9001_r.user_id , com9001_r.upload_size );
 
-		com9001 ( com9001_r);
+		com9001 ( com9001_r, g_szDcmdIP, g_nDcmdPort);
 
 		infLOG(ALWAY, " CCOM9101_R Setting ...   ]\n");
 
@@ -1687,7 +1688,7 @@ int FileDataTransfer(int& Socket,char *pRecvHead, char *pRecvData, char* &pSendD
 		strcpy(com9101_r.conn_ip , com9001_r.conn_ip);
 		strcpy(com9101_r.server_id , com9001_r.server_id);
 		com9101_r.temp_id =  com9001_r.temp_id;
-		strcpy(com9101_r.user_id ,com9001_r.user_id); // »ç¿ëÀÚ
+		strcpy(com9101_r.user_id ,com9001_r.user_id); // ï¿½ï¿½ï¿½ï¿½ï¿½
 		com9101_r.upload_size = com9001_r.upload_size;
 
 
@@ -1698,35 +1699,35 @@ int FileDataTransfer(int& Socket,char *pRecvHead, char *pRecvData, char* &pSendD
 		char szFullName[768];
 		memset(szFullName,0x00,sizeof(szFullName));
 
-		int stat = -1;                 // ÆÄÀÏ »óÅÂ °áÁ¤
-		bool bFOpenAppendMode = false; // ÆÄÀÏ append ¸ðµå °áÁ¤
+		int stat = -1;                 // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+		bool bFOpenAppendMode = false; // ï¿½ï¿½ï¿½ï¿½ append ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 
-		CCOM9104_R pcom9104_r; // ¹Þ´ø ÆÄÀÏ Ãë¼Ò½¬ DB µ¹¸®±â ( T_CONTENTS_TEMP »èÁ¦ )
+		CCOM9104_R pcom9104_r; // ï¿½Þ´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ò½ï¿½ DB ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ( T_CONTENTS_TEMP ï¿½ï¿½ï¿½ï¿½ )
 
 		FILEINFO rFileInfo;
 
-		double dTotalRecvLen = 0; //ÃÑ ¹ÞÀº ±æÀÌ
-		double dTotalLen = 0; // downµÉ ÆÄÀÏÀÇ ÃÑ ±æÀÌ
-		int nWriteLen=0;      // ÆÄÀÏ¿¡ write ÇÑ Å©±â
-		int nRecvLen=0;       // ¼ÒÄÏÀ¸·Î recv ÇÑ Å©±â
-		int nCheckStop = 0; //while ·çÇÁ Á¦¾î
+		double dTotalRecvLen = 0; //ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+		double dTotalLen = 0; // downï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+		int nWriteLen=0;      // ï¿½ï¿½ï¿½Ï¿ï¿½ write ï¿½ï¿½ Å©ï¿½ï¿½
+		int nRecvLen=0;       // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ recv ï¿½ï¿½ Å©ï¿½ï¿½
+		int nCheckStop = 0; //while ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 
-		CCOM9105_R com9105_r;		// temp ¿¡ ÆÄÀÏ Á¤º¸ ÀúÀå.
+		CCOM9105_R com9105_r;		// temp ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½.
 		memset(&com9105_r,0x00,sizeof(CCOM9105_R));
 
 		if(pFileinfo->nType == FT_FOLDER)
 		{
-			infLOG(ALWAY,"Æú´õ ¾÷·Îµå ÀÔ´Ï´Ù.\n");
-			//9105 Æú´õ
+			infLOG(ALWAY,"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Îµï¿½ ï¿½Ô´Ï´ï¿½.\n");
+			//9105 ï¿½ï¿½ï¿½ï¿½
 			memset(&com9105_r,0x00,sizeof(CCOM9105_R));
 
 			com9105_r.id = pFileinfo->cfups4001.id;
-			memcpy(&com9105_r.user_id ,pHeader->szUserID,sizeof(pHeader->szUserID)); // »ç¿ëÀÚ
+			memcpy(&com9105_r.user_id ,pHeader->szUserID,sizeof(pHeader->szUserID)); // ï¿½ï¿½ï¿½ï¿½ï¿½
 			strcpy(com9105_r.server_id ,pFileinfo->szServerID);
 			strcpy(com9105_r.sfile_path ,pFileinfo->cfups4001.file_path);
 			strcpy(com9105_r.sfile_name ,pFileinfo->cfups4001.file_name1);
 
-			com9105(com9105_r);
+			com9105(com9105_r, g_szDcmdIP, g_nDcmdPort);
 		}
 
 		do
@@ -1736,18 +1737,18 @@ int FileDataTransfer(int& Socket,char *pRecvHead, char *pRecvData, char* &pSendD
 			nCheckStop++;
 			if(nCheckStop >= 1100)
 			{
-				infLOG(ERROR, "¾÷·Î±× °¹¼ö¸¦ ÃÊ°ú ÇÏ¿´½À´Ï´Ù.\ntemp_id [ %lu ]file count = %d \n",pFileinfo->cfups4001.id,nCheckStop );
+				infLOG(ERROR, "ï¿½ï¿½ï¿½Î±ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê°ï¿½ ï¿½Ï¿ï¿½ï¿½ï¿½ï¿½Ï´ï¿½.\ntemp_id [ %lu ]file count = %d \n",pFileinfo->cfups4001.id,nCheckStop );
 
-				//¹Þ´ø ÆÄÀÏ »èÁ¦
+				//ï¿½Þ´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 
-				com9101 ( com9101_r);
+				com9101 ( com9101_r, g_szDcmdIP, g_nDcmdPort);
 				return 0;
 
 			}
 
-			infLOG(ALWAY,"ÀÌ¾î ¿Ã¸®±â Flag[ %d ] >> [ 1 , 2 ´Â Àç½Ãµµ 0 Àº ÀÏ¹Ý ] \n",pFileinfo->nReUploadFlag);
+			infLOG(ALWAY,"ï¿½Ì¾ï¿½ ï¿½Ã¸ï¿½ï¿½ï¿½ Flag[ %d ] >> [ 1 , 2 ï¿½ï¿½ ï¿½ï¿½Ãµï¿½ 0 ï¿½ï¿½ ï¿½Ï¹ï¿½ ] \n",pFileinfo->nReUploadFlag);
 
-		    headers.nCmd  = RS_FILE_DATA_SIGN_CHECK; // ÆÄÀÏ Àü¼Û ¸Þ¼¼Áö
+		    headers.nCmd  = RS_FILE_DATA_SIGN_CHECK; // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Þ¼ï¿½ï¿½ï¿½
 
 
 			if(pFileinfo->nReUploadFlag == RECONNECT_UPLOAD || pFileinfo->nReUploadFlag == RE_UPLOAD)
@@ -1762,65 +1763,65 @@ int FileDataTransfer(int& Socket,char *pRecvHead, char *pRecvData, char* &pSendD
 					strcpy(szFolderFullPath, szFullPath); //./2004/02/18/16/raid
 
 
-					strcat(szFullPath,pFileinfo->cfups4001.file_name1);//<- ¿ä°Å °ª Àß¸ø µé¾î¿È
+					strcat(szFullPath,pFileinfo->cfups4001.file_name1);//<- ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ß¸ï¿½ ï¿½ï¿½ï¿½ï¿½
 
 					//////////////////////////////////////////////////////////////////////////
 
-					strcpy(szFullName,pFileinfo->szDownPath); //szDownPath Àº ./raid
+					strcpy(szFullName,pFileinfo->szDownPath); //szDownPath ï¿½ï¿½ ./raid
 	    			strcat(szFullName,"/");
-	    			strcat(szFullName,pFileinfo->szFileName); //szfilename Àº a.txt
+	    			strcat(szFullName,pFileinfo->szFileName); //szfilename ï¿½ï¿½ a.txt
 
-	    			infLOG(ALWAY, "Æú´õ ÀÌ¾î ¿Ã¸®±â - À§Ä¡ [ %s ] ÃÖÁ¾ À§Ä¡ [ %s ]\n",szFullPath,szFullName);
+	    			infLOG(ALWAY, "ï¿½ï¿½ï¿½ï¿½ ï¿½Ì¾ï¿½ ï¿½Ã¸ï¿½ï¿½ï¿½ - ï¿½ï¿½Ä¡ [ %s ] ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ä¡ [ %s ]\n",szFullPath,szFullName);
 
 				}
 				else
 				{
 			    	strcpy(szFullName,pFileinfo->szDownPath);
-					strcat(szFullName,"/"); //./2004/02/18/16/raid/   <-- '/' Ãß°¡
+					strcat(szFullName,"/"); //./2004/02/18/16/raid/   <-- '/' ï¿½ß°ï¿½
 					strcat(szFullName,pFileinfo->szFileName);
 
 					strcpy(szFullPath, pFileinfo->cfups4001.file_path); //./2004/02/18/16/raid
 					strcat(szFullPath,"/");
 					strcat(szFullPath,pFileinfo->cfups4001.file_name1);//
 
-					infLOG(ALWAY, "ÆÄÀÏ ÀÌ¾î ¿Ã¸®±â - À§Ä¡ [ %s ] ÃÖÁ¾ À§Ä¡ [ %s ]\n",szFullPath,szFullName);
+					infLOG(ALWAY, "ï¿½ï¿½ï¿½ï¿½ ï¿½Ì¾ï¿½ ï¿½Ã¸ï¿½ï¿½ï¿½ - ï¿½ï¿½Ä¡ [ %s ] ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ä¡ [ %s ]\n",szFullPath,szFullName);
 
 
-					//9105 ÆÄÀÏ
+					//9105 ï¿½ï¿½ï¿½ï¿½
 					memset(&com9105_r,0x00,sizeof(CCOM9105_R));
 
 					com9105_r.id = pFileinfo->cfups4001.id;
-					memcpy(&com9105_r.user_id ,pHeader->szUserID,sizeof(pHeader->szUserID)); // »ç¿ëÀÚ
+					memcpy(&com9105_r.user_id ,pHeader->szUserID,sizeof(pHeader->szUserID)); // ï¿½ï¿½ï¿½ï¿½ï¿½
 					strcpy(com9105_r.server_id ,pFileinfo->szServerID);
 					strcpy(com9105_r.sfile_path ,pFileinfo->szDownPath);
 					strcpy(com9105_r.sfile_name ,pFileinfo->szFileName);
 
-					com9105(com9105_r);
+					com9105(com9105_r, g_szDcmdIP, g_nDcmdPort);
 
 				}
 
 
 
 				stat = stat64(szFullName,&statbuf);
-				if(stat != 0) //ÆÄÀÏÀÌ ¾øÀ¸¸é Æú´õ ¸¸µé±â.
+				if(stat != 0) //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½.
 				{
 					MakeFolder(pFileinfo->szDownPath) ;
-					infLOG(ALWAY,"Æú´õ°¡ ¾øÀ½À¸·Î Æú´õ¸¦ »ý¼ºÇÕ´Ï´Ù. [ %s ] \n",pFileinfo->szDownPath);
+					infLOG(ALWAY,"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Õ´Ï´ï¿½. [ %s ] \n",pFileinfo->szDownPath);
 				}
 				else
 				{
-					infLOG(ALWAY,"Æú´õ°¡ ÀÌ¹Ì Á¸Àç ÇÕ´Ï´Ù. Append ¸ðµå·Î ÆÄÀÏÀ» Á¦°øÇÕ´Ï´Ù. [ %s ] \n",szFullName);
+					infLOG(ALWAY,"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ì¹ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Õ´Ï´ï¿½. Append ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Õ´Ï´ï¿½. [ %s ] \n",szFullName);
 					bFOpenAppendMode = true;
 				}
 			}
 			else
 			{
-				infLOG(ALWAY,"ÀÏ¹Ý ¾÷·Îµå ¸ðµå ÀÔ´Ï´Ù.\n" );
+				infLOG(ALWAY,"ï¿½Ï¹ï¿½ ï¿½ï¿½ï¿½Îµï¿½ ï¿½ï¿½ï¿½ ï¿½Ô´Ï´ï¿½.\n" );
 
-		    	srand((unsigned int)time(NULL))	; //random ÀÌ¸§À» À§ÇÔ ½Ãµå ÁöÁ¤
+		    	srand((unsigned int)time(NULL))	; //random ï¿½Ì¸ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ãµï¿½ ï¿½ï¿½ï¿½ï¿½
 
 
-				///// ³¯Â¥ ½Ã°£ »ý¼º ////
+				///// ï¿½ï¿½Â¥ ï¿½Ã°ï¿½ ï¿½ï¿½ï¿½ï¿½ ////
 				time_t			curtime;
 				struct tm		*stm;
 				time( &curtime );
@@ -1832,9 +1833,9 @@ int FileDataTransfer(int& Socket,char *pRecvHead, char *pRecvData, char* &pSendD
 
 		  		if( pFileinfo->nType == FT_FILE)
 		  		{
-		  			infLOG(ALWAY,"ÆÄÀÏ ¾÷·Îµå ÀÔ´Ï´Ù.\n");
+		  			infLOG(ALWAY,"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Îµï¿½ ï¿½Ô´Ï´ï¿½.\n");
 
-		  			infLOG(ALWAY,"ÆÄÀÏ Root Path ´Â [ %s ] ÀÔ´Ï´Ù.\n",pFileinfo->szDownPath);
+		  			infLOG(ALWAY,"ï¿½ï¿½ï¿½ï¿½ Root Path ï¿½ï¿½ [ %s ] ï¿½Ô´Ï´ï¿½.\n",pFileinfo->szDownPath);
 
 					sprintf(pFileinfo->szDownPath,"%s/%04d/%02d/%02d/%02d",  pFileinfo->szDownPath
 										,  stm->tm_year+1900
@@ -1843,14 +1844,14 @@ int FileDataTransfer(int& Socket,char *pRecvHead, char *pRecvData, char* &pSendD
 										,  stm->tm_hour);//./2004/02/18/16
 
 
-					infLOG(ALWAY,"ÆÄÀÏ Root Path ¸¦ ¼³Á¤ÇÕ´Ï´Ù. [ %s ]\n",pFileinfo->szDownPath);
+					infLOG(ALWAY,"ï¿½ï¿½ï¿½ï¿½ Root Path ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Õ´Ï´ï¿½. [ %s ]\n",pFileinfo->szDownPath);
 
 					memset(szFullName,0x00,sizeof(szFullName));
 
 			    	strcpy(szFullName,pFileinfo->szDownPath);
-					strcat(szFullName,"/"); //./2004/02/18/16/raid/   <-- '/' Ãß°¡
+					strcat(szFullName,"/"); //./2004/02/18/16/raid/   <-- '/' ï¿½ß°ï¿½
 
-			    	//file name ¾ò±â
+			    	//file name ï¿½ï¿½ï¿½
 
 			    	char szFilename[50];
 			    	char szFileType[10];
@@ -1859,20 +1860,20 @@ int FileDataTransfer(int& Socket,char *pRecvHead, char *pRecvData, char* &pSendD
 
 
 					sprintf(szFilename,"temp%lu",pFileinfo->cfups4001.id);
-			    	//local ÆÄÀÏÀÌ¸§À¸·Î ºÎÅÍ È®ÀåÀÚ ¾ò±â.
+			    	//local ï¿½ï¿½ï¿½ï¿½ï¿½Ì¸ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ È®ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½.
 			    	int nLen = GetReverseIndex(pFileinfo->cfups4001.file_name2 , '.');
-					//	nLen = nLen - 1; // a.txt -> for .txt ÇÏ±â À§ÇØ nLen -1 ÇØÁÜ
+					//	nLen = nLen - 1; // a.txt -> for .txt ï¿½Ï±ï¿½ ï¿½ï¿½ï¿½ï¿½ nLen -1 ï¿½ï¿½ï¿½ï¿½
 					//	nLen = nLen - 1; // ./raid/ -> ,./raid   , '/' delete
-					infLOG(ALWAY, "ÆÄÀÏ ÀÌ¸§ °Ë»ç [ %s ] \n",pFileinfo->cfups4001.file_name2);
+					infLOG(ALWAY, "ï¿½ï¿½ï¿½ï¿½ ï¿½Ì¸ï¿½ ï¿½Ë»ï¿½ [ %s ] \n",pFileinfo->cfups4001.file_name2);
 
 					if(nLen < 0)
 					{
-						infLOG(ALWAY, "ÆÄÀÏ ÀÌ¸§ÀÇ È®ÀåÀÚ°¡ ¾ø½À´Ï´Ù. [ ¹«½Ã ]\n");
+						infLOG(ALWAY, "ï¿½ï¿½ï¿½ï¿½ ï¿½Ì¸ï¿½ï¿½ï¿½ È®ï¿½ï¿½ï¿½Ú°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½. [ ï¿½ï¿½ï¿½ï¿½ ]\n");
 					}
 					else
 					{
 					    GetRightString(pFileinfo->cfups4001.file_name2,strlen(pFileinfo->cfups4001.file_name2)-nLen,szFileType);
-					    infLOG(ALWAY, "ÆÄÀÏ È®ÀåÀÚ °Ë»ç [ %s ] \n",szFileType);
+					    infLOG(ALWAY, "ï¿½ï¿½ï¿½ï¿½ È®ï¿½ï¿½ï¿½ï¿½ ï¿½Ë»ï¿½ [ %s ] \n",szFileType);
 					}
 						//GetRightString(pFileinfo->szFileName,strlen(pFileinfo->szFileName)-nLen,szFileType);
 
@@ -1884,7 +1885,7 @@ int FileDataTransfer(int& Socket,char *pRecvHead, char *pRecvData, char* &pSendD
 					strcat(szFullName,szFilename);
 					strcat(szFullName,szFileType);
 
-					//// ÀÌ¸§ ÀúÀå ////
+					//// ï¿½Ì¸ï¿½ ï¿½ï¿½ï¿½ï¿½ ////
 					memcpy(pFileinfo->cfups4001.file_name1,pFileinfo->szFileName,sizeof(pFileinfo->szFileName));
 					strcpy(pFileinfo->cfups4001.file_path,pFileinfo->szDownPath);//,sizeof(pFileinfo->szDownPath));
 
@@ -1894,37 +1895,37 @@ int FileDataTransfer(int& Socket,char *pRecvHead, char *pRecvData, char* &pSendD
 					stat = stat64(szFullName,&statbuf);
 
 
-					if(stat != 0) //ÆÄÀÏÀÌ ¾øÀ¸¸é Æú´õ ¸¸µé±â.
+					if(stat != 0) //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½.
 					{
 
 						MakeFolder(pFileinfo->szDownPath) ;
-						infLOG(ALWAY,"Æú´õ°¡ ¾øÀ½À¸·Î Æú´õ¸¦ »ý¼ºÇÕ´Ï´Ù. [ %s ] \n",pFileinfo->szDownPath);
+						infLOG(ALWAY,"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Õ´Ï´ï¿½. [ %s ] \n",pFileinfo->szDownPath);
 					}
 					else
 					{
-						infLOG(ALWAY,"Æú´õ°¡ ÀÌ¹Ì Á¸Àç ÇÕ´Ï´Ù. Append ¸ðµå·Î ÆÄÀÏÀ» Á¦°øÇÕ´Ï´Ù. [ %s ] \n",szFullName);
+						infLOG(ALWAY,"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ì¹ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Õ´Ï´ï¿½. Append ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Õ´Ï´ï¿½. [ %s ] \n",szFullName);
 						bFOpenAppendMode = true;
 					}
 
 
 
 
-					//9105 ÆÄÀÏ
+					//9105 ï¿½ï¿½ï¿½ï¿½
 					memset(&com9105_r,0x00,sizeof(CCOM9105_R));
 
 					com9105_r.id = pFileinfo->cfups4001.id;
-					memcpy(&com9105_r.user_id ,pHeader->szUserID,sizeof(pHeader->szUserID)); // »ç¿ëÀÚ
+					memcpy(&com9105_r.user_id ,pHeader->szUserID,sizeof(pHeader->szUserID)); // ï¿½ï¿½ï¿½ï¿½ï¿½
 					strcpy(com9105_r.server_id ,pFileinfo->szServerID);
 					strcpy(com9105_r.sfile_path ,pFileinfo->cfups4001.file_path);
 					strcpy(com9105_r.sfile_name ,pFileinfo->cfups4001.file_name1);
 
-					com9105(com9105_r);
+					com9105(com9105_r, g_szDcmdIP, g_nDcmdPort);
 
 				}
-				else if(pFileinfo->nType == FT_FOLDER)//Àü¼Û ¹ÞÀ» ÆÄÀÏÀÌ Æú´õ ÀÏ°æ¿ì
+				else if(pFileinfo->nType == FT_FOLDER)//ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ï°ï¿½ï¿½
 				{
 
-					infLOG(ALWAY,"Æú´õ ¾÷·Îµå ÀÔ´Ï´Ù.\n");
+					infLOG(ALWAY,"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Îµï¿½ ï¿½Ô´Ï´ï¿½.\n");
 
 					strcpy(szFullPath, pFileinfo->cfups4001.file_path); //./2004/02/18/16/raid
 					strcat(szFullPath,"/");
@@ -1936,9 +1937,9 @@ int FileDataTransfer(int& Socket,char *pRecvHead, char *pRecvData, char* &pSendD
 
 					//////////////////////////////////////////////////////////////////////////
 
-					strcpy(szFullName,pFileinfo->szDownPath); //szDownPath Àº ./raid
+					strcpy(szFullName,pFileinfo->szDownPath); //szDownPath ï¿½ï¿½ ./raid
 	    			strcat(szFullName,"/");
-	    			strcat(szFullName,pFileinfo->szFileName); //szfilename Àº a.txt
+	    			strcat(szFullName,pFileinfo->szFileName); //szfilename ï¿½ï¿½ a.txt
 
 
 
@@ -1948,23 +1949,23 @@ int FileDataTransfer(int& Socket,char *pRecvHead, char *pRecvData, char* &pSendD
 					printf(" ] FOLDER full path ( %s ) full name ( %s ) (%d)\n",szFullPath,szFullName,stat);
 					#endif
 
-					if(stat != 0) //ÆÄÀÏÀÌ ¾øÀ¸¸é Æú´õ ¸¸µé±â.
+					if(stat != 0) //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½.
 					{
 						MakeFolder(pFileinfo->szDownPath) ;
-						infLOG(ALWAY,"Æú´õ°¡ ¾øÀ½À¸·Î Æú´õ¸¦ »ý¼ºÇÕ´Ï´Ù. [ %s ] \n",pFileinfo->szDownPath);
+						infLOG(ALWAY,"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Õ´Ï´ï¿½. [ %s ] \n",pFileinfo->szDownPath);
 					}
 					else
 					{
-						infLOG(ALWAY,"Æú´õ°¡ ÀÌ¹Ì Á¸Àç ÇÕ´Ï´Ù. Append ¸ðµå·Î ÆÄÀÏÀ» Á¦°øÇÕ´Ï´Ù. [ %s ] \n",szFullName);
+						infLOG(ALWAY,"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ì¹ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Õ´Ï´ï¿½. Append ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Õ´Ï´ï¿½. [ %s ] \n",szFullName);
 						bFOpenAppendMode = true;
 					}
 
 
 				}
 			}
-	//		}while(bCreateFile != true) // °°Àº ÀÌ¸§ÀÌ ÀÖÀ¸¸é roof¾ÈÀ¸·Î..
+	//		}while(bCreateFile != true) // ï¿½ï¿½ï¿½ï¿½ ï¿½Ì¸ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ roofï¿½ï¿½ï¿½ï¿½ï¿½ï¿½..
 
-			headers.nCmd = RS_FILE_DATA_SIGN_CHECK; //ÆÄÀÏ Àü¼Û
+			headers.nCmd = RS_FILE_DATA_SIGN_CHECK; //ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 			int nSRet = 0;
 
 
@@ -2007,49 +2008,49 @@ int FileDataTransfer(int& Socket,char *pRecvHead, char *pRecvData, char* &pSendD
 			}
 
 
-			//server file ³»¿ë º¸³»±â
+			//server file ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 
 
 
-		    //// Àü¼ÛÇÏ±âÀü¿¡ ¸Þ¼¼Áö¸¦ ¾Ë¸²...
+		    //// ï¿½ï¿½ï¿½ï¿½ï¿½Ï±ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Þ¼ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ë¸ï¿½...
 		    if(	nSRet <=0 )  //struct _PACKET == PACKET
 			{
-				infLOG(ERROR, "RS_FILE_DATA_SIGN_CHECK Àü¼Û ¿À·ù.\n");
+				infLOG(ERROR, "RS_FILE_DATA_SIGN_CHECK ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½.\n");
 
-				// ¹Þ´ø ÆÄÀÏ »èÁ¦
+				// ï¿½Þ´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 				///////////////////////////////////////////////
-				// temp »èÁ¦									 //
+				// temp ï¿½ï¿½ï¿½ï¿½									 //
 				///////////////////////////////////////////////
 
 
-				com9101 ( com9101_r);
+				com9101 ( com9101_r, g_szDcmdIP, g_nDcmdPort);
 				return 0;
 			}
 
 
 			//	HEADER recvHeader;
 
-			// ÀÌºÎºÐ È®ÀÎ ÇÏ±â .......................
+			// ï¿½ÌºÎºï¿½ È®ï¿½ï¿½ ï¿½Ï±ï¿½ .......................
 
 			memset(&headers,0x00,sizeof(HEADER));
 
 			if(	RecvData(Socket,(char*)&headers,sizeof(struct _HEADER))<=0)  //struct _PACKET == PACKET
 			{
-				infLOG(ERROR, "RS_FILE_DATA_SIGN_CHECK °á°ú ¹Þ±â ¿À·ù\n");
+				infLOG(ERROR, "RS_FILE_DATA_SIGN_CHECK ï¿½ï¿½ï¿½ ï¿½Þ±ï¿½ ï¿½ï¿½ï¿½ï¿½\n");
 
-				// ¹Þ´ø ÆÄÀÏ »èÁ¦
+				// ï¿½Þ´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 				///////////////////////////////////////////////
-				// temp »èÁ¦									 //
+				// temp ï¿½ï¿½ï¿½ï¿½									 //
 				///////////////////////////////////////////////
 
 
-				com9101 ( com9101_r);
+				com9101 ( com9101_r, g_szDcmdIP, g_nDcmdPort);
 				return 0;
 			}
 
 			if(headers.nCmd == RS_EOL)
 			{
-				infLOG(ALWAY, "RS_FILE_DATA_SIGN_CHECK °á°ú ¹Þ±â - RS_EROL \n");
+				infLOG(ALWAY, "RS_FILE_DATA_SIGN_CHECK ï¿½ï¿½ï¿½ ï¿½Þ±ï¿½ - RS_EROL \n");
 
 
 				pSendData = new char[sizeof(HEADER)];
@@ -2062,24 +2063,24 @@ int FileDataTransfer(int& Socket,char *pRecvHead, char *pRecvData, char* &pSendD
 
 				memcpy(pSendData, &headers, sizeof(HEADER));
 
-				// ¹Þ´ø ÆÄÀÏ »èÁ¦
+				// ï¿½Þ´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 				///////////////////////////////////////////////
-				// temp »èÁ¦									 //
+				// temp ï¿½ï¿½ï¿½ï¿½									 //
 				///////////////////////////////////////////////
 
 
 
-				com9101 ( com9101_r);
+				com9101 ( com9101_r, g_szDcmdIP, g_nDcmdPort);
 				return END;
 			}
 			else if(headers.nCmd == RS_OK)
 			{
-				infLOG(ALWAY, "RS_FILE_DATA_SIGN_CHECK °á°ú ¹Þ±â - RS_OK \n");
+				infLOG(ALWAY, "RS_FILE_DATA_SIGN_CHECK ï¿½ï¿½ï¿½ ï¿½Þ±ï¿½ - RS_OK \n");
 			}
 
-			//2009/06/13 ¹Â·¹Ä« Á¤º¸ ¹Þ±â.
+			//2009/06/13 ï¿½Â·ï¿½Ä« ï¿½ï¿½ï¿½ï¿½ ï¿½Þ±ï¿½.
 			int nMurekaCnt = headers.nDataCnt;
-			infLOG(ALWAY, "ÇÊÅÍ¸µ °á°ú ÆÄÀÏ È®ÀÎ - °¹¼ö [ %d ] \n",nMurekaCnt);
+			infLOG(ALWAY, "ï¿½ï¿½ï¿½Í¸ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ È®ï¿½ï¿½ - ï¿½ï¿½ï¿½ï¿½ [ %d ] \n",nMurekaCnt);
 
 			LPMUREKA_VINFO pMurekaVInfo = NULL;
 			if(nMurekaCnt > 0)
@@ -2090,21 +2091,21 @@ int FileDataTransfer(int& Socket,char *pRecvHead, char *pRecvData, char* &pSendD
 
 				if(	RecvData(Socket,(char*)pMurekaVInfo,sizeof(MUREKA_VINFO)*nMurekaCnt)<=0)  //struct _PACKET == PACKET
 				{
-					infLOG(ERROR,"ÇÊ·Î±× ¹Â·¹Ä« °á°ú ¹Þ±â ¿À·ù size : (%d) nMurekaCnt : (%d) \n", sizeof(MUREKA_VINFO)*nMurekaCnt, nMurekaCnt);
-					// ¹Þ´ø ÆÄÀÏ »èÁ¦
+					infLOG(ERROR,"ï¿½Ê·Î±ï¿½ ï¿½Â·ï¿½Ä« ï¿½ï¿½ï¿½ ï¿½Þ±ï¿½ ï¿½ï¿½ï¿½ï¿½ size : (%d) nMurekaCnt : (%d) \n", sizeof(MUREKA_VINFO)*nMurekaCnt, nMurekaCnt);
+					// ï¿½Þ´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 					///////////////////////////////////////////////
-					// temp »èÁ¦									 //
+					// temp ï¿½ï¿½ï¿½ï¿½									 //
 					///////////////////////////////////////////////
 
 
-					com9101 ( com9101_r);
+					com9101 ( com9101_r, g_szDcmdIP, g_nDcmdPort);
 					return 0;
 				}
 
 				#ifdef __DEBUG
 				for(int i=0; i < nMurekaCnt; i++)
 				{
-					printf("¹Â·¹Ä« Á¤º¸ È®ÀÎ(%d).\n", i);
+					printf("ï¿½Â·ï¿½Ä« ï¿½ï¿½ï¿½ï¿½ È®ï¿½ï¿½(%d).\n", i);
 					printf("video_status : %d\n",pMurekaVInfo[i].nResultCode);
 					printf("video_status : %s\n",pMurekaVInfo[i].filename);
 					printf("video_status : %s\n",pMurekaVInfo[i].mureka_hash);
@@ -2122,18 +2123,18 @@ int FileDataTransfer(int& Socket,char *pRecvHead, char *pRecvData, char* &pSendD
 
 			}
 
-			////////////////////±âº» Á¤º¸ ¿Ï·á////////////////////////////////////////////////
+			////////////////////ï¿½âº» ï¿½ï¿½ï¿½ï¿½ ï¿½Ï·ï¿½////////////////////////////////////////////////
 
 			//CMD5 md5;
 
 			//char* pResult = md5.GetHashFromFile(szFullName,pFileinfo->dFileSize);
 			//strcpy(Fups4005.szHashCode,pResult);
 
-			//4005¿¡ ÇØ½¬°ª ³Ö±¸
+			//4005ï¿½ï¿½ ï¿½Ø½ï¿½ï¿½ï¿½ ï¿½Ö±ï¿½
 
 			if( strcmp(pFileinfo->szCopyright_yn ,"P") == 0 )
 			{
-				infLOG(ALWAY,"ÀúÀÛ±Ç flag Àç¼ºÁ¤ : P -> N \n");
+				infLOG(ALWAY,"ï¿½ï¿½ï¿½Û±ï¿½ flag ï¿½ç¼ºï¿½ï¿½ : P -> N \n");
 				strcpy(pFileinfo->szCopyright_yn ,"N") ;
 			}
 
@@ -2203,7 +2204,7 @@ int FileDataTransfer(int& Socket,char *pRecvHead, char *pRecvData, char* &pSendD
 			}
 			
 			
-			//2009/06/14 ¹Â·¹Ä« Á¶È¸ °¹¼ö.
+			//2009/06/14 ï¿½Â·ï¿½Ä« ï¿½ï¿½È¸ ï¿½ï¿½ï¿½ï¿½.
 			Fups4005.mureka_cnt = nMurekaCnt;
 			infLOG(ALWAY,"nMurekaCnt [ %d ] \n",nMurekaCnt      		);
 			infLOG(ALWAY,"fups4005 ] : id       	  [ %d ]     \n",Fups4005.id       		);
@@ -2266,8 +2267,8 @@ int FileDataTransfer(int& Socket,char *pRecvHead, char *pRecvData, char* &pSendD
 			}
 			Fups4005.depth = depth;
 
-			//ÀúÀÛ±Ç Á¤º¸ Àç¼öÁ¤
-			infLOG(ALWAY,"Á¤º¸ È®ÀÎ 1 : tpye [ %d ] == [ %d ] : sect_code [ %s ] : copyright [ %s ] \n", pFileinfo->nType , FT_FOLDER , pFileinfo->cfups4001.sect_code , pFileinfo->szCopyright_yn);
+			//ï¿½ï¿½ï¿½Û±ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½
+			infLOG(ALWAY,"ï¿½ï¿½ï¿½ï¿½ È®ï¿½ï¿½ 1 : tpye [ %d ] == [ %d ] : sect_code [ %s ] : copyright [ %s ] \n", pFileinfo->nType , FT_FOLDER , pFileinfo->cfups4001.sect_code , pFileinfo->szCopyright_yn);
 
 
 			#ifdef __DEBUG
@@ -2292,7 +2293,7 @@ int FileDataTransfer(int& Socket,char *pRecvHead, char *pRecvData, char* &pSendD
 			
 			#endif
 
-			infLOG(ALWAY,"fups4005 µ¥ÀÌÅÍ¸¦ ¾÷µ¥ÀÌÆ® ÁßÀÔ´Ï´Ù.\n"	);
+			infLOG(ALWAY,"fups4005 ï¿½ï¿½ï¿½ï¿½ï¿½Í¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½Ô´Ï´ï¿½.\n"	);
 			infLOG(ALWAY,"fups4005 ] : id       	  [ %d ]     \n",Fups4005.id       		);
 			infLOG(ALWAY,"fups4005 ] : seq_no	      [ %d ]     \n",Fups4005.seq_no	       );
 			infLOG(ALWAY,"fups4005 ] : depth	      [ %d ]     \n",Fups4005.depth	       );
@@ -2331,7 +2332,7 @@ int FileDataTransfer(int& Socket,char *pRecvHead, char *pRecvData, char* &pSendD
 			strcpy(Fups4006.cont_gu    , Fups4005.cont_gu);
 			strcpy(Fups4006.auth_num    , com9004Result.auth_num );
 
-			//2009/06/14 ¹Â·¹Ä« Á¶È¸ °¹¼ö.
+			//2009/06/14 ï¿½Â·ï¿½Ä« ï¿½ï¿½È¸ ï¿½ï¿½ï¿½ï¿½.
 			Fups4006.mureka_cnt = nMurekaCnt;
 
 
@@ -2390,23 +2391,23 @@ int FileDataTransfer(int& Socket,char *pRecvHead, char *pRecvData, char* &pSendD
 				//20190124 1m hash
 				if( strlen(Fups1MHash.hash_1m) > 0 || strlen(Fups1MHash.hash_1m_mureka) > 0 )
 				{
-					nCopyRight = fups4005hash(Fups4005, pMurekaVInfo,(CFUPS4005_1M_HASH)Fups1MHash);	//ÀúÀÛ±Ç Á¶È¸
+					nCopyRight = fups4005hash(Fups4005, pMurekaVInfo,(CFUPS4005_1M_HASH)Fups1MHash);	//ï¿½ï¿½ï¿½Û±ï¿½ ï¿½ï¿½È¸
 				}
 				else
-					nCopyRight = fups4005(Fups4005, pMurekaVInfo);	//ÀúÀÛ±Ç Á¶È¸
+					nCopyRight = fups4005(Fups4005, pMurekaVInfo);	//ï¿½ï¿½ï¿½Û±ï¿½ ï¿½ï¿½È¸
 			}
-			infLOG(ALWAY,"ÀúÀÛ±Ç Á¶È¸ °á°ú [ %d ] \n\n\n",nCopyRight);
+			infLOG(ALWAY,"ï¿½ï¿½ï¿½Û±ï¿½ ï¿½ï¿½È¸ ï¿½ï¿½ï¿½ [ %d ] \n\n\n",nCopyRight);
 			if( nCopyRight <= 0 )
 			{
 				//20190124 1m hash
 				if( strlen(Fups4006_1MHash.hash_1m) > 0 || strlen(Fups4006_1MHash.hash_1m_mureka) > 0 )
 				{
-					nCompany = fups4006hash(Fups4006, pMurekaVInfo,Fups4006_1MHash);	//ÀúÀÛ±Ç Á¶È¸
+					nCompany = fups4006hash(Fups4006, pMurekaVInfo,Fups4006_1MHash);	//ï¿½ï¿½ï¿½Û±ï¿½ ï¿½ï¿½È¸
 				}
 				else
-					nCompany = fups4006(Fups4006, pMurekaVInfo);	//ÀúÀÛ±Ç¿¡ °É¸®Áö¾Ê´Â ÀÚ·á¶ó¸é À¯·áÄÁÅÙÃ÷¿©ºÎ Á¶È¸.
+					nCompany = fups4006(Fups4006, pMurekaVInfo);	//ï¿½ï¿½ï¿½Û±Ç¿ï¿½ ï¿½É¸ï¿½ï¿½ï¿½ï¿½Ê´ï¿½ ï¿½Ú·ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È¸.
 			}
-			infLOG(ALWAY,"Á¦ÈÞ Á¶È¸ °á°ú   [ %d ] \n\n\n",nCompany  );
+			infLOG(ALWAY,"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È¸ ï¿½ï¿½ï¿½   [ %d ] \n\n\n",nCompany  );
 
 			if(pMurekaVInfo)
 			{
@@ -2417,7 +2418,7 @@ int FileDataTransfer(int& Socket,char *pRecvHead, char *pRecvData, char* &pSendD
 
 			infLOG(ALWAY,"nCopyRight [ %d ] \n",nCopyRight);
 			infLOG(ALWAY,"nCompany   [ %d ] \n",nCompany  );
-			// 20140523 : º¸·ù Ã³¸®ÇÏ±â
+			// 20140523 : ï¿½ï¿½ï¿½ï¿½ Ã³ï¿½ï¿½ï¿½Ï±ï¿½
 			//	infLOG(ALWAY,"============ cfups4001.copyright_yn [ %s ] \n",cfups4001.copyright_yn);
 			//if(strcmp (pFileinfo->cfups4001.copyright_yn ,"B") != 0)
 			//{
@@ -2457,97 +2458,97 @@ int FileDataTransfer(int& Socket,char *pRecvHead, char *pRecvData, char* &pSendD
 			//}
 
 /*
-			if( strcmp(pFileinfo->cfups4001.sect_code ,"07") == 0 ) //À½¾ÇÀÏ°æ¿ì ¹«Á¶°Ç N·Î ¼³Á¤
+			if( strcmp(pFileinfo->cfups4001.sect_code ,"07") == 0 ) //ï¿½ï¿½ï¿½ï¿½ï¿½Ï°ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Nï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 				strcpy( pFileinfo->cfups4001.copyright_yn , "N");
 */
 
-			infLOG(ALWAY,"ÀÚ·á½Ç È®ÀÎ : sect_code [ %s ] : copyright_yn [ %s ] \n" , pFileinfo->cfups4001.sect_code , pFileinfo->cfups4001.copyright_yn);
+			infLOG(ALWAY,"ï¿½Ú·ï¿½ï¿½ È®ï¿½ï¿½ : sect_code [ %s ] : copyright_yn [ %s ] \n" , pFileinfo->cfups4001.sect_code , pFileinfo->cfups4001.copyright_yn);
 			if( nCopyRight < 0 )
 			{
-				infLOG(ERROR, "ÀúÀÛ±Ç Á¶È¸ ¿À·ùÀÔ´Ï´Ù. Error Num [ %d ]\n",nCopyRight);
+				infLOG(ERROR, "ï¿½ï¿½ï¿½Û±ï¿½ ï¿½ï¿½È¸ ï¿½ï¿½ï¿½ï¿½ï¿½Ô´Ï´ï¿½. Error Num [ %d ]\n",nCopyRight);
 
 				pSendData = new char[sizeof(ERR_HEADER)];
 				memset(pSendData,0x00,sizeof(ERR_HEADER));
 				errheader.header.nCmd = RS_ERR;
 				errheader.header.nErrorCode = -RS_FILE_DATA_TRANSFER;
-				strcat(errheader.errmsg,"ÆÄÀÏ Á¤º¸ µî·Ï ¿À·ù ÀÔ´Ï´Ù.");
+				strcat(errheader.errmsg,"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ô´Ï´ï¿½.");
 
 				memcpy(pSendData, &errheader, sizeof(ERR_HEADER));
 
 				pHeader->nCmd = RS_ERR;
 
-				com9101 ( com9101_r);
+				com9101 ( com9101_r, g_szDcmdIP, g_nDcmdPort);
 				return -RS_FILE_DATA_TRANSFER;
 			}
 
 
 
-			// ÆÄÀÏ Á¦¾î ¹× Àü¼Û
-			FILE* DownloadFile; //ÆÄÀÏ Æ÷ÀÎÅÍ
+			// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+			FILE* DownloadFile; //ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 			DownloadFile = NULL;
-			//// ÆÄÀÏ openÇü½Ä °áÁ¤////
+			//// ï¿½ï¿½ï¿½ï¿½ openï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½////
 			if( bFOpenAppendMode) //append mode
 			{
 				
 				DownloadFile = fopen64(szFullName,"ar+tb");
-				infLOG(ALWAY, "ÆÄÀÏ »ý¼º : append mode ( %s )\n",szFullName);
+				infLOG(ALWAY, "ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ : append mode ( %s )\n",szFullName);
 				
 			}
 			else
 			{
 				DownloadFile = fopen64(szFullName,"wr+tb");
-				infLOG(ALWAY, "ÆÄÀÏ »ý¼º : write mode ( %s )\n",szFullName);
+				infLOG(ALWAY, "ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ : write mode ( %s )\n",szFullName);
 			
 			}
 
 
-			if(  DownloadFile == NULL) //ÆÄÀÏÀ» ¿­¼ö ¾øÀ¸¸é
+			if(  DownloadFile == NULL) //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 			{
-				infLOG(ERROR, "ÆÄÀÏ ¿­±â ¿À·ù ÀÔ´Ï´Ù. [ %s ] error num [ %d ] msg [ %s ] \n",szFullName,errno, szErrMsg);
+				infLOG(ERROR, "ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ô´Ï´ï¿½. [ %s ] error num [ %d ] msg [ %s ] \n",szFullName,errno, szErrMsg);
 
 
 				pSendData = new char[sizeof(ERR_HEADER)];
 				memset(pSendData,0x00,sizeof(ERR_HEADER));
 				errheader.header.nCmd = RS_ERR;
 				errheader.header.nErrorCode = -RS_FILE_DATA_TRANSFER;
-				strcat(errheader.errmsg,"¼­¹ö¿¡¼­ ÆÄÀÏ ¸¸µé±â ½ÇÆÐ ÇÏ¿´½À´Ï´Ù.");
+				strcat(errheader.errmsg,"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ï¿ï¿½ï¿½ï¿½ï¿½Ï´ï¿½.");
 
 				memcpy(pSendData, &errheader, sizeof(ERR_HEADER));
 
 				pHeader->nCmd = RS_ERR;
 
-				// ¹Þ´ø ÆÄÀÏ »èÁ¦
+				// ï¿½Þ´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 				///////////////////////////////////////////////
-				// temp »èÁ¦									 //
+				// temp ï¿½ï¿½ï¿½ï¿½									 //
 				///////////////////////////////////////////////
 
-				com9101 ( com9101_r);
+				com9101 ( com9101_r, g_szDcmdIP, g_nDcmdPort);
 				return -RS_FILE_DATA_TRANSFER;
 			}
 
-			//// ÀÌ¾î ¹Þ±â¸¦ À§ÇÑ ÆÄÀÏ ÇØ´õ ±¸Á¶Ã¼ »ý¼º ////
+			//// ï¿½Ì¾ï¿½ ï¿½Þ±â¸¦ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ø´ï¿½ ï¿½ï¿½ï¿½ï¿½Ã¼ ï¿½ï¿½ï¿½ï¿½ ////
 
 			if( !bGhostMode )
 			{
-				infLOG(ALWAY,"ÆÄÀÏÀÇ Seek ¸¦ ¸¶Áö¸· À§Ä¡·Î ÀÌµ¿ ÇÕ´Ï´Ù.\n");
+				infLOG(ALWAY,"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Seek ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ä¡ï¿½ï¿½ ï¿½Ìµï¿½ ï¿½Õ´Ï´ï¿½.\n");
 
 				if(fseeko64(DownloadFile,0l,SEEK_END) < 0)
 				{
-					infLOG(ALWAY,"ÆÄÀÏÀÇ Seek ¸¦ ¸¶Áö¸· À§Ä¡·Î ÀÌµ¿ Áß ·ù°¡ ¹ß»ýÇÏ¿´½À´Ï´Ù. errno [ %d ] error msg [ %s ]\n",errno,strerror(errno));
+					infLOG(ALWAY,"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Seek ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ä¡ï¿½ï¿½ ï¿½Ìµï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ß»ï¿½ï¿½Ï¿ï¿½ï¿½ï¿½ï¿½Ï´ï¿½. errno [ %d ] error msg [ %s ]\n",errno,strerror(errno));
 					pSendData = new char[sizeof(ERR_HEADER)];
 					memset(pSendData,0x00,sizeof(ERR_HEADER));
 					errheader.header.nCmd = RS_ERR;
 					errheader.header.nErrorCode = -RS_FILE_DATA_TRANSFER;
-					strcat(errheader.errmsg,"¼­¹ö ÆÄÀÏÀÇ ¼½ÅÍ ÀÌµ¿ ½ÇÆÐ ÇÏ¿´½À´Ï´Ù.");
+					strcat(errheader.errmsg,"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ìµï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ï¿ï¿½ï¿½ï¿½ï¿½Ï´ï¿½.");
 
 					memcpy(pSendData, &errheader, sizeof(ERR_HEADER));
 
 					pHeader->nCmd = RS_ERR;
-					// ¹Þ´ø ÆÄÀÏ »èÁ¦
+					// ï¿½Þ´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 					///////////////////////////////////////////////
-					// temp »èÁ¦									 //
+					// temp ï¿½ï¿½ï¿½ï¿½									 //
 					///////////////////////////////////////////////
-					com9101 ( com9101_r);
+					com9101 ( com9101_r, g_szDcmdIP, g_nDcmdPort);
 					return -RS_FILE_DATA_TRANSFER;
 				}
 			}
@@ -2555,30 +2556,30 @@ int FileDataTransfer(int& Socket,char *pRecvHead, char *pRecvData, char* &pSendD
 			LPFILEHEAD pFileHead = new FILEHEAD;
 			memset(pFileHead,0x00,sizeof(FILEHEAD));
 
-			//double dCurrentLen = (double)ftello64 (DownloadFile); // ÆÄÀÏÀÌ ¾îµð±îÁö ÀÖ´ÂÁö °áÁ¤
+			//double dCurrentLen = (double)ftello64 (DownloadFile); // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 
 			double dCurrentLen	= 0;
 
 	//				dCurrentLen = (double)statbuf.st_size;
 			if( !bGhostMode )
 			{
-				dCurrentLen = (double)ftello64 (DownloadFile); // ÆÄÀÏÀÌ ¾îµð±îÁö ÀÖ´ÂÁö °áÁ¤
-				infLOG(ALWAY, "ÃÖ±Ù ÀÌµ¿ÇÑ ÆÄÀÏ »çÀÌÁî ( %.0f )\n",dCurrentLen);
+				dCurrentLen = (double)ftello64 (DownloadFile); // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+				infLOG(ALWAY, "ï¿½Ö±ï¿½ ï¿½Ìµï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ( %.0f )\n",dCurrentLen);
 
 			}
 
 			if(dCurrentLen < 0)
 				dCurrentLen = 0;
 
-			pFileHead->dCurrentSize = dCurrentLen; //ÇØµå¿¡ Çö ÆÄÀÏ ±æÀÌ ÀúÀå
+			pFileHead->dCurrentSize = dCurrentLen; //ï¿½Øµå¿¡ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 
 			////////////////////////////////////////////////
-			//Ã³À½ ¿ë·® ¾÷µ¥ÀÌÆ® : ½ÇÆÐ½Ã º¹¿ø ÇØ¾ß ÇÔ.
+			//Ã³ï¿½ï¿½ ï¿½ë·® ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® : ï¿½ï¿½ï¿½Ð½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ø¾ï¿½ ï¿½ï¿½.
 
-			// head ÀÛ¼º
+			// head ï¿½Û¼ï¿½
 			memset(&headers,0x00,sizeof(HEADER));
 
-			headers.nCmd = RS_FILE_DATA_TRANSFER ; // µ¥ÀÌÅÍ Àü¼Û
+			headers.nCmd = RS_FILE_DATA_TRANSFER ; // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 			headers.nDataCnt = 1;
 			headers.nDataSize = sizeof(FILEHEAD);
 			headers.nErrorCode = 0;
@@ -2590,18 +2591,18 @@ int FileDataTransfer(int& Socket,char *pRecvHead, char *pRecvData, char* &pSendD
 			memcpy(pSendData + HEADER_SIZE,pFileHead, headers.nDataCnt*headers.nDataSize);
 
 			infLOG(ALWAY,"Send RS_FILE_DATA_TRANSFER\n");
-			//// body ÀÛ¼º////
+			//// body ï¿½Û¼ï¿½////
 			if(	SendData(Socket,pSendData,HEADER_SIZE + headers.nDataCnt*headers.nDataSize)<0)  //struct _PACKET == PACKET
 			{
 				infLOG(ERROR,"Send RS_FILE_DATA_TRANSFER ERROR\n");
 				delete pFileHead;
-				// ¿ë·® º¹¿ø ÇÏ±â
-				// ¹Þ´ø ÆÄÀÏ »èÁ¦
+				// ï¿½ë·® ï¿½ï¿½ï¿½ï¿½ ï¿½Ï±ï¿½
+				// ï¿½Þ´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 				///////////////////////////////////////////////
-				// temp »èÁ¦									 //
+				// temp ï¿½ï¿½ï¿½ï¿½									 //
 				///////////////////////////////////////////////
 
-				com9101 ( com9101_r);
+				com9101 ( com9101_r, g_szDcmdIP, g_nDcmdPort);
 				return 0;
 			}
 			delete[] pSendData;
@@ -2611,33 +2612,33 @@ int FileDataTransfer(int& Socket,char *pRecvHead, char *pRecvData, char* &pSendD
 
 			infLOG(ALWAY,"Send RS_FILE_DATA_TRANSFER OK \n");
 
-		 ///////////////////////// µ¥ÀÌÅÍ Àü¼Û //////////////////////////////////
+		 ///////////////////////// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ //////////////////////////////////
 
-			dTotalRecvLen = 0; //ÃÑ ¹ÞÀº ±æÀÌ
-			dTotalLen = pFileinfo->dFileSize - dCurrentLen; // downµÉ ÆÄÀÏÀÇ ÃÑ ±æÀÌ
+			dTotalRecvLen = 0; //ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+			dTotalLen = pFileinfo->dFileSize - dCurrentLen; // downï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 			nWriteLen=0;
 			nRecvLen=0;
 
 			char* szRecvBuffer = new char[RECVBUF]; //recv buffer
 
 
-			// ÀúÀÛ±Ç Á¤º¸
+			// ï¿½ï¿½ï¿½Û±ï¿½ ï¿½ï¿½ï¿½ï¿½
 
-			// À½¾ÇÀÌ¸é¼­ ÀúÀÛ±Ç Á¤º¸¿¡ °É¸®¸é µ¥ÀÌÅÍ¸¸ ¹Þ°í ½ÇÁ¦·Î ¼­¹ö¿¡ ÀúÀåÇÏÁö ¾Ê´Â´Ù.
-			// À¯µ¿ÀûÀ¸·Î ÇÏ±â À§ÇØ¼­ ³×Æ®¿öÅ©¿¡¼­ µ¥ÀÌÅÍ±îÁö 	¹Þ¾ÆÁØ´Ù. ÀÌºÎºÐ ¹Ù²Ü·Á¸é »ç¿ëÀÚ ¸ðµâ¿¡¼­ º¸³»´Â°Í Ã³·³ º¸ÀÌ°Ô ÇÏ¿©¾ß ÇÑ´Ù.
-			infLOG(ALWAY,"ÆÄÀÏ È®ÀÎ [ %s ] : ¹ÞÀ» ÆÄÀÏ ÀüÃ¼ ±æÀÌ [ %.0f ] = [ %.0f (ÀüÃ¼) - %.0f(ÃÖ±ÙÀÌµ¿ÇÑ) ] \n",pFileinfo->cfups4001.file_name2 , dTotalLen ,pFileinfo->dFileSize ,dCurrentLen);
+			// ï¿½ï¿½ï¿½ï¿½ï¿½Ì¸é¼­ ï¿½ï¿½ï¿½Û±ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½É¸ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Í¸ï¿½ ï¿½Þ°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê´Â´ï¿½.
+			// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ï±ï¿½ ï¿½ï¿½ï¿½Ø¼ï¿½ ï¿½ï¿½Æ®ï¿½ï¿½Å©ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Í±ï¿½ï¿½ï¿½ 	ï¿½Þ¾ï¿½ï¿½Ø´ï¿½. ï¿½ÌºÎºï¿½ ï¿½Ù²Ü·ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½â¿¡ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Â°ï¿½ Ã³ï¿½ï¿½ ï¿½ï¿½ï¿½Ì°ï¿½ ï¿½Ï¿ï¿½ï¿½ï¿½ ï¿½Ñ´ï¿½.
+			infLOG(ALWAY,"ï¿½ï¿½ï¿½ï¿½ È®ï¿½ï¿½ [ %s ] : ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ã¼ ï¿½ï¿½ï¿½ï¿½ [ %.0f ] = [ %.0f (ï¿½ï¿½Ã¼) - %.0f(ï¿½Ö±ï¿½ï¿½Ìµï¿½ï¿½ï¿½) ] \n",pFileinfo->cfups4001.file_name2 , dTotalLen ,pFileinfo->dFileSize ,dCurrentLen);
 
 
 			/*
 			if( bGhostMode )
 			{
-				infLOG(ALWAY,"°¡»ó ¾÷·Îµå ¸ðµå \n");
+				infLOG(ALWAY,"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Îµï¿½ ï¿½ï¿½ï¿½ \n");
 				//int fno = fileno(DownloadFile);
 
 				while(dTotalLen > 0  )
 				{
 					memset(szRecvBuffer,0x00,RECVBUF);
-					///// ÆÄÀÏ¹Þ±â /////
+					///// ï¿½ï¿½ï¿½Ï¹Þ±ï¿½ /////
 
 					 nRecvLen =  RecvFileData(Socket, szRecvBuffer, RECVBUF, dTotalLen) ;
 
@@ -2653,21 +2654,21 @@ int FileDataTransfer(int& Socket,char *pRecvHead, char *pRecvData, char* &pSendD
 		        		if(nWriteLen == 0)
 		        		{
 		        			#ifdef __DEBUG
-		        			printf(" ] Write File End (%s) : ÆÄÀÏ ÀüÃ¼ ±æÀÌ (%15.0f ) =  %15.0f \n",pFileinfo->cfups4001.file_name2 , dTotalLen ,pFileinfo->dFileSize );
+		        			printf(" ] Write File End (%s) : ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ã¼ ï¿½ï¿½ï¿½ï¿½ (%15.0f ) =  %15.0f \n",pFileinfo->cfups4001.file_name2 , dTotalLen ,pFileinfo->dFileSize );
 		        			#endif
-		        			infLOG(ALWAY," ] Write File End (%s) : ÆÄÀÏ ÀüÃ¼ ±æÀÌ (%15.0f ) =  %15.0f \n",pFileinfo->cfups4001.file_name2 , dTotalLen ,pFileinfo->dFileSize );
+		        			infLOG(ALWAY," ] Write File End (%s) : ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ã¼ ï¿½ï¿½ï¿½ï¿½ (%15.0f ) =  %15.0f \n",pFileinfo->cfups4001.file_name2 , dTotalLen ,pFileinfo->dFileSize );
 		        		}
 		        		else
 		        		{
 		        			#ifdef __DEBUG
-		        			printf(" ] Write File ERROR (%s) : ÆÄÀÏ ÀüÃ¼ ±æÀÌ (%15.0f ) =  %15.0f \n",pFileinfo->cfups4001.file_name2 , dTotalLen ,pFileinfo->dFileSize );
+		        			printf(" ] Write File ERROR (%s) : ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ã¼ ï¿½ï¿½ï¿½ï¿½ (%15.0f ) =  %15.0f \n",pFileinfo->cfups4001.file_name2 , dTotalLen ,pFileinfo->dFileSize );
 		        			#endif
-		        			infLOG(ERROR," ] Write File ERROR (%s) : ÆÄÀÏ ÀüÃ¼ ±æÀÌ (%15.0f ) =  %15.0f \n",pFileinfo->cfups4001.file_name2 , dTotalLen ,pFileinfo->dFileSize );
+		        			infLOG(ERROR," ] Write File ERROR (%s) : ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ã¼ ï¿½ï¿½ï¿½ï¿½ (%15.0f ) =  %15.0f \n",pFileinfo->cfups4001.file_name2 , dTotalLen ,pFileinfo->dFileSize );
 		        			nRecvLen = -1;
 		        		}
 		        	}
 
-			        if(nRecvLen <= 0 && dTotalLen != 0)	//¹Þ´Ù°¡ ¿À·ù°¡ ³µÀ»½Ã...DBÃ³¸®
+			        if(nRecvLen <= 0 && dTotalLen != 0)	//ï¿½Þ´Ù°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½...DBÃ³ï¿½ï¿½
 			        {
 						#ifdef __DEBUG
 						printf(" ] file recv exception \n");
@@ -2688,14 +2689,14 @@ int FileDataTransfer(int& Socket,char *pRecvHead, char *pRecvData, char* &pSendD
 							memset(szErrMsg,0x00,sizeof(szErrMsg));
 							GetErrMsg(-nRecvLen,szErrMsg);
 
-			        		infLOG(ERROR, " ] RecvSocket Error ( Á¢¼ÓÀ» ²÷¾ú½À´Ï´Ù. ) (%s)\n",szErrMsg);
+			        		infLOG(ERROR, " ] RecvSocket Error ( ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½. ) (%s)\n",szErrMsg);
 
 							#ifdef __DEBUG
-							printf(" ] RecvSocket Error ( Á¢¼ÓÀ» ²÷¾ú½À´Ï´Ù. ) (%s)\n",szErrMsg);
+							printf(" ] RecvSocket Error ( ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½. ) (%s)\n",szErrMsg);
 							#endif
 			        	}
 
-						infLOG(ERROR," ] WE µð½ºÅ© Ãë¼Ò (%s) RecvLen (%d) (%15.0f) TotalLen(%15.0f)\n ",pFileinfo->cfups4001.file_name2,nRecvLen ,dTotalRecvLen,dTotalLen);
+						infLOG(ERROR," ] WE ï¿½ï¿½Å© ï¿½ï¿½ï¿½ (%s) RecvLen (%d) (%15.0f) TotalLen(%15.0f)\n ",pFileinfo->cfups4001.file_name2,nRecvLen ,dTotalRecvLen,dTotalLen);
 
 						if(DownloadFile)
 						{
@@ -2706,28 +2707,28 @@ int FileDataTransfer(int& Socket,char *pRecvHead, char *pRecvData, char* &pSendD
 					   	if(szRecvBuffer)
 							delete[] szRecvBuffer;
 
-						infLOG(ERROR," ] WE µð½ºÅ© Ãë¼Ò (%s) RecvLen (%d) (%15.0f) TotalLen(%15.0f)\n ", pFileinfo->cfups4001.file_name2,nRecvLen ,dTotalRecvLen,dTotalLen);
+						infLOG(ERROR," ] WE ï¿½ï¿½Å© ï¿½ï¿½ï¿½ (%s) RecvLen (%d) (%15.0f) TotalLen(%15.0f)\n ", pFileinfo->cfups4001.file_name2,nRecvLen ,dTotalRecvLen,dTotalLen);
 
-						com9101 ( com9101_r);
+						com9101 ( com9101_r, g_szDcmdIP, g_nDcmdPort);
 						return 0;
 					//	return END;
 		        	}
 
-	        		dTotalLen = dTotalLen - (double)nRecvLen;  //ÃÑ±æÀÌ¿¡¼­  ¹ÞÀº ±æÀÌ Á¦°Å
-		        	dTotalRecvLen = dTotalRecvLen + (double)nRecvLen; //¹ÞÀº ±æÀÌ ¸¸Å­ ´õÇÔ
+	        		dTotalLen = dTotalLen - (double)nRecvLen;  //ï¿½Ñ±ï¿½ï¿½Ì¿ï¿½ï¿½ï¿½  ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+		        	dTotalRecvLen = dTotalRecvLen + (double)nRecvLen; //ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å­ ï¿½ï¿½ï¿½ï¿½
 				}
 			}
 			else
 			*/
 			{
 				nTotalRecvFileCnt++;
-				infLOG(ALWAY,"¾÷·Îµå °¹¼ö [ %d ] \n",nTotalRecvFileCnt);
+				infLOG(ALWAY,"ï¿½ï¿½ï¿½Îµï¿½ ï¿½ï¿½ï¿½ï¿½ [ %d ] \n",nTotalRecvFileCnt);
 				int fno = fileno(DownloadFile);
 
 				while(dTotalLen > 0  )
 				{
 					memset(szRecvBuffer,0x00,RECVBUF);
-					///// ÆÄÀÏ¹Þ±â /////
+					///// ï¿½ï¿½ï¿½Ï¹Þ±ï¿½ /////
 
 					nRecvLen =  RecvFileData(Socket, szRecvBuffer, RECVBUF, dTotalLen) ;
 
@@ -2739,46 +2740,46 @@ int FileDataTransfer(int& Socket,char *pRecvHead, char *pRecvData, char* &pSendD
 				    else
 				    	nWriteLen = 0;
 
-				    //fwrite(szRecvBuffer,1,nRecvLen,DownloadFile); //¹ÞÀº ±æÀÌ ¸¸Å­ file¿¡ ÀúÀå
+				    //fwrite(szRecvBuffer,1,nRecvLen,DownloadFile); //ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å­ fileï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 
 				    if(nWriteLen <= 0)
 			        {
 			        	if(nWriteLen == 0)
 			        	{
 			        		#ifdef __DEBUG
-			        		printf(" ] Write File End (%s) : ÆÄÀÏ ÀüÃ¼ ±æÀÌ (%15.0f ) =  %15.0f \n",pFileinfo->cfups4001.file_name2 , dTotalLen ,pFileinfo->dFileSize );
+			        		printf(" ] Write File End (%s) : ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ã¼ ï¿½ï¿½ï¿½ï¿½ (%15.0f ) =  %15.0f \n",pFileinfo->cfups4001.file_name2 , dTotalLen ,pFileinfo->dFileSize );
 			        		#endif
-			        		infLOG(ALWAY,"Write File End (%s) : ÆÄÀÏ ÀüÃ¼ ±æÀÌ (%15.0f ) =  %15.0f \n",pFileinfo->cfups4001.file_name2 , dTotalLen ,pFileinfo->dFileSize );
+			        		infLOG(ALWAY,"Write File End (%s) : ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ã¼ ï¿½ï¿½ï¿½ï¿½ (%15.0f ) =  %15.0f \n",pFileinfo->cfups4001.file_name2 , dTotalLen ,pFileinfo->dFileSize );
 			        	}
 			        	else
 			        	{
 			        		#ifdef __DEBUG
-			        		printf(" ] Write File ERROR (%s) : ÆÄÀÏ ÀüÃ¼ ±æÀÌ (%15.0f ) =  %15.0f \n",pFileinfo->cfups4001.file_name2 , dTotalLen ,pFileinfo->dFileSize );
+			        		printf(" ] Write File ERROR (%s) : ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ã¼ ï¿½ï¿½ï¿½ï¿½ (%15.0f ) =  %15.0f \n",pFileinfo->cfups4001.file_name2 , dTotalLen ,pFileinfo->dFileSize );
 			        		#endif
-			        		infLOG(ERROR," ] Write File ERROR (%s) : ÆÄÀÏ ÀüÃ¼ ±æÀÌ (%15.0f ) =  %15.0f \n",pFileinfo->cfups4001.file_name2 , dTotalLen ,pFileinfo->dFileSize );
+			        		infLOG(ERROR," ] Write File ERROR (%s) : ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ã¼ ï¿½ï¿½ï¿½ï¿½ (%15.0f ) =  %15.0f \n",pFileinfo->cfups4001.file_name2 , dTotalLen ,pFileinfo->dFileSize );
 			        		nRecvLen = -1;
 			        	}
 			        }
 
-				    if(nRecvLen <= 0 && dTotalLen != 0)	//¹Þ´Ù°¡ ¿À·ù°¡ ³µÀ»½Ã...DBÃ³¸®
+				    if(nRecvLen <= 0 && dTotalLen != 0)	//ï¿½Þ´Ù°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½...DBÃ³ï¿½ï¿½
 				    {
 
 						if(nRecvLen < 0)
 				       	{
 							memset(szErrMsg,0x00,sizeof(szErrMsg));
 							GetErrMsg(-nRecvLen,szErrMsg);
-							infLOG(ERROR, "µ¥ÀÌÅÍ¸¦ ¹ßÀ» ¼ö ¾ø½À´Ï´Ù. ( %d )( %s )\n",nRecvLen,szErrMsg);
+							infLOG(ERROR, "ï¿½ï¿½ï¿½ï¿½ï¿½Í¸ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½. ( %d )( %s )\n",nRecvLen,szErrMsg);
 
 				       	}
 				       	else if(nRecvLen == 0)
 				       	{
 							memset(szErrMsg,0x00,sizeof(szErrMsg));
 							GetErrMsg(-nRecvLen,szErrMsg);
-							infLOG(ERROR, "Á¢¼ÓÀÌ ²÷¾î Á³½À´Ï´Ù.[ ÀÌ°æ¿ì´Â º¸Åë Å¬¶óÀÌ¾ðÆ®¿¡¼­ µ¥ÀÌÅÍ¸¦ Á¦´ë·Î º¸³»Áö ¸øÇÒ¶§ ¹ß»ýÇÕ´Ï´Ù. ] \n" );
+							infLOG(ERROR, "ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½.[ ï¿½Ì°ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Å¬ï¿½ï¿½ï¿½Ì¾ï¿½Æ®ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Í¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ò¶ï¿½ ï¿½ß»ï¿½ï¿½Õ´Ï´ï¿½. ] \n" );
 				       	}
 
 
-						infLOG(ERROR,"À§µð½ºÅ© Ãë¼Ò (%s) RecvLen (%d) (%15.0f) TotalLen(%15.0f)\n ",pFileinfo->cfups4001.file_name2,nRecvLen ,dTotalRecvLen,dTotalLen);
+						infLOG(ERROR,"ï¿½ï¿½ï¿½ï¿½Å© ï¿½ï¿½ï¿½ (%s) RecvLen (%d) (%15.0f) TotalLen(%15.0f)\n ",pFileinfo->cfups4001.file_name2,nRecvLen ,dTotalRecvLen,dTotalLen);
 						infLOG(ERROR,"errno [ %d ] error msg [ %s ]\n",errno,strerror(errno));
 
 
@@ -2788,20 +2789,20 @@ int FileDataTransfer(int& Socket,char *pRecvHead, char *pRecvData, char* &pSendD
 							DownloadFile == NULL ;
 						}
 
-							// ¹Þ´ø ÆÄÀÏ »èÁ¦
+							// ï¿½Þ´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 					///////////////////////////////////////////////
-					// temp »èÁ¦								 //
+					// temp ï¿½ï¿½ï¿½ï¿½								 //
 					///////////////////////////////////////////////
 
 					   	if(szRecvBuffer)
 							delete[] szRecvBuffer;
 
-						com9101 ( com9101_r);
+						com9101 ( com9101_r, g_szDcmdIP, g_nDcmdPort);
 						return 0;
 					//	return END;
 			        }
-	        		dTotalLen = dTotalLen - (double)nRecvLen;  //ÃÑ±æÀÌ¿¡¼­  ¹ÞÀº ±æÀÌ Á¦°Å
-		        	dTotalRecvLen = dTotalRecvLen + (double)nRecvLen; //¹ÞÀº ±æÀÌ ¸¸Å­ ´õÇÔ
+	        		dTotalLen = dTotalLen - (double)nRecvLen;  //ï¿½Ñ±ï¿½ï¿½Ì¿ï¿½ï¿½ï¿½  ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+		        	dTotalRecvLen = dTotalRecvLen + (double)nRecvLen; //ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å­ ï¿½ï¿½ï¿½ï¿½
 				}
 			}
 
@@ -2821,121 +2822,121 @@ int FileDataTransfer(int& Socket,char *pRecvHead, char *pRecvData, char* &pSendD
 				delete[] szRecvBuffer;
 
 			///////////////////////////////////////////////
-			//ÆÄÀÏ ÀÌ¸§ ¹Ù²Ù±â
-			// DB ³Ö±â..
-/******************************ÇØ½¬°ª ÃßÃâ ½ÃÀÛ***********************************************/
+			//ï¿½ï¿½ï¿½ï¿½ ï¿½Ì¸ï¿½ ï¿½Ù²Ù±ï¿½
+			// DB ï¿½Ö±ï¿½..
+/******************************ï¿½Ø½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½***********************************************/
 
-			infLOG(ALWAY,"À§µð½ºÅ© µ¥ÀÌÅÍ ¹Þ±â ¿Ï·á ¹× È®ÀÎ - ÆÄÀÏÀÌ¸§ (%s) ÀÓ½Ã¹øÈ£ (%lu) ÀÓ½Ã¹øÈ£ (%lu) ½ÇÁ¦ ÃÑ ¹ÞÀº °¹¼ö ( %d )\n",pFileinfo->cfups4001.file_name2, pFileinfo->nNumber,pFileinfo->cfups4001.id,nTotalRecvFileCnt);
+			infLOG(ALWAY,"ï¿½ï¿½ï¿½ï¿½Å© ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Þ±ï¿½ ï¿½Ï·ï¿½ ï¿½ï¿½ È®ï¿½ï¿½ - ï¿½ï¿½ï¿½ï¿½ï¿½Ì¸ï¿½ (%s) ï¿½Ó½Ã¹ï¿½È£ (%lu) ï¿½Ó½Ã¹ï¿½È£ (%lu) ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ( %d )\n",pFileinfo->cfups4001.file_name2, pFileinfo->nNumber,pFileinfo->cfups4001.id,nTotalRecvFileCnt);
 			pFileinfo->cfups4001.down_cnt = nTotalRecvFileCnt;
 
-			//¿©±â¼­ ºÎÅÍ ¹Þ±â ½ÃÀÛ
+			//ï¿½ï¿½ï¿½â¼­ ï¿½ï¿½ï¿½ï¿½ ï¿½Þ±ï¿½ ï¿½ï¿½ï¿½ï¿½
 
-			infLOG(ALWAY,"Àü¼Û ¿Ï·á ÈÄ ÇØ´õ ÀÀ´ä ´ë±â.\n");
+			infLOG(ALWAY,"ï¿½ï¿½ï¿½ï¿½ ï¿½Ï·ï¿½ ï¿½ï¿½ ï¿½Ø´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½.\n");
 			memset(&headers,0x00,sizeof(HEADER));
 			if(RecvData(Socket,(char*)&headers,HEADER_SIZE ) <= 0)
 			{
-				infLOG(ERROR,"Àü¼Û ¿Ï·á ÈÄ ÇØ´õ ÀÀ´ä ´ë±â ¿À·ù.\n");
-				// ¹Þ´ø ÆÄÀÏ »èÁ¦
+				infLOG(ERROR,"ï¿½ï¿½ï¿½ï¿½ ï¿½Ï·ï¿½ ï¿½ï¿½ ï¿½Ø´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½.\n");
+				// ï¿½Þ´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 				///////////////////////////////////////////////
-				// temp »èÁ¦									 //
+				// temp ï¿½ï¿½ï¿½ï¿½									 //
 				//////////////////////////////////////////////
 
-				com9101 ( com9101_r);
+				com9101 ( com9101_r, g_szDcmdIP, g_nDcmdPort);
 
 				return 0;
 
 			}
-			infLOG(ERROR,"Àü¼Û ¿Ï·á ÈÄ ÇØ´õ ÀÀ´ä ´ë±â °á°ú [ %d ].\n",headers.nCmd);
+			infLOG(ERROR,"ï¿½ï¿½ï¿½ï¿½ ï¿½Ï·ï¿½ ï¿½ï¿½ ï¿½Ø´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ [ %d ].\n",headers.nCmd);
 			if(headers.nCmd == RS_FILE_REQUEST_NEXT_FILE )
 			{
-				infLOG(ALWAY, "RS_FILE_REQUEST_NEXT_FILE\n´ÙÀ½ ÆÄÀÏÀ» ¹Þ½À´Ï´Ù.\n");
+				infLOG(ALWAY, "RS_FILE_REQUEST_NEXT_FILE\nï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Þ½ï¿½ï¿½Ï´ï¿½.\n");
 
 				memset(&headers,0x00,HEADER_SIZE);
 
-				headers.nCmd = RS_FILE_REQUEST_NEXT_FILEINFO; //ÆÄÀÏ Á¤º¸ ¿äÃ»
+				headers.nCmd = RS_FILE_REQUEST_NEXT_FILEINFO; //ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ã»
 				headers.nDataCnt = 0;
 				headers.nDataSize = 0;
 
 				if(	SendData(Socket,(char*)&headers,HEADER_SIZE )<0)  //struct _PACKET == PACKET
 				{
-					infLOG(ERROR, "RS_FILE_REQUEST_NEXT_FILE Àü¼Û ¿À·ù \n");
+					infLOG(ERROR, "RS_FILE_REQUEST_NEXT_FILE ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ \n");
 
 
-					// ¹Þ´ø ÆÄÀÏ »èÁ¦
+					// ï¿½Þ´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 					///////////////////////////////////////////////
-					// temp »èÁ¦									 //
+					// temp ï¿½ï¿½ï¿½ï¿½									 //
 					///////////////////////////////////////////////
 
-					com9101 ( com9101_r);
+					com9101 ( com9101_r, g_szDcmdIP, g_nDcmdPort);
 
 					return 0;
 
 				}
-				infLOG(ERROR, "RS_FILE_REQUEST_NEXT_FILE ÀÀ´ä ´ë±â Áß \n");
+				infLOG(ERROR, "RS_FILE_REQUEST_NEXT_FILE ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ \n");
 
 				//recv file_transfer
 				memset(&headers,0x00,HEADER_SIZE);
 				if(RecvData(Socket,(char*)&headers,HEADER_SIZE ) <= 0)
 				{
-					infLOG(ERROR, "RS_FILE_REQUEST_NEXT_FILE ÀÀ´ä ´ë±â Áß ¿À·ù [ ÀÌ°æ¿ì´Â º¸Åë Å¬¶óÀÌ¾ðÆ®·ÎºÎÅÍ µ¥ÀÌÅÍ¸¦ ¹ÞÁö ¸øÇÒ ¶§ ¹ß»ýÇÕ´Ï´Ù. \n");
+					infLOG(ERROR, "RS_FILE_REQUEST_NEXT_FILE ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ [ ï¿½Ì°ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Å¬ï¿½ï¿½ï¿½Ì¾ï¿½Æ®ï¿½Îºï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Í¸ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ß»ï¿½ï¿½Õ´Ï´ï¿½. \n");
 
 
-					// ¹Þ´ø ÆÄÀÏ »èÁ¦
+					// ï¿½Þ´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 					///////////////////////////////////////////////
-					// temp »èÁ¦									 //
+					// temp ï¿½ï¿½ï¿½ï¿½									 //
 					///////////////////////////////////////////////
 
-					com9101 ( com9101_r);
+					com9101 ( com9101_r, g_szDcmdIP, g_nDcmdPort);
 					return 0;
 
 				}
 
 				memset(&rFileInfo,0x00,sizeof(FILEINFO));
-				infLOG(ERROR, "´ÙÀ½ ÆÄÀÏÁ¤º¸ ¹Þ±â ´ë±â Áß \n");
+				infLOG(ERROR, "ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Þ±ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ \n");
 
 				if( RecvData(Socket,(char*)&rFileInfo,sizeof(FILEINFO) ) <= 0)
 				{
-					infLOG(ERROR, "´ÙÀ½ ÆÄÀÏÁ¤º¸ ¹Þ±â ´ë±â Áß ¿À·ù \n");
+					infLOG(ERROR, "ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Þ±ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ \n");
 
 
-					// ¹Þ´ø ÆÄÀÏ »èÁ¦
+					// ï¿½Þ´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 					///////////////////////////////////////////////
-					// temp »èÁ¦									 //
+					// temp ï¿½ï¿½ï¿½ï¿½									 //
 					///////////////////////////////////////////////
 
-					com9101 ( com9101_r);
+					com9101 ( com9101_r, g_szDcmdIP, g_nDcmdPort);
 					return 0;
 				}
 				pFileinfo = &rFileInfo;
 			}
 			else if(headers.nCmd == RS_EOL)
 			{
-				infLOG(ALWAY,"RS_EOL\nÀ§µð½ºÅ©ÀÇ ÄÁÅÙÃ÷¸¦ µî·ÏÇÕ´Ï´Ù. ÀÓ½Ã ¹øÈ£ °Ë»ç(T_CONTENTS_TEMP) [ %lu ]\n",pFileinfo->nNumber );
+				infLOG(ALWAY,"RS_EOL\nï¿½ï¿½ï¿½ï¿½Å©ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Õ´Ï´ï¿½. ï¿½Ó½ï¿½ ï¿½ï¿½È£ ï¿½Ë»ï¿½(T_CONTENTS_TEMP) [ %lu ]\n",pFileinfo->nNumber );
 
 
-			// µî·ÏÈÄ eol º¸³»±â
-				if(pFileinfo->nTypeDisk == FT_WEDISK && pFileinfo->nNumber > 0 ) //ÄÁÅÙÃ÷ µî·Ï
+			// ï¿½ï¿½ï¿½ï¿½ï¿½ eol ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+				if(pFileinfo->nTypeDisk == FT_WEDISK && pFileinfo->nNumber > 0 ) //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
 				{
 					if( dTotalLen == 0)
 					{
-						infLOG(ALWAY,"À§µð½ºÅ© ÆÄÀÏ µî·Ï - ÀÓ½Ã¹øÈ£ [ %lu ] ÆÄÀÏÀÌ¸§  [ %s ]  \n",pFileinfo->nNumber,pFileinfo->cfups4001.file_name2);
+						infLOG(ALWAY,"ï¿½ï¿½ï¿½ï¿½Å© ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ - ï¿½Ó½Ã¹ï¿½È£ [ %lu ] ï¿½ï¿½ï¿½ï¿½ï¿½Ì¸ï¿½  [ %s ]  \n",pFileinfo->nNumber,pFileinfo->cfups4001.file_name2);
 
-						//¿©±â·Î ÀÏ¹Ý ¾÷·Îµå Àû¿ë
+						//ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ï¹ï¿½ ï¿½ï¿½ï¿½Îµï¿½ ï¿½ï¿½ï¿½ï¿½
 
 						int nResult = fups4001(pFileinfo->cfups4001);
-						infLOG(ALWAY,"À§µð½ºÅ© µî·Ï°á°ú(fups4001) Result [ %d ] \n",nResult);
+						infLOG(ALWAY,"ï¿½ï¿½ï¿½ï¿½Å© ï¿½ï¿½Ï°ï¿½ï¿½(fups4001) Result [ %d ] \n",nResult);
 
 						if(  nResult < 0 )//pFileinfo->cfups4001) == -1)
 						{
-							// ¹Þ´ø ÆÄÀÏ »èÁ¦
+							// ï¿½Þ´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 							///////////////////////////////////////////////
-							// temp »èÁ¦									 //
+							// temp ï¿½ï¿½ï¿½ï¿½									 //
 							///////////////////////////////////////////////
 
-							//ÄÁÅÙÃ÷ µî·ÏÁß ¿À·ù ¹ß»ý ...²À »èÁ¦ ÇØ¾ß ÇÒ ¸ñ·Ïµé
+							//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ß»ï¿½ ...ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ø¾ï¿½ ï¿½ï¿½ ï¿½ï¿½Ïµï¿½
 
-							infLOG(ERROR, "================== À§µð½ºÅ© µî·Ï ¿À·ù ===================\n"
-										  "ÀÓ½Ã¹øÈ£ ( %lu )¼­¹ö ¾ÆÀÌµð( %s ) ÆÄÀÏ°æ·Î ( %s )                         \n"
+							infLOG(ERROR, "================== ï¿½ï¿½ï¿½ï¿½Å© ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ===================\n"
+										  "ï¿½Ó½Ã¹ï¿½È£ ( %lu )ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ìµï¿½( %s ) ï¿½ï¿½ï¿½Ï°ï¿½ï¿½ ( %s )                         \n"
 										  "=========================================================\n" ,pFileinfo->nNumber,pFileinfo->cfups4001.server_id ,szFullPath);
 
 							memset(&headers,0x00,sizeof(HEADER));
@@ -2958,14 +2959,14 @@ int FileDataTransfer(int& Socket,char *pRecvHead, char *pRecvData, char* &pSendD
 							if( nResult == -2)
 								headers.nErrorCode = 400199;
 
-							infLOG(ALWAY,"RS_FILE_END_FAIL Àü¼Û \n");
+							infLOG(ALWAY,"RS_FILE_END_FAIL ï¿½ï¿½ï¿½ï¿½ \n");
 
 							if(	SendData(Socket,(char*)&headers,HEADER_SIZE)<0)  //struct _PACKET == PACKET
 							{
-								com9101 ( com9101_r);
+								com9101 ( com9101_r, g_szDcmdIP, g_nDcmdPort);
 								return 0;
 							}
-							com9101 ( com9101_r);
+							com9101 ( com9101_r, g_szDcmdIP, g_nDcmdPort);
 							return 1;
 						}
 
@@ -2990,12 +2991,12 @@ int FileDataTransfer(int& Socket,char *pRecvHead, char *pRecvData, char* &pSendD
 						system(szRunSystem);
 						// 2013.11.19.. add by
 */
-						infLOG(ALWAY,"============== À§µð½ºÅ© ÆÄÀÏ µî·Ï ¿Ï·á ===============\n");
+						infLOG(ALWAY,"============== ï¿½ï¿½ï¿½ï¿½Å© ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½Ï·ï¿½ ===============\n");
 
 					}
 					else
 					{
-						infLOG(ERROR, "============ ÇÊ·Î±× µî·Ï ¿À·ù - ÆÄÀÏÀ» ¿ÏÀüÈ÷ ¹ÞÁö ¸øÇÏ¿´½À´Ï´Ù. ========== \n");
+						infLOG(ERROR, "============ ï¿½Ê·Î±ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ - ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ï¿ï¿½ï¿½ï¿½ï¿½Ï´ï¿½. ========== \n");
 						memset(&headers,0x00,sizeof(HEADER));
 
 			/*			if(	RecvData(Socket,(char*)&headers,sizeof(struct _HEADER))<=0)  //struct _PACKET == PACKET
@@ -3003,7 +3004,7 @@ int FileDataTransfer(int& Socket,char *pRecvHead, char *pRecvData, char* &pSendD
 							return 0;
 						}
 			*/
-						// ¹Þ´ø ÆÄÀÏ »èÁ¦
+						// ï¿½Þ´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 
 						#ifdef __DEBUG
 						printf(" ] file recv cancel..2\n");
@@ -3013,58 +3014,58 @@ int FileDataTransfer(int& Socket,char *pRecvHead, char *pRecvData, char* &pSendD
 						headers.nDataCnt = 0;
 						headers.nDataSize = 0;
 						headers.nErrorCode = 4001;
-						infLOG(ALWAY,"RS_FILE_END_FAIL Àü¼Û \n");
+						infLOG(ALWAY,"RS_FILE_END_FAIL ï¿½ï¿½ï¿½ï¿½ \n");
 
 						if(	SendData(Socket,(char*)&headers,HEADER_SIZE)<=0)  //struct _PACKET == PACKET
 						{
-							com9101 ( com9101_r);
+							com9101 ( com9101_r, g_szDcmdIP, g_nDcmdPort);
 							return 0;
 						}
-						com9101 ( com9101_r);
+						com9101 ( com9101_r, g_szDcmdIP, g_nDcmdPort);
 						return 1;
 					}
 				}
 
-				infLOG(ALWAY, "RS_EROL Àü¼Û\n");
+				infLOG(ALWAY, "RS_EROL ï¿½ï¿½ï¿½ï¿½\n");
 
 				memset(&headers,0x00,HEADER_SIZE);
 
-				headers.nCmd = RS_EOL; //ÆÄÀÏ Á¤º¸ ¿äÃ»
+				headers.nCmd = RS_EOL; //ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ã»
 				headers.nDataCnt = 0;
 				headers.nDataSize = 0;
 
 				if(	SendData(Socket,(char*)&headers,HEADER_SIZE )<0)  //struct _PACKET == PACKET
 				{
-					com9101 ( com9101_r);
+					com9101 ( com9101_r, g_szDcmdIP, g_nDcmdPort);
 					return 0;
 				}
-				com9101 ( com9101_r);
+				com9101 ( com9101_r, g_szDcmdIP, g_nDcmdPort);
 				return 0;
 			}
 			else
 			{
-				infLOG(ERROR,"Àü¼Û ¿Ï·á ÈÄ ÇØ´õ ÀÀ´ä ´ë±â ¿À·ù [ %d ]¸í·É¾î°¡ ¾ø½À´Ï´Ù.\n",headers.nCmd);
+				infLOG(ERROR,"ï¿½ï¿½ï¿½ï¿½ ï¿½Ï·ï¿½ ï¿½ï¿½ ï¿½Ø´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ [ %d ]ï¿½ï¿½ï¿½É¾î°¡ ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½.\n",headers.nCmd);
 
-				// ¹Þ´ø ÆÄÀÏ »èÁ¦
+				// ï¿½Þ´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 				///////////////////////////////////////////////
-				// temp »èÁ¦									 //
+				// temp ï¿½ï¿½ï¿½ï¿½									 //
 				///////////////////////////////////////////////
-				com9101 ( com9101_r);
+				com9101 ( com9101_r, g_szDcmdIP, g_nDcmdPort);
 				return 0;
 			}
 		}while( 1 );
 
-		com9101 ( com9101_r);
+		com9101 ( com9101_r, g_szDcmdIP, g_nDcmdPort);
 	}
 	else
 	{
-		infLOG(ERROR," com9004 ¿À·ù - nCType ( %d ) ÀÌ ¾ø½À´Ï´Ù. \n" ,nCType );
+		infLOG(ERROR," com9004 ï¿½ï¿½ï¿½ï¿½ - nCType ( %d ) ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½. \n" ,nCType );
 		pSendData = new char[sizeof(ERR_HEADER)];
 		memset(pSendData,0x00,sizeof(ERR_HEADER));
 		errheader.header.nCmd = RS_ERR;
 		errheader.header.nErrorCode = -RS_FILE_DATA_TRANSFER;
 
-		strcat(errheader.errmsg,"¾÷·Îµå ¿À·ùÀÔ´Ï´Ù. Àß¸øµÈ ¼­ºñ½º ¼±ÅÃÀÔ´Ï´Ù.");
+		strcat(errheader.errmsg,"ï¿½ï¿½ï¿½Îµï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ô´Ï´ï¿½. ï¿½ß¸ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ô´Ï´ï¿½.");
 
 		memcpy(pSendData, &errheader, sizeof(ERR_HEADER));
 
