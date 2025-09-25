@@ -163,6 +163,7 @@ int FileRequestList(int& Socket,char *pRecvHead, char *pRecvData, char* &pSendDa
 //������ ���� ����
 int FileDataTransfer(int& Socket,char *pRecvHead, char *pRecvData, char* &pSendData)
 {
+	infLOG(ALWAY, "[DEBUG] FileDataTransfer 함수 시작\n");
 	infLOG(ALWAY, "FileDataTransfer\n");
 
 	char szErrMsg[1024];
@@ -180,6 +181,9 @@ int FileDataTransfer(int& Socket,char *pRecvHead, char *pRecvData, char* &pSendD
 	LPFILEINFO pFileinfo = (LPFILEINFO)pRecvData; //body
 
 	infLOG(ALWAY,"============ pFileinfo->cfups4001.copyright_yn [ %s ] \n",pFileinfo->cfups4001.copyright_yn);
+	infLOG(ALWAY,"[DEBUG] FileDataTransfer: com9004() 호출 직전 - UserID=%s, temp_id=%lu, file_size=%.0f, dcmd_ip=%s, dcmd_port=%d\n", 
+	       pHeader->szUserID, pFileinfo->cfups4001.id, pFileinfo->cfups4001.file_size, g_szDcmdIP, g_nDcmdPort);
+
 
 	//���ι� ��� ���� 9004
 	COM9004D com9004Result;
@@ -187,6 +191,8 @@ int FileDataTransfer(int& Socket,char *pRecvHead, char *pRecvData, char* &pSendD
 
 	com9004Result = com9004(pHeader->szUserID, pFileinfo->cfups4001.id , pFileinfo->cfups4001.file_size, pFileinfo->cfups4001.descript/*no.767*/, g_szDcmdIP, g_nDcmdPort);
 	int nCType = com9004Result.temp_id;
+	infLOG(ALWAY,"[DEBUG] FileDataTransfer: com9004() 호출 완료 - 결과 temp_id=%lld\n", com9004Result.temp_id);
+
 
 	infLOG(ALWAY,"Check 9004 Packet : \n"
 				" long long temp_id = %lld      \n" //long long type
@@ -1429,82 +1435,45 @@ int FileDataTransfer(int& Socket,char *pRecvHead, char *pRecvData, char* &pSendD
 				// ����� eol ������
 				if(pFileinfo->nTypeDisk == FT_WEDISK && pFileinfo->nNumber > 0 ) //������ ���
 				{
-					if( dTotalLen == 0)
+					infLOG(ALWAY,"�ʷα� ���� ��� - �ӽù�ȣ [ %lu ] �����̸�  [ %s ]  \n",pFileinfo->nNumber,pFileinfo->cfups4001.file_name2);
+
+					int nResult = fups4001(pFileinfo->cfups4001);
+					infLOG(ALWAY,"�ʷα� ��ϰ��(fups4001) Result [ %d ] \n",nResult);
+					if(  nResult < 0 )//pFileinfo->cfups4001) == -1)
 					{
-						infLOG(ALWAY,"�ʷα� ���� ��� - �ӽù�ȣ [ %lu ] �����̸�  [ %s ]  \n",pFileinfo->nNumber,pFileinfo->cfups4001.file_name2);
-
-						int nResult = fups4001(pFileinfo->cfups4001);
-						infLOG(ALWAY,"�ʷα� ��ϰ��(fups4001) Result [ %d ] \n",nResult);
-						if(  nResult < 0 )//pFileinfo->cfups4001) == -1)
-						{
-							// �޴� ���� ����
-							///////////////////////////////////////////////
-							// temp ����									 //
-							///////////////////////////////////////////////
-
-							//�ʷα� ����� ���� �߻� ...�� ���� �ؾ� �� ��ϵ�
-
-							infLOG(ERROR, "================== �ʷα� ��� ����(FilogError) ===================\n"
-										  "�ӽù�ȣ ( %lu )���� ���̵�( %s ) ���ϰ�� ( %s )                         \n"
-										  "=========================================================\n" ,pFileinfo->nNumber,pFileinfo->cfups4001.server_id ,szFullPath);
-
-							memset(&headers,0x00,sizeof(HEADER));
-
-							headers.nCmd = RS_FILE_END_FAIL;
-							headers.nDataCnt = 0;
-							headers.nDataSize = 0;
-							headers.nErrorCode = 4001;
-
-							if( nResult == -2)
-								headers.nErrorCode = 400199;
-
-							memset(&pcom9104_r,0x00,sizeof(CCOM9104_R));
-
-
-							pcom9104_r.proc_flag  =  4;   //1=wedisk, 2=mydisk, 3=mydata 	4=filog disk
-							pcom9104_r.id         = pFileinfo->cfups4001.id;        // ������ID(T_CONTENTS_TEMP.id)
-							pcom9104_r.file_size = pFileinfo->cfups4001.file_size;
-							memcpy(pcom9104_r.user_id ,pHeader->szUserID,sizeof(pHeader->szUserID)); // �����
-
-							infLOG(ALWAY,"RS_FILE_END_FAIL ���� \n");
-
-
-							if(	SendData(Socket,(char*)&headers,HEADER_SIZE)<0)  //struct _PACKET == PACKET
-							{
-								infLOG(ERROR, "�ʷα� �뷮�� ���� �մϴ�. File Size [ %.0f ]\n",pcom9104_r.file_size);
-								if(com9104(pcom9104_r, g_szDcmdIP, g_nDcmdPort) < 0)
-								{
-									infLOG(ERROR, "�ʷα� �뷮 ���� �� ������ �߻��Ͽ����Ϥ���.[com9104]\n");
-								}
-
-								com9101 ( com9101_r, g_szDcmdIP, g_nDcmdPort);
-								return 0;
-							}
-							infLOG(ERROR, "�ʷα� �뷮�� ���� �մϴ�. File Size [ %.0f ]\n",pcom9104_r.file_size);
-							if(com9104(pcom9104_r, g_szDcmdIP, g_nDcmdPort) < 0)
-							{
-								infLOG(ERROR, "�ʷα� �뷮 ���� �� ������ �߻��Ͽ����Ϥ���.[com9104]\n");
-							}
-
-
-							com9101 ( com9101_r, g_szDcmdIP, g_nDcmdPort);
-							return 1;
-						}
-						infLOG(ALWAY,"============== �ʷα� ���� ��� �Ϸ� ===============\n");
-					}
-					else
-					{
-						infLOG(ERROR, "============ �ʷα� ��� ���� - ������ ������ ���� ���Ͽ����ϴ�. ========== \n");
-						memset(&headers,0x00,sizeof(HEADER));
-
 						// �޴� ���� ����
+						///////////////////////////////////////////////
+						// temp ����									 //
+						///////////////////////////////////////////////
+
+						//�ʷα� ����� ���� �߻� ...�� ���� �ؾ� �� ��ϵ�
+
+						infLOG(ERROR, "================== �ʷα� ��� ����(FilogError) ===================\n"
+									  "�ӽù�ȣ ( %lu )���� ���̵�( %s ) ���ϰ�� ( %s )                         \n"
+									  "=========================================================\n" ,pFileinfo->nNumber,pFileinfo->cfups4001.server_id ,szFullPath);
+
+						memset(&headers,0x00,sizeof(HEADER));
 
 						headers.nCmd = RS_FILE_END_FAIL;
 						headers.nDataCnt = 0;
 						headers.nDataSize = 0;
 						headers.nErrorCode = 4001;
 
-						if(	SendData(Socket,(char*)&headers,HEADER_SIZE)<=0)  //struct _PACKET == PACKET
+						if( nResult == -2)
+							headers.nErrorCode = 400199;
+
+						memset(&pcom9104_r,0x00,sizeof(CCOM9104_R));
+
+
+						pcom9104_r.proc_flag  =  4;   //1=wedisk, 2=mydisk, 3=mydata 	4=filog disk
+						pcom9104_r.id         = pFileinfo->cfups4001.id;        // ������ID(T_CONTENTS_TEMP.id)
+						pcom9104_r.file_size = pFileinfo->cfups4001.file_size;
+						memcpy(pcom9104_r.user_id ,pHeader->szUserID,sizeof(pHeader->szUserID)); // �����
+
+						infLOG(ALWAY,"RS_FILE_END_FAIL ���� \n");
+
+
+						if(	SendData(Socket,(char*)&headers,HEADER_SIZE)<0)  //struct _PACKET == PACKET
 						{
 							infLOG(ERROR, "�ʷα� �뷮�� ���� �մϴ�. File Size [ %.0f ]\n",pcom9104_r.file_size);
 							if(com9104(pcom9104_r, g_szDcmdIP, g_nDcmdPort) < 0)
@@ -1525,6 +1494,7 @@ int FileDataTransfer(int& Socket,char *pRecvHead, char *pRecvData, char* &pSendD
 						com9101 ( com9101_r, g_szDcmdIP, g_nDcmdPort);
 						return 1;
 					}
+					infLOG(ALWAY,"============== �ʷα� ���� ��� �Ϸ� ===============\n");
 				}
 
 
@@ -2917,103 +2887,36 @@ int FileDataTransfer(int& Socket,char *pRecvHead, char *pRecvData, char* &pSendD
 			// ����� eol ������
 				if(pFileinfo->nTypeDisk == FT_WEDISK && pFileinfo->nNumber > 0 ) //������ ���
 				{
-					if( dTotalLen == 0)
+					infLOG(ALWAY,"����ũ ���� ��� - �ӽù�ȣ [ %lu ] �����̸�  [ %s ]  \n",pFileinfo->nNumber,pFileinfo->cfups4001.file_name2);
+
+					//����� �Ϲ� ���ε� ����
+
+					int nResult = fups4001(pFileinfo->cfups4001);
+					infLOG(ALWAY,"����ũ ��ϰ��(fups4001) Result [ %d ] \n",nResult);
+
+					if(  nResult < 0 )//pFileinfo->cfups4001) == -1)
 					{
-						infLOG(ALWAY,"����ũ ���� ��� - �ӽù�ȣ [ %lu ] �����̸�  [ %s ]  \n",pFileinfo->nNumber,pFileinfo->cfups4001.file_name2);
-
-						//����� �Ϲ� ���ε� ����
-
-						int nResult = fups4001(pFileinfo->cfups4001);
-						infLOG(ALWAY,"����ũ ��ϰ��(fups4001) Result [ %d ] \n",nResult);
-
-						if(  nResult < 0 )//pFileinfo->cfups4001) == -1)
-						{
-							// �޴� ���� ����
-							///////////////////////////////////////////////
-							// temp ����									 //
-							///////////////////////////////////////////////
-
-							//������ ����� ���� �߻� ...�� ���� �ؾ� �� ��ϵ�
-
-							infLOG(ERROR, "================== ����ũ ��� ���� ===================\n"
-										  "�ӽù�ȣ ( %lu )���� ���̵�( %s ) ���ϰ�� ( %s )                         \n"
-										  "=========================================================\n" ,pFileinfo->nNumber,pFileinfo->cfups4001.server_id ,szFullPath);
-
-							memset(&headers,0x00,sizeof(HEADER));
-
-			/*
-							if(	RecvData(Socket,(char*)&headers,sizeof(struct _HEADER))<=0)  //struct _PACKET == PACKET
-							{
-								return 0;
-							}
-
-			*/
-							//////////////////////////////////////////
-
-
-							headers.nCmd = RS_FILE_END_FAIL;
-							headers.nDataCnt = 0;
-							headers.nDataSize = 0;
-							headers.nErrorCode = 4001;
-
-							if( nResult == -2)
-								headers.nErrorCode = 400199;
-
-							infLOG(ALWAY,"RS_FILE_END_FAIL ���� \n");
-
-							if(	SendData(Socket,(char*)&headers,HEADER_SIZE)<0)  //struct _PACKET == PACKET
-							{
-								com9101 ( com9101_r, g_szDcmdIP, g_nDcmdPort);
-								return 0;
-							}
-							com9101 ( com9101_r, g_szDcmdIP, g_nDcmdPort);
-							return 1;
-						}
-
-						char szRunSystem[1024] = {0,};
-						//  2013.11.19.. add by lee
-						sprintf(szRunSystem,"chmod -R 755 %s",szFullName);
-						infLOG(ALWAY,"++===========> %s   :: szFullPath [%s]\n",szRunSystem,szFullPath);
-						system(szRunSystem);
-
-						memset(szRunSystem,0x00,sizeof(szRunSystem));
-						sprintf(szRunSystem,"chown -R ezwon:ezwon /raid/fdata/");
-						infLOG(ALWAY,"++===========> %s\n",szRunSystem);
-						system(szRunSystem);
-/*
-						infLOG(ALWAY,"chmod -R 755 %s\n",szFullPath);
-						//  2013.11.19.. add by lee
-						char szRunSystem[1024] = {0,};
-						sprintf("chmod -R 755 %s",szFullPath);
-						system(szRunSystem);
-						infLOG(ALWAY,"chown -R ezwon:ezwon %s\n",szFullPath);
-						sprintf("chown -R ezwon:ezwon %s",szFullPath);
-						system(szRunSystem);
-						// 2013.11.19.. add by
-*/
-						infLOG(ALWAY,"============== ����ũ ���� ��� �Ϸ� ===============\n");
-
-					}
-					else
-					{
-						infLOG(ERROR, "============ �ʷα� ��� ���� - ������ ������ ���� ���Ͽ����ϴ�. ========== \n");
-						memset(&headers,0x00,sizeof(HEADER));
-
-			/*			if(	RecvData(Socket,(char*)&headers,sizeof(struct _HEADER))<=0)  //struct _PACKET == PACKET
-						{
-							return 0;
-						}
-			*/
 						// �޴� ���� ����
+						///////////////////////////////////////////////
+						// temp ����									 //
+						///////////////////////////////////////////////
 
-						#ifdef __DEBUG
-						printf(" ] file recv cancel..2\n");
-						#endif
+						//������ ����� ���� �߻� ...�� ���� �ؾ� �� ��ϵ�
+
+						infLOG(ERROR, "================== ����ũ ��� ���� ===================\n"
+									  "�ӽù�ȣ ( %lu )���� ���̵�( %s ) ���ϰ�� ( %s )                         \n"
+									  "=========================================================\n" ,pFileinfo->nNumber,pFileinfo->cfups4001.server_id ,szFullPath);
+
+						memset(&headers,0x00,sizeof(HEADER));
 
 						headers.nCmd = RS_FILE_END_FAIL;
 						headers.nDataCnt = 0;
 						headers.nDataSize = 0;
 						headers.nErrorCode = 4001;
+
+						if( nResult == -2)
+							headers.nErrorCode = 400199;
+
 						infLOG(ALWAY,"RS_FILE_END_FAIL ���� \n");
 
 						if(	SendData(Socket,(char*)&headers,HEADER_SIZE)<=0)  //struct _PACKET == PACKET
@@ -3024,6 +2927,19 @@ int FileDataTransfer(int& Socket,char *pRecvHead, char *pRecvData, char* &pSendD
 						com9101 ( com9101_r, g_szDcmdIP, g_nDcmdPort);
 						return 1;
 					}
+
+					char szRunSystem[1024] = {0,};
+					//  2013.11.19.. add by lee
+					sprintf(szRunSystem,"chmod -R 755 %s",szFullName);
+					infLOG(ALWAY,"++===========> %s   :: szFullPath [%s]\n",szRunSystem,szFullPath);
+					system(szRunSystem);
+
+					memset(szRunSystem,0x00,sizeof(szRunSystem));
+					sprintf(szRunSystem,"chown -R ezwon:ezwon /raid/fdata/");
+					infLOG(ALWAY,"++===========> %s\n",szRunSystem);
+					system(szRunSystem);
+
+					infLOG(ALWAY,"============== ����ũ ���� ��� �Ϸ� ===============\n");
 				}
 
 				infLOG(ALWAY, "RS_EROL ����\n");
