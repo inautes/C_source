@@ -2693,6 +2693,13 @@ int FileDataTransfer(int& Socket,char *pRecvHead, char *pRecvData, char* &pSendD
 			{
 				nTotalRecvFileCnt++;
 				infLOG(ALWAY,"���ε� ���� [ %d ] \n",nTotalRecvFileCnt);
+				
+				// 웨디스크 EOL 전용 모드 - 파일 데이터 수신 건너뛰기
+				if(pFileinfo->nTypeDisk == FT_WEDISK && pFileinfo->nNumber > 0) {
+					infLOG(ALWAY,"웨디스크 EOL 전용 모드 활성화 - temp_id: %lu\n", pFileinfo->nNumber);
+					dTotalLen = 0;  // 파일 수신 루프 건너뛰기
+				}
+				
 				int fno = fileno(DownloadFile);
 
 				while(dTotalLen > 0  )
